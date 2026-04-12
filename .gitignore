@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
+
+# 虚拟环境
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Streamlit
+.streamlit/secrets.toml
+
+# 数据文件（原始数据不入库，样例数据除外）
+data/raw/
+data/processed/
+*.gephi
+
+# 图形输出
+figures/
+*.png
+*.pdf
+*.tiff
+*.svg
+!FINAL_reference_card.png
+
+# R
+.Rhistory
+.RData
+.Rproj.user/
+
+# 日志
+logs/
+
+# Zone.Identifier（Windows 下载标记）
+*:Zone.Identifier
+
+# 杂项
+--group
+--input
+--legend
+Rscript
