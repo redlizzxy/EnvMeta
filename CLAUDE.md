@@ -130,8 +130,43 @@ Streamlit 控件实时调参（颜色/字体/大小/图例等）→ 参数字典
 
 ## 开发路线图
 
-- **Phase 0（当前）**：项目骨架 + git init + conda 环境 + 知识库 v1
-- **Phase 1**：文件识别 + 堆叠图/PCoA/热图 + 基础调参 + 导出
+- **Phase 0（已完成）**：项目骨架 + git init + conda 环境 + 知识库 v1
+- **Phase 1（当前）**：文件识别 + 堆叠图/PCoA/热图 + 基础调参 + 导出
 - **Phase 2**：全部 12 种图表 + 代码生成器
 - **Phase 3**：循环图 v1（推断引擎 + 静态渲染）
 - **Phase 4**：循环图交互编辑 + 产品打磨 → v1.0 发布
+
+## 论文发表数据积累
+
+本工具计划作为方法学论文发表（目标期刊：iMeta / Bioinformatics / Frontiers in Microbiology）。
+开发过程中需要持续积累以下四类数据：
+
+### 积累规则
+
+1. **功能验证**：每完成一个分析模块，用 `tests/sample_data/` 中的论文真实数据跑一遍，将输出保存到 `paper/benchmarks/validation/`，与原始 R/Python 脚本的输出对比，确认结果一致。
+2. **效率对比**：每完成一个模块，记录"传统方式（写代码）需要多少行代码/多少步骤/多少时间" vs "EnvMeta 需要多少次点击/多少时间"，写入 `paper/benchmarks/time_comparison.md`。
+3. **截图留档**：每个模块完成后截一张 EnvMeta 的界面截图，保存到 `paper/figures/screenshot_模块名.png`。
+4. **开发日志量化**：每次开发日志除了记录做了什么，加一行量化数据（代码行数、验证结果、耗时对比）。
+
+## 开发日志
+
+> 每次 session 结束前更新此区块。新对话开始时 Claude Code 自动读取，了解当前进度。
+
+### 2026-04-12
+- **阶段**：Phase 0 完成
+- **已完成**：
+  - CLAUDE.md 创建，VS Code + Claude Code 环境配通
+  - 创建 envmeta 包结构（file_manager/analysis/params/export/geocycle 五大子模块）
+  - git init + .gitignore
+  - requirements.txt（streamlit/plotly/matplotlib/scipy/scikit-bio 等 13 个核心依赖）
+  - app.py Streamlit 主页面框架（侧边栏导航 + 5 大模块占位页面）
+  - 安装 Miniconda + 创建 conda envmeta 环境 + 全部依赖安装验证通过
+  - INSTALL.md 环境安装指南
+  - 初始化论文数据积累框架（paper/ 目录）
+  - 首次 git commit（6cab58f）
+- **下一步**：Phase 1 — 文件识别引擎（模块A）+ 堆叠图/PCoA/热图（模块B）+ 基础调参 + 导出
+- **遇到的问题**：
+  - Windows Store Python 占位符（exit code 49）→ 安装 Miniconda 解决
+  - conda 未加入 PATH → `conda init powershell` 解决
+  - conda 首次使用需接受 Terms of Service → `conda tos accept` 解决
+- **量化**：项目骨架 10 个新文件，依赖 13 个包全部验证通过

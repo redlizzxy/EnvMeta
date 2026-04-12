@@ -5,6 +5,8 @@ __pycache__/
 dist/
 build/
 *.egg
+.ipynb_checkpoints/
+.env
 
 # 虚拟环境
 .venv/
