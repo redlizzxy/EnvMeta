@@ -128,6 +128,26 @@ Streamlit 控件实时调参（颜色/字体/大小/图例等）→ 参数字典
 - **分支**：main（稳定版）→ dev（日常开发）→ feature/xxx（功能分支）
 - **测试数据**：放在 tests/sample_data/，用论文真实数据的精简版
 
+## 日常开发循环
+
+每次开始开发时：
+
+```powershell
+conda activate envmeta
+cd D:\workdata\envmeta
+streamlit run app.py       # 浏览器 http://localhost:8501
+```
+
+提交代码：
+
+```powershell
+git add <改动的文件>       # 避免 git add -A（会误入 .env 等敏感文件）
+git commit -m "feat: xxx"  # 前缀：feat/fix/refactor/docs/test
+git push                    # 推送到 origin/master
+```
+
+**远程仓库**：`https://github.com/redlizzxy/EnvMeta`（Private）
+
 ## 开发路线图
 
 - **Phase 0（已完成）**：项目骨架 + git init + conda 环境 + 知识库 v1
@@ -152,21 +172,35 @@ Streamlit 控件实时调参（颜色/字体/大小/图例等）→ 参数字典
 
 > 每次 session 结束前更新此区块。新对话开始时 Claude Code 自动读取，了解当前进度。
 
-### 2026-04-12
-- **阶段**：Phase 0 完成
+### 2026-04-13
+- **阶段**：Phase 0 全部完成 → 准备进入 Phase 1
 - **已完成**：
-  - CLAUDE.md 创建，VS Code + Claude Code 环境配通
-  - 创建 envmeta 包结构（file_manager/analysis/params/export/geocycle 五大子模块）
-  - git init + .gitignore
-  - requirements.txt（streamlit/plotly/matplotlib/scipy/scikit-bio 等 13 个核心依赖）
-  - app.py Streamlit 主页面框架（侧边栏导航 + 5 大模块占位页面）
-  - 安装 Miniconda + 创建 conda envmeta 环境 + 全部依赖安装验证通过
+  - 项目骨架：envmeta 包结构（5 子模块）+ tests/ + paper/
+  - 开发环境：Miniconda + conda envmeta（Python 3.11）+ 13 个依赖全部验证通过
+  - app.py Streamlit 框架（侧边栏导航 + 5 大模块占位页面，浏览器实测通过）
+  - 测试数据：15 个论文真实数据精简文件放入 `tests/sample_data/`，带 README 索引
+  - README.md 改写为 EnvMeta 工具说明（替换旧论文项目内容）
   - INSTALL.md 环境安装指南
-  - 初始化论文数据积累框架（paper/ 目录）
-  - 首次 git commit（6cab58f）
-- **下一步**：Phase 1 — 文件识别引擎（模块A）+ 堆叠图/PCoA/热图（模块B）+ 基础调参 + 导出
+  - 元素循环知识库 v1：`envmeta/geocycle/knowledge_base/elements.json`
+    4 元素 × 18 通路 × 57 KO（As 17 / N 17 / S 15 / Fe 8），含元素间耦合关系
+  - 论文积累框架 paper/：benchmarks/validation、time_comparison（含"一键复现"列）、
+    performance、figures、user_study（SUS 量表 + task_protocol）、manuscript、tool_comparison
+  - requirements.txt 干净环境复现验证通过（临时 envmeta_verify 环境）
+  - GitHub 私有仓库 `redlizzxy/EnvMeta` 创建并完成首次推送
+- **Git 历史**（3 个 commit）：
+  - `6cab58f` feat: Phase 0 项目初始化
+  - `d1372a4` docs: 初始化论文数据积累框架
+  - `7778cc4` feat: Phase 0 收尾（测试数据 + README + 知识库）
+- **下一步**：Phase 1 — 模块 A（文件识别引擎）+ 模块 B（堆叠图/PCoA/热图）+ 模块 C（基础调参）+ 模块 D（基础导出）
 - **遇到的问题**：
   - Windows Store Python 占位符（exit code 49）→ 安装 Miniconda 解决
   - conda 未加入 PATH → `conda init powershell` 解决
   - conda 首次使用需接受 Terms of Service → `conda tos accept` 解决
-- **量化**：项目骨架 10 个新文件，依赖 13 个包全部验证通过
+  - PowerShell 转义规则与 bash 不同 → 验证命令在 bash 跑、不在 PowerShell 里跑
+  - gh CLI 在 bash session 读不到 keyring → 推送改在 PowerShell 里执行
+  - `gh repo create ... --push` 时 git 未配置 credential helper → `gh auth setup-git` 后再 push
+- **量化**：
+  - 代码/文档：60 + 18 = 78 个文件入库，累计 ~15,000 行（含原论文脚本参考）
+  - 知识库：51 → 57 KO（源码实际值，超出 CLAUDE.md 原声明 6 个）
+  - 环境复现：从零装 conda → app 跑通全程 ~15 分钟
+  - 测试数据：586 KB，覆盖 12 种图表全部输入类型
