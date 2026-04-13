@@ -1,0 +1,31 @@
+"""文件识别引擎测试。"""
+from pathlib import Path
+
+import pytest
+
+from envmeta.file_manager.detector import FileType, detect
+
+SAMPLE = Path(__file__).parent / "sample_data"
+
+
+@pytest.mark.parametrize("filename, expected", [
+    ("metadata.txt", FileType.METADATA),
+    ("Phylum.txt", FileType.ABUNDANCE_WIDE),
+    ("Genus.txt", FileType.ABUNDANCE_WIDE),
+    ("Species.txt", FileType.ABUNDANCE_WIDE),
+    ("alpha.txt", FileType.UNKNOWN),       # 本迭代不识别
+    ("beta_bray.txt", FileType.UNKNOWN),   # 距离矩阵，本迭代不识别
+    ("quality_report.tsv", FileType.UNKNOWN),
+])
+def test_detect_sample_files(filename, expected):
+    r = detect(SAMPLE / filename)
+    assert r.file_type == expected, (
+        f"{filename}: 期望 {expected.value}，得到 {r.file_type.value}（{r.reasons}）"
+    )
+
+
+def test_detect_confidence_for_known():
+    r = detect(SAMPLE / "metadata.txt")
+    assert r.confidence >= 0.9
+    assert r.preview_df is not None
+    assert r.preview_df.shape[0] <= 5

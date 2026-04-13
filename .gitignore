@@ -39,6 +39,11 @@ figures/
 *.tiff
 *.svg
 !FINAL_reference_card.png
+# paper/ 下的图是论文资产，必须入库
+!paper/**/*.png
+!paper/**/*.pdf
+!paper/**/*.svg
+!paper/**/*.tiff
 
 # R
 .Rhistory

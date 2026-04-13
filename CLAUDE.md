@@ -172,6 +172,26 @@ git push                    # 推送到 origin/master
 
 > 每次 session 结束前更新此区块。新对话开始时 Claude Code 自动读取，了解当前进度。
 
+### 2026-04-13（下午 — Phase 1 迭代 1）
+- **阶段**：Phase 1 迭代 1 完成（端到端打通堆叠图）
+- **已完成**：
+  - 模块 A 雏形：`envmeta/file_manager/detector.py`（识别 metadata + abundance_wide，含编码/分隔符嗅探，规则可扩展）
+  - 模块 B 接口：`envmeta/analysis/base.py`（AnalysisResult dataclass）
+  - 第一图：`envmeta/analysis/stackplot.py`（sample / group 双样式，Top-N + Others，matplotlib 渲染）
+  - 模块 D 雏形：`envmeta/export/figure_export.py`（PNG / PDF，含 export_to_bytes 供 Streamlit 用）
+  - app.py 改造：文件管理页面（多文件上传 + 自动识别 + 预览 + 手动修正）+ 堆叠图页面（参数侧边栏 + 实时生成 + 三键下载 PNG/PDF/TSV）
+  - 测试：`tests/test_detector.py` (8) + `tests/test_stackplot.py` (4)，**12/12 全绿**
+  - 论文积累：`paper/benchmarks/validation/stackplot/` 含 sample/group 两版 PDF + 百分比 TSV + README，`time_comparison.md` 填入堆叠图行
+- **遗留 TODO**：
+  - VS Code Python 解释器需手动选 envmeta 环境（Ctrl+Shift+P → Python: Select Interpreter）
+  - 待装 R 后做 EnvMeta vs R 的侧侧 PDF 对比
+  - 截图 `paper/figures/screenshot_stackplot.png` 待手动截
+- **下一步**：Phase 1 迭代 2 — 加 PCoA + 热图 + 模块 C（参数面板结构化）
+- **量化**：
+  - 新增代码：detector 149 + base 14 + stackplot 175 + figure_export 44 + 测试 80 + app.py +180 ≈ 640 行
+  - 测试覆盖：12 个 case，1.32 秒跑完
+  - 效率对比（堆叠图）：写 R 脚本 177 行 / ~30 min，vs EnvMeta 3 次点击 / ~10 s
+
 ### 2026-04-13
 - **阶段**：Phase 0 全部完成 → 准备进入 Phase 1
 - **已完成**：

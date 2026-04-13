@@ -7,9 +7,9 @@
 | 文件 | 用途 | 适用模块 |
 |------|------|---------|
 | `metadata.txt` | 样本分组（CK/A/B） | 所有模块 |
-| `Phylum_fixed.txt` | 门水平丰度表 | 堆叠图 |
-| `Genus_fixed.txt` | 属水平丰度表 | 堆叠图、LEfSe |
-| `Species_fixed.txt` | 种水平丰度表 | 堆叠图、RDA |
+| `Phylum.txt` | 门水平丰度表 | 堆叠图 |
+| `Genus.txt` | 属水平丰度表 | 堆叠图、LEfSe |
+| `Species.txt` | 种水平丰度表 | 堆叠图、RDA |
 | `alpha.txt` | α多样性指数（Shannon/Simpson/Chao1） | α多样性 |
 | `beta_bray.txt` | Bray-Curtis 距离矩阵 | PCoA |
 | `env_factors.txt` | 环境因子（理化指标） | RDA、理化图 |
