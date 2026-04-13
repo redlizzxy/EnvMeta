@@ -1,0 +1,208 @@
+{
+  "version": "1.0",
+  "source": "砷渣-钢渣修复宏基因组研究；抽取自 scripts/python/05_gene_heatmap_log2fc.py",
+  "ko_count": 57,
+  "elements": {
+    "arsenic": {
+      "display_name": {"en": "Arsenic", "cn": "砷代谢"},
+      "color": "#E74C3C",
+      "pathways": {
+        "Arsenate reduction": {
+          "display_name": {"en": "Arsenate reduction", "cn": "砷酸盐还原"},
+          "reaction": "As(V) -> As(III)",
+          "genes": {
+            "K00537": {"name": "arsC-grx"},
+            "K03741": {"name": "arsC-trx"},
+            "K22547": {"name": "HAC1"},
+            "K18701": {"name": "arsC-myc"}
+          }
+        },
+        "Arsenite oxidation": {
+          "display_name": {"en": "Arsenite oxidation", "cn": "亚砷酸盐氧化"},
+          "reaction": "As(III) -> As(V)",
+          "genes": {
+            "K08355": {"name": "aoxA"},
+            "K08356": {"name": "aoxB"}
+          }
+        },
+        "Resp. arsenate red.": {
+          "display_name": {"en": "Resp. arsenate red.", "cn": "呼吸型砷酸盐还原"},
+          "reaction": "As(V) -> As(III) (energy-coupled)",
+          "genes": {
+            "K28466": {"name": "arrA"},
+            "K28467": {"name": "arrB"}
+          }
+        },
+        "As transport/detox": {
+          "display_name": {"en": "As transport/detox", "cn": "砷转运与解毒"},
+          "genes": {
+            "K03893": {"name": "arsB"},
+            "K03325": {"name": "ACR3"},
+            "K18064": {"name": "ACR2"},
+            "K01551": {"name": "arsA"},
+            "K25223": {"name": "arsJ"},
+            "K11811": {"name": "arsH"}
+          }
+        },
+        "As methylation": {
+          "display_name": {"en": "As methylation", "cn": "砷甲基化"},
+          "genes": {
+            "K07755": {"name": "AS3MT"},
+            "K25224": {"name": "gapdh"}
+          }
+        },
+        "As regulation": {
+          "display_name": {"en": "As regulation", "cn": "砷调控"},
+          "genes": {
+            "K03892": {"name": "arsR"}
+          }
+        }
+      },
+      "coupling": {
+        "iron": "Fe(III)氧化物吸附As(V)，Fe还原释放As",
+        "sulfur": "硫化物与As共沉淀（雌黄/雄黄）",
+        "nitrogen": "硝酸盐氧化As(III)（化学能厌氧氧化）"
+      }
+    },
+    "nitrogen": {
+      "display_name": {"en": "Nitrogen", "cn": "氮代谢"},
+      "color": "#3498DB",
+      "pathways": {
+        "Nitrate reduction": {
+          "display_name": {"en": "Nitrate reduction", "cn": "硝酸盐还原"},
+          "reaction": "NO3- -> NO2-",
+          "genes": {
+            "K00370": {"name": "narG"},
+            "K00371": {"name": "narH"},
+            "K00374": {"name": "narI"},
+            "K02567": {"name": "napA"},
+            "K02568": {"name": "napB"},
+            "K00367": {"name": "narB"}
+          }
+        },
+        "Nitrite reduction": {
+          "display_name": {"en": "Nitrite reduction", "cn": "亚硝酸盐还原"},
+          "reaction": "NO2- -> NO / NH4+",
+          "genes": {
+            "K00368": {"name": "nirK"},
+            "K15864": {"name": "nirS"},
+            "K00366": {"name": "nirA"},
+            "K15877": {"name": "CYP55"}
+          }
+        },
+        "NO reduction": {
+          "display_name": {"en": "NO reduction", "cn": "NO还原"},
+          "reaction": "NO -> N2O",
+          "genes": {
+            "K04561": {"name": "norB"}
+          }
+        },
+        "N2O reduction": {
+          "display_name": {"en": "N2O reduction", "cn": "N2O还原"},
+          "reaction": "N2O -> N2",
+          "genes": {
+            "K00376": {"name": "nosZ"}
+          }
+        },
+        "Ammonia oxidation": {
+          "display_name": {"en": "Ammonia oxidation", "cn": "氨氧化"},
+          "reaction": "NH3 -> NH2OH",
+          "genes": {
+            "K10944": {"name": "pmoA-amoA"},
+            "K10945": {"name": "pmoB-amoB"},
+            "K10946": {"name": "pmoC-amoC"}
+          }
+        },
+        "N fixation": {
+          "display_name": {"en": "N fixation", "cn": "固氮"},
+          "reaction": "N2 -> NH3",
+          "genes": {
+            "K02586": {"name": "nifD"},
+            "K02591": {"name": "nifK"}
+          }
+        }
+      },
+      "coupling": {
+        "arsenic": "硝酸盐可作为电子受体氧化As(III)",
+        "sulfur": "反硝化与硫氧化耦合（soxB/dsrAB）"
+      }
+    },
+    "sulfur": {
+      "display_name": {"en": "Sulfur", "cn": "硫代谢"},
+      "color": "#F1C40F",
+      "pathways": {
+        "Assim. sulfate red.": {
+          "display_name": {"en": "Assim. sulfate red.", "cn": "硫酸盐同化还原"},
+          "reaction": "SO4^2- -> S^2- (assimilatory)",
+          "genes": {
+            "K00380": {"name": "cysJ"},
+            "K00381": {"name": "cysI"},
+            "K00390": {"name": "cysH"},
+            "K00392": {"name": "sir"}
+          }
+        },
+        "Dissim. sulfate red.": {
+          "display_name": {"en": "Dissim. sulfate red.", "cn": "硫酸盐异化还原"},
+          "reaction": "SO4^2- -> S^2- (dissimilatory, energy-coupled)",
+          "genes": {
+            "K00394": {"name": "aprA"},
+            "K00395": {"name": "aprB"},
+            "K11180": {"name": "dsrA"},
+            "K11181": {"name": "dsrB"}
+          }
+        },
+        "Sulfide oxidation": {
+          "display_name": {"en": "Sulfide oxidation", "cn": "硫化物氧化"},
+          "reaction": "S^2- -> SO4^2-",
+          "genes": {
+            "K17218": {"name": "sqr"},
+            "K17222": {"name": "soxA"},
+            "K17223": {"name": "soxX"},
+            "K17224": {"name": "soxB"},
+            "K17226": {"name": "soxY"},
+            "K17227": {"name": "soxZ"}
+          }
+        },
+        "Thiosulfate metab.": {
+          "display_name": {"en": "Thiosulfate metab.", "cn": "硫代硫酸盐代谢"},
+          "genes": {
+            "K01011": {"name": "TST"}
+          }
+        }
+      },
+      "coupling": {
+        "arsenic": "硫化物与 As 共沉淀（雌黄 As2S3、雄黄 AsS）",
+        "iron": "FeS/FeS2 形成是铁硫耦合的核心",
+        "nitrogen": "硫氧化与反硝化耦合驱动 Eh 变化"
+      }
+    },
+    "iron": {
+      "display_name": {"en": "Iron", "cn": "铁代谢"},
+      "color": "#E67E22",
+      "pathways": {
+        "Fe transport": {
+          "display_name": {"en": "Fe transport", "cn": "铁转运系统"},
+          "genes": {
+            "K02013": {"name": "ABC.FEV.A"},
+            "K02014": {"name": "TC.FEV.OM"},
+            "K02015": {"name": "ABC.FEV.P"},
+            "K02016": {"name": "ABC.FEV.S"},
+            "K02012": {"name": "afuA"},
+            "K07243": {"name": "FTR"}
+          }
+        },
+        "Fe uptake regulation": {
+          "display_name": {"en": "Fe uptake regulation", "cn": "铁摄取调控"},
+          "genes": {
+            "K03711": {"name": "fur"},
+            "K03832": {"name": "tonB"}
+          }
+        }
+      },
+      "coupling": {
+        "arsenic": "Fe(III) 氧化物吸附 As(V)，Fe 还原释放 As",
+        "sulfur": "FeS/FeS2 矿化是固砷关键路径"
+      }
+    }
+  }
+}

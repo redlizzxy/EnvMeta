@@ -1,0 +1,15 @@
+MAG	Degree	Betweenness	Genus	Phylum	Selection_Reason
+Mx_All_168	19	433.37	BP-133	Actinomycetota	Highest_degree_hub
+Mx_All_151	16	211.4	Rhizomicrobium	Pseudomonadota	High_degree_hub
+Mx_All_153	15	861.57	Unknown	Planctomycetota	High_betweenness
+Mx_All_173	15	441.24	DASYVL01	Acidobacteriota	High_degree
+Mx_All_35	15	596.85	JACRMM01	Desulfobacterota_C	High_degree_betweenness
+Mx_All_53	14	835.72	UBA5189	Chloroflexota	High_degree_betweenness
+Mx_All_32	5	1419	Geoanaerobacter	Desulfobacterota	Highest_betweenness_bridge
+Mx_All_106	4	1421.73	UBA5619	Desulfobacterota	Highest_betweenness_bridge
+Mx_All_110	12	203.09	Sulfuricaulis	Pseudomonadota	Sulfur_oxidizer_hub
+Mx_All_141	4	0.42	Sulfuricaulis	Pseudomonadota	Sulfur_oxidizer
+Mx_All_90	9	105.32	Gallionella	Pseudomonadota	Iron_oxidizer
+Mx_All_152	5	13.63	Gallionella	Pseudomonadota	Iron_oxidizer
+Mx_All_98	11	740.17	SPCO01	Chloroflexota	High_betweenness
+Mx_All_150	4	852.36	UBA6911	Acidobacteriota	High_betweenness
