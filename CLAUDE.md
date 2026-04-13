@@ -183,6 +183,36 @@ git push                    # 推送到 origin/master
 3. **截图留档**：每个模块完成后截一张 EnvMeta 的界面截图，保存到 `paper/figures/screenshot_模块名.png`。
 4. **开发日志量化**：每次开发日志除了记录做了什么，加一行量化数据（代码行数、验证结果、耗时对比）。
 
+## 下次 session 计划（2026-04-14 起）
+
+**当前进度**：Phase 0 + Phase 1 迭代 1 + Phase 1 迭代 2 已完成并推送到 GitHub。本地可跑 3 种分析（堆叠图 / PCoA / 元素循环热图），文件识别覆盖 7 类，测试 31 个全绿。
+
+**建议明天做**（按优先级）：
+
+1. **α 多样性箱线图**（移植 `scripts/R/02_alpha_diversity.R`）
+   - 新建 `envmeta/analysis/alpha_boxplot.py`，输入 alpha_diversity 文件 + metadata
+   - 箱线图 + Kruskal-Wallis 或 Wilcoxon 组间显著性标注
+   - 预计 ~120 行，1-2 小时
+
+2. **元素循环基因 log2FC 差异柱图**（Fig2-9，移植 `scripts/python/05_gene_heatmap_log2fc.py` 后半部分）
+   - 新建 `envmeta/analysis/log2fc.py`，复用已有知识库加载器
+   - 组间两两对比（CK_vs_A、CK_vs_B、A_vs_B），Welch's t-test + BH 校正
+   - 预计 ~180 行，2-3 小时
+
+3. **RDA 排序图**（移植 `scripts/R/03_RDA.R`）
+   - 用 `skbio.stats.ordination` 或自己算 RDA；Mantel 检验
+   - 输入：丰度表 + 环境因子表
+   - 较复杂，可能要 3-4 小时
+
+**建议顺序**：先做 1（简单，练手），再做 2（和已有热图同脉络），最后视时间做 3。
+
+**其他候选**（从 Backlog 挑）：
+- combined 样式堆叠图（sample + group 并排）— 约 0.5 小时
+- SVG / TIFF 导出 — 约 0.5 小时
+- 代码生成器雏形（把 `result.params` 渲染成独立可运行 .py）— 约 1 小时
+
+**阻塞项**：装 R（做 EnvMeta vs 原 R 脚本 PDF 侧侧对比），作为论文的关键验证数据。
+
 ## 开发日志
 
 > 每次 session 结束前更新此区块。新对话开始时 Claude Code 自动读取，了解当前进度。
