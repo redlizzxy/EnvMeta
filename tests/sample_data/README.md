@@ -14,7 +14,8 @@
 | `beta_bray.txt` | Bray-Curtis 距离矩阵 | PCoA |
 | `env_factors.txt` | 环境因子（理化指标） | RDA、理化图 |
 | `07_element_KO_heatmap.txt` | 元素循环 KO 丰度表 | 基因热图、log2FC |
-| `kegg_target_only.tsv` | 全量 KEGG KO 注释 | 通路完整度、循环图 |
+| `kegg_target_only.tsv` | 全量 KEGG KO 注释（长格式） | 通路完整度、循环图 |
+| `ko_tpm.spf` | 51 个知识库 KO × 10 样本（宽格式 TPM） | 元素循环基因热图 |
 | `quality_report.tsv` | CheckM MAG 质量报告 | MAG 质量图 |
 | `abundance.tsv` | MAG 丰度矩阵 | MAG 丰度热图 |
 | `mag_taxonomy_labels.tsv` | MAG 分类注释 | MAG 丰度热图、基因谱 |

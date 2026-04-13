@@ -5,18 +5,25 @@
 from __future__ import annotations
 
 import io
+import re
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 from typing import Callable, Union
 
 import chardet
+import numpy as np
 import pandas as pd
 
 
 class FileType(str, Enum):
     METADATA = "metadata"
     ABUNDANCE_WIDE = "abundance_wide"
+    DISTANCE_MATRIX = "distance_matrix"
+    ALPHA_DIVERSITY = "alpha_diversity"
+    CHECKM_QUALITY = "checkm_quality"
+    ENV_FACTORS = "env_factors"
+    KO_ABUNDANCE_WIDE = "ko_abundance_wide"
     UNKNOWN = "unknown"
 
 
@@ -41,21 +48,16 @@ def _sniff_encoding(raw: bytes) -> str:
     enc = (guess.get("encoding") or "utf-8").lower()
     if guess.get("confidence", 0) < 0.5:
         return "utf-8"
-    # 常见别名归一
     return {"ascii": "utf-8", "gb2312": "gbk"}.get(enc, enc)
 
 
 def _sniff_separator(text_sample: str) -> str:
-    """只看第一行，比较 tab 和逗号数量。"""
     first_line = text_sample.split("\n", 1)[0]
     return "\t" if first_line.count("\t") >= first_line.count(",") else ","
 
 
 def read_table(source: Union[str, Path, io.BytesIO], n_preview: int = 5) -> tuple[pd.DataFrame, str, str]:
-    """从路径或上传的 BytesIO 读取表格，返回 (df, encoding, separator)。
-
-    允许上游传文件路径字符串、Path，或 Streamlit 的 UploadedFile（鸭子类型 .read）。
-    """
+    """从路径或上传的 BytesIO 读取表格，返回 (df, encoding, separator)。"""
     if hasattr(source, "read"):
         raw = source.read()
         source.seek(0)
@@ -70,22 +72,118 @@ def read_table(source: Union[str, Path, io.BytesIO], n_preview: int = 5) -> tupl
 
 
 # ============================================================================
-# 规则：每条规则接收 df + filename，返回 (是否匹配, 置信度, 解释)
+# 规则
 # ============================================================================
 
 Rule = Callable[[pd.DataFrame, str], tuple[bool, float, str]]
 
+_KO_PATTERN = re.compile(r"^K\d{5}$")
+_ALPHA_METRICS = {"shannon", "simpson", "chao1", "observed_species", "invsimpson",
+                   "ace", "richness", "evenness"}
+
+
+def _has_col(df: pd.DataFrame, *names: str) -> bool:
+    lower = {c.lower() for c in df.columns}
+    return all(n.lower() in lower for n in names)
+
+
+def _any_col(df: pd.DataFrame, *names: str) -> bool:
+    lower = {c.lower() for c in df.columns}
+    return any(n.lower() in lower for n in names)
+
+
+def _numeric_columns(df: pd.DataFrame) -> list[str]:
+    """返回能整体转为数值的列。"""
+    out = []
+    for c in df.columns:
+        try:
+            nan_ratio = pd.to_numeric(df[c], errors="coerce").isna().mean()
+            if nan_ratio < 0.05:
+                out.append(c)
+        except Exception:
+            pass
+    return out
+
 
 def _rule_metadata(df: pd.DataFrame, filename: str) -> tuple[bool, float, str]:
-    cols = {c.lower() for c in df.columns}
-    has_sample = any(c in cols for c in ("sampleid", "sample_id", "sample id", "#sampleid"))
-    has_group = "group" in cols
-    if has_sample and has_group:
+    if _has_col(df, "SampleID", "Group") or _has_col(df, "Sample_ID", "Group"):
         return True, 0.95, "列含 SampleID + Group"
     return False, 0.0, ""
 
 
+def _rule_distance_matrix(df: pd.DataFrame, filename: str) -> tuple[bool, float, str]:
+    """方阵 + 对称 + 首列与列头除首项外一致。"""
+    if df.shape[0] != df.shape[1] - 1:
+        return False, 0.0, ""
+
+    sample_cols = df.columns[1:].tolist()
+    first_col_values = df.iloc[:, 0].astype(str).tolist()
+    if sample_cols != first_col_values:
+        return False, 0.0, ""
+
+    try:
+        mat = df[sample_cols].apply(pd.to_numeric, errors="coerce").to_numpy()
+    except Exception:
+        return False, 0.0, ""
+    if np.isnan(mat).any():
+        return False, 0.0, ""
+    if not np.allclose(mat, mat.T, atol=1e-6):
+        return False, 0.0, ""
+    if np.abs(np.diag(mat)).max() > 1e-6:
+        return False, 0.0, ""   # 对角线必须为 0
+
+    return True, 0.95, f"方阵 ({mat.shape[0]}×{mat.shape[0]}) + 对称 + 对角零"
+
+
+def _rule_alpha_diversity(df: pd.DataFrame, filename: str) -> tuple[bool, float, str]:
+    has_sample = _any_col(df, "SampleID", "Sample_ID", "#SampleID")
+    metrics_hit = [c for c in df.columns if c.lower() in _ALPHA_METRICS]
+    if has_sample and metrics_hit:
+        return True, 0.9, f"含 Sample ID 列 + α 指数：{', '.join(metrics_hit)}"
+    return False, 0.0, ""
+
+
+def _rule_checkm_quality(df: pd.DataFrame, filename: str) -> tuple[bool, float, str]:
+    if _has_col(df, "Completeness", "Contamination"):
+        return True, 0.95, "列含 Completeness + Contamination"
+    return False, 0.0, ""
+
+
+def _rule_env_factors(df: pd.DataFrame, filename: str) -> tuple[bool, float, str]:
+    if not _any_col(df, "SampleID", "Sample_ID"):
+        return False, 0.0, ""
+    if not _any_col(df, "Group"):
+        return False, 0.0, ""
+    num_cols = _numeric_columns(df)
+    # 排除 Group（它也是数值-like 时别误计）
+    non_meta = [c for c in num_cols if c.lower() not in ("group", "replicate")]
+    if len(non_meta) < 2:
+        return False, 0.0, ""
+    return True, 0.85, f"SampleID + Group + {len(non_meta)} 数值环境因子列"
+
+
+def _rule_ko_abundance_wide(df: pd.DataFrame, filename: str) -> tuple[bool, float, str]:
+    """宽格式 KO 丰度表：某列叫 KEGG_ko，或首列（或前 2 列中某列）全是 K\d{5} 模式。"""
+    if _any_col(df, "KEGG_ko", "KEGG ko"):
+        # 需要至少有数值样本列
+        num_cols = _numeric_columns(df)
+        if len(num_cols) >= 2:
+            return True, 0.95, "列含 KEGG_ko + 多个数值样本列"
+    # 次级：首列或第二列值多数是 K##### 形式
+    for col_idx in (0, 1):
+        if col_idx >= df.shape[1]:
+            continue
+        col = df.iloc[:, col_idx].astype(str)
+        ratio = col.str.match(_KO_PATTERN.pattern).mean()
+        if ratio > 0.9:
+            num_cols = _numeric_columns(df)
+            if len(num_cols) >= 2:
+                return True, 0.9, f"列 {df.columns[col_idx]!r} 含 KO 标识 ({ratio*100:.0f}% 匹配)"
+    return False, 0.0, ""
+
+
 def _rule_abundance_wide(df: pd.DataFrame, filename: str) -> tuple[bool, float, str]:
+    """物种丰度宽表：首列 Taxonomy/OTU，其余列纯数值。"""
     if df.shape[1] < 3 or df.shape[0] < 2:
         return False, 0.0, ""
     first_col = df.columns[0].lower()
@@ -93,7 +191,6 @@ def _rule_abundance_wide(df: pd.DataFrame, filename: str) -> tuple[bool, float, 
     if not first_col_ok:
         return False, 0.0, ""
 
-    # 后续列应该全部能解析为数值（样本丰度列）
     sample_cols = df.columns[1:]
     try:
         numeric = df[sample_cols].apply(pd.to_numeric, errors="coerce")
@@ -106,10 +203,17 @@ def _rule_abundance_wide(df: pd.DataFrame, filename: str) -> tuple[bool, float, 
     return False, 0.0, ""
 
 
-_RULES: dict[FileType, Rule] = {
-    FileType.METADATA: _rule_metadata,
-    FileType.ABUNDANCE_WIDE: _rule_abundance_wide,
-}
+# 规则顺序：更严格/更独特的先匹配。metadata 和 env_factors 都要 SampleID+Group，
+# env_factors 更严格（需要额外数值列），所以它应先于 metadata 优先级考察。
+_RULES: list[tuple[FileType, Rule]] = [
+    (FileType.ENV_FACTORS, _rule_env_factors),
+    (FileType.CHECKM_QUALITY, _rule_checkm_quality),
+    (FileType.ALPHA_DIVERSITY, _rule_alpha_diversity),
+    (FileType.DISTANCE_MATRIX, _rule_distance_matrix),
+    (FileType.KO_ABUNDANCE_WIDE, _rule_ko_abundance_wide),
+    (FileType.METADATA, _rule_metadata),
+    (FileType.ABUNDANCE_WIDE, _rule_abundance_wide),
+]
 
 
 # ============================================================================
@@ -117,27 +221,21 @@ _RULES: dict[FileType, Rule] = {
 # ============================================================================
 
 def detect(source: Union[str, Path, io.BytesIO], filename: str | None = None) -> DetectionResult:
-    """识别文件类型。
-
-    参数：
-        source   — 文件路径、Path 对象，或带 .read() 的文件对象（如 Streamlit UploadedFile）。
-        filename — 如果 source 不是路径（如 BytesIO），用这个名字做兜底识别（当前未使用，保留扩展）。
-
-    返回：DetectionResult（含 preview_df 供 UI 显示）。
-    """
     if filename is None and isinstance(source, (str, Path)):
         filename = Path(source).name
     filename = filename or ""
 
     df, enc, sep = read_table(source)
 
+    # 按 _RULES 的顺序走：第一个匹配即采纳（更具体的类型排在前）
     best_type = FileType.UNKNOWN
     best_conf = 0.0
     best_reason = ""
-    for ftype, rule in _RULES.items():
+    for ftype, rule in _RULES:
         ok, conf, reason = rule(df, filename)
-        if ok and conf > best_conf:
+        if ok:
             best_type, best_conf, best_reason = ftype, conf, reason
+            break
 
     return DetectionResult(
         file_type=best_type,

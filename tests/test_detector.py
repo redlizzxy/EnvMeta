@@ -13,9 +13,14 @@ SAMPLE = Path(__file__).parent / "sample_data"
     ("Phylum.txt", FileType.ABUNDANCE_WIDE),
     ("Genus.txt", FileType.ABUNDANCE_WIDE),
     ("Species.txt", FileType.ABUNDANCE_WIDE),
-    ("alpha.txt", FileType.UNKNOWN),       # 本迭代不识别
-    ("beta_bray.txt", FileType.UNKNOWN),   # 距离矩阵，本迭代不识别
-    ("quality_report.tsv", FileType.UNKNOWN),
+    ("alpha.txt", FileType.ALPHA_DIVERSITY),
+    ("beta_bray.txt", FileType.DISTANCE_MATRIX),
+    ("quality_report.tsv", FileType.CHECKM_QUALITY),
+    ("env_factors.txt", FileType.ENV_FACTORS),
+    ("abundance.tsv", FileType.ABUNDANCE_WIDE),
+    ("kegg_target_only.tsv", FileType.UNKNOWN),       # 长格式，本迭代不识别
+    ("mag_taxonomy_labels.tsv", FileType.UNKNOWN),
+    ("ko_tpm.spf", FileType.KO_ABUNDANCE_WIDE),
 ])
 def test_detect_sample_files(filename, expected):
     r = detect(SAMPLE / filename)

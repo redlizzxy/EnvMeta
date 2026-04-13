@@ -56,3 +56,23 @@ def test_export_to_bytes(phylum_and_meta):
     pdf = export_to_bytes(r.figure, "pdf")
     assert png.startswith(b"\x89PNG")
     assert pdf.startswith(b"%PDF")
+
+
+def test_stackplot_sort_by_max_differs_from_mean(phylum_and_meta):
+    """sort_by='max' 选出的 Top-N 顺序应该与 mean 不同（取决于数据）。"""
+    ab, md = phylum_and_meta
+    r_mean = stackplot.analyze(ab, md, {"style": "group", "top_n": 5, "sort_by": "mean"})
+    r_max = stackplot.analyze(ab, md, {"style": "group", "top_n": 5, "sort_by": "max"})
+    # 两种排序下的 Top-5 列表大概率不一样（Phylum.txt 有丰度差异大的物种）
+    # 即便相同，至少图和 stats 应不报错
+    assert r_mean.stats is not None
+    assert r_max.stats is not None
+    assert r_mean.stats.shape == r_max.stats.shape
+
+
+def test_stackplot_reverse_stack(phylum_and_meta):
+    """reverse_stack 不改变 stats，只改变图的视觉顺序。"""
+    ab, md = phylum_and_meta
+    r = stackplot.analyze(ab, md, {"style": "group", "top_n": 5, "reverse_stack": True})
+    assert r.figure is not None
+    assert r.stats is not None

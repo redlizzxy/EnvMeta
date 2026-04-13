@@ -43,7 +43,12 @@ DEFAULTS = {
     "others_label": "Others",
     "bar_width": 0.8,
     "show_legend": True,
+    "sort_by": "mean",           # "mean" | "max" | "median"
+    "reverse_stack": False,      # True → 高丰度在柱顶（默认在柱底）
 }
+
+
+_AGG_FUNCS = {"mean": "mean", "max": "max", "median": "median"}
 
 
 # ==============================================================================
@@ -69,11 +74,13 @@ def _normalize_to_percent(df: pd.DataFrame) -> pd.DataFrame:
     return df.div(col_sums, axis=1).fillna(0.0) * 100.0
 
 
-def _topn_with_others(df: pd.DataFrame, top_n: int, others_label: str) -> pd.DataFrame:
-    """按全表均值取 Top-N，其余聚合为 Others；仅当有剩余时才追加 Others 行。"""
+def _topn_with_others(df: pd.DataFrame, top_n: int, others_label: str, sort_by: str) -> pd.DataFrame:
+    """按给定聚合函数取 Top-N，其余聚合为 Others；仅当有剩余时才追加 Others 行。"""
+    agg = _AGG_FUNCS.get(sort_by, "mean")
     if df.shape[0] <= top_n:
-        return df
-    ranked = df.mean(axis=1).sort_values(ascending=False)
+        ranked = getattr(df, agg)(axis=1).sort_values(ascending=False)
+        return df.loc[ranked.index]     # 按排序返回（无 Others）
+    ranked = getattr(df, agg)(axis=1).sort_values(ascending=False)
     top = df.loc[ranked.head(top_n).index]
     rest = df.loc[ranked.iloc[top_n:].index]
     top.loc[others_label] = rest.sum(axis=0)
@@ -97,11 +104,16 @@ def _aggregate_by_group(df: pd.DataFrame, metadata: pd.DataFrame, group_col: str
 
 def _build_figure(pct_df: pd.DataFrame, *, width_mm: int, height_mm: int,
                   palette: list[str], others_label: str,
-                  bar_width: float, show_legend: bool) -> plt.Figure:
-    """绘制百分比堆叠柱状图。pct_df: Taxonomy × X（样本或分组）。"""
+                  bar_width: float, show_legend: bool,
+                  reverse_stack: bool = False) -> plt.Figure:
+    """绘制百分比堆叠柱状图。pct_df: Taxonomy × X（样本或分组）。
+    reverse_stack=True 时高丰度项堆在柱顶。"""
     fig, ax = plt.subplots(figsize=(width_mm / 25.4, height_mm / 25.4), constrained_layout=True)
 
+    # 绘图顺序：默认（reverse_stack=False）高丰度在底，所以从 df 顺序开始画（最先画的在底）
     taxa = pct_df.index.tolist()
+    if reverse_stack:
+        taxa = list(reversed(taxa))
     x_labels = pct_df.columns.tolist()
     x_pos = np.arange(len(x_labels))
 
@@ -162,7 +174,7 @@ def analyze(
     else:
         raise ValueError(f"style 必须是 'sample' 或 'group'，收到 {p['style']!r}")
 
-    pct = _topn_with_others(df, p["top_n"], p["others_label"])
+    pct = _topn_with_others(df, p["top_n"], p["others_label"], p["sort_by"])
     pct = _normalize_to_percent(pct)   # Top-N + Others 再归一一次防精度漂移
 
     fig = _build_figure(
@@ -170,6 +182,7 @@ def analyze(
         width_mm=p["width_mm"], height_mm=p["height_mm"],
         palette=p["palette"], others_label=p["others_label"],
         bar_width=p["bar_width"], show_legend=p["show_legend"],
+        reverse_stack=p["reverse_stack"],
     )
 
     return AnalysisResult(figure=fig, stats=pct, params=p)

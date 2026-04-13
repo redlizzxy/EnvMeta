@@ -27,5 +27,8 @@ networkx>=3.1
 chardet>=5.0          # 文件编码检测
 openpyxl>=3.1         # Excel 读写
 
+# ===== 绘图辅助 =====
+adjustText>=1.0        # PCoA 标签防重叠
+
 # ===== 开发/测试 =====
 pytest>=8.0

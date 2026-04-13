@@ -187,6 +187,35 @@ git push                    # 推送到 origin/master
 
 > 每次 session 结束前更新此区块。新对话开始时 Claude Code 自动读取，了解当前进度。
 
+### 2026-04-13（晚 — Phase 1 迭代 2）
+- **阶段**：迭代 2 完成（PCoA + 元素循环热图 + 文件识别扩展 + 模块 C 雏形）
+- **已完成**：
+  - 模块 A：detector 扩展 5 类文件 — DISTANCE_MATRIX、ALPHA_DIVERSITY、CHECKM_QUALITY、ENV_FACTORS、KO_ABUNDANCE_WIDE（规则按优先级排序 + 首个匹配即采纳）
+  - 模块 B：
+    - `envmeta/analysis/pcoa.py`（skbio PCoA + PERMANOVA + adjustText 标签防重叠，含组间两两对比）
+    - `envmeta/analysis/gene_heatmap.py`（4 元素合并单图版，KO × Group，左侧通路/元素色块，含元素过滤）
+    - `envmeta/analysis/stackplot.py` 追加 `sort_by` / `reverse_stack` 参数（用户 2026-04-13 反馈）
+  - 模块 C 轻量：`envmeta/params/common.py`（render_figure_size / render_font_controls / render_dpi_selector）
+  - 知识库加载器：`envmeta/geocycle/knowledge_base/__init__.py`（lru_cache + flat_ko_map / element_colors / pathway_display）
+  - 测试数据：`scripts/python/gen_ko_sample_data.py` 过滤 eggnog 24592 行 → 51 个知识库 KO，生成 `tests/sample_data/ko_tpm.spf` (5.8 KB)
+  - app.py：3 个分析页面（堆叠图/PCoA/热图）端到端可用，参数面板复用 common.py 组件
+  - 测试：新增 test_pcoa (4)、test_gene_heatmap (4)、test_kb_loader (4)、扩展 test_detector (+4)、test_stackplot (+2)，**累计 31/31 全绿 5.5 s**
+  - 论文积累：
+    - `paper/benchmarks/validation/{pcoa,gene_heatmap}/` 各含 PDF + stats TSV + README
+    - `paper/benchmarks/time_comparison.md` 补 PCoA 和基因热图两行
+- **遇到的问题**：
+  - 规则冲突：env_factors（SampleID+Group+多数值列）和 metadata（SampleID+Group）同时匹配，metadata conf 更高反而吃掉 env_factors → 改为按优先级顺序首个匹配即返回
+  - `skbio.DistanceMatrix` 要求 C-contiguous 数组，`np.ix_` 切片结果不连续 → `np.ascontiguousarray`
+- **遗留**：
+  - log2FC 差异柱图（Fig2-9）、combined 样式堆叠图、α 多样性箱线图、RDA — 留到迭代 3
+  - 装 R 后做 EnvMeta vs R 侧侧 PDF 对比
+- **下一步**：Phase 1 迭代 3（剩余分析图 + 代码生成器）或进入 Phase 2
+- **量化**：
+  - 新增代码：detector +98 / stackplot +30 / pcoa 207 / gene_heatmap 260 / common 46 / kb_loader 61 / app.py +140 / 测试 +240 = ~1080 行
+  - 依赖 +1：adjustText
+  - 测试：12 → 31 个 case（+19）
+  - 文件识别：2 → 7 种类型（覆盖 tests/sample_data/ 里 10/12 种常见文件）
+
 ### 2026-04-13（下午 — Phase 1 迭代 1）
 - **阶段**：Phase 1 迭代 1 完成（端到端打通堆叠图）
 - **已完成**：
