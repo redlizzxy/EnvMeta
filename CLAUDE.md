@@ -156,6 +156,21 @@ git push                    # 推送到 origin/master
 - **Phase 3**：循环图 v1（推断引擎 + 静态渲染）
 - **Phase 4**：循环图交互编辑 + 产品打磨 → v1.0 发布
 
+## Backlog（累积 TODO，每次迭代前筛选）
+
+**Phase 1 迭代 2 候选**：
+- PCoA + PERMANOVA 分析器（移植 `scripts/R/02_beta_PCoA.R`）
+- 元素循环基因热图（移植 `scripts/python/05_gene_heatmap_log2fc.py`）
+- 模块 C 参数面板结构化（ParamRegistry + 预设方案）
+- **堆叠图排序选项**（按均值 / 按最大值 / 按中位数 / 反转顺序，用户 2026-04-13 提出）
+- 模块 A 扩展：识别 alpha_diversity、distance_matrix、checkm_quality 等
+- combined 样式（sample + group 并排）
+- 装 R 后做 EnvMeta vs R 的侧侧 PDF 对比
+
+**UX 待优化**：
+- "文件管理"首页同名覆盖策略（当前只处理新 name）
+- Streamlit 里的中文字体支持（matplotlib 渲染图里中文字显示方块时）
+
 ## 论文发表数据积累
 
 本工具计划作为方法学论文发表（目标期刊：iMeta / Bioinformatics / Frontiers in Microbiology）。

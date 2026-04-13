@@ -39,7 +39,8 @@ figures/
 *.tiff
 *.svg
 !FINAL_reference_card.png
-# paper/ 下的图是论文资产，必须入库
+# paper/ 下的图是论文资产，必须入库（先豁免目录再豁免文件）
+!paper/figures/
 !paper/**/*.png
 !paper/**/*.pdf
 !paper/**/*.svg
