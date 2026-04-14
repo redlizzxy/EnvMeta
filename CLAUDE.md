@@ -183,39 +183,64 @@ git push                    # 推送到 origin/master
 3. **截图留档**：每个模块完成后截一张 EnvMeta 的界面截图，保存到 `paper/figures/screenshot_模块名.png`。
 4. **开发日志量化**：每次开发日志除了记录做了什么，加一行量化数据（代码行数、验证结果、耗时对比）。
 
-## 下次 session 计划（2026-04-14 起）
+## 下次 session 计划（2026-04-15 起）
 
-**当前进度**：Phase 0 + Phase 1 迭代 1 + Phase 1 迭代 2 已完成并推送到 GitHub。本地可跑 3 种分析（堆叠图 / PCoA / 元素循环热图），文件识别覆盖 7 类，测试 31 个全绿。
+**当前进度**：Phase 0 + Phase 1 迭代 1/2/3 完成。本地可跑 5 种分析（堆叠图 / PCoA / 元素循环热图 / α 多样性 / log2FC），文件识别覆盖 7 类，测试 40/40 全绿。
 
-**建议明天做**（按优先级）：
+**建议下次做**（按优先级）：
 
-1. **α 多样性箱线图**（移植 `scripts/R/02_alpha_diversity.R`）
-   - 新建 `envmeta/analysis/alpha_boxplot.py`，输入 alpha_diversity 文件 + metadata
-   - 箱线图 + Kruskal-Wallis 或 Wilcoxon 组间显著性标注
-   - 预计 ~120 行，1-2 小时
+1. **RDA 排序图**（移植 `scripts/R/03_RDA.R`，~3-4 小时）
+   - 环境因子约束排序，Mantel 检验
+   - 需要：丰度表（abundance_wide）+ 环境因子表（env_factors）
+   - 用 `skbio.stats.ordination` 或自己算；箭头映射环境因子
+   - 新建 `envmeta/analysis/rda.py` + app.py 页面 + 测试
 
-2. **元素循环基因 log2FC 差异柱图**（Fig2-9，移植 `scripts/python/05_gene_heatmap_log2fc.py` 后半部分）
-   - 新建 `envmeta/analysis/log2fc.py`，复用已有知识库加载器
-   - 组间两两对比（CK_vs_A、CK_vs_B、A_vs_B），Welch's t-test + BH 校正
-   - 预计 ~180 行，2-3 小时
+2. **代码生成器雏形**（~1.5 小时）
+   - 新建 `envmeta/export/code_generator.py`
+   - 每个 analysis 的 `result.params` → 渲染成独立可运行的 .py 脚本
+   - 便于用户"继续调整"或纳入论文 SI
 
-3. **RDA 排序图**（移植 `scripts/R/03_RDA.R`）
-   - 用 `skbio.stats.ordination` 或自己算 RDA；Mantel 检验
-   - 输入：丰度表 + 环境因子表
-   - 较复杂，可能要 3-4 小时
+3. **combined 样式堆叠图**（~0.5 小时）
+   - 原 R 脚本支持 sample + group 并排；现在只做其中一种
+   - 修改 stackplot.py 加 `style="combined"`
 
-**建议顺序**：先做 1（简单，练手），再做 2（和已有热图同脉络），最后视时间做 3。
+4. **LEfSe 差异分析**（移植 `scripts/R/04_LEfSe.R`，~2 小时）
+   - LDA + KW 分析，输出柱图 / 进化分支图
+   - Python 端用 `skbio` 做 KW，LDA 用 `sklearn.discriminant_analysis`
 
-**其他候选**（从 Backlog 挑）：
-- combined 样式堆叠图（sample + group 并排）— 约 0.5 小时
-- SVG / TIFF 导出 — 约 0.5 小时
-- 代码生成器雏形（把 `result.params` 渲染成独立可运行 .py）— 约 1 小时
+**建议顺序**：先做 2（代码生成器，基础能力，所有图都受益）→ 1（RDA，最后一个 Reads-based 图）→ 3（小改动）。4 留给迭代 5 或 Phase 2。
 
-**阻塞项**：装 R（做 EnvMeta vs 原 R 脚本 PDF 侧侧对比），作为论文的关键验证数据。
+**阻塞项**：装 R 做 EnvMeta vs 原脚本的 PDF 侧侧对比（论文关键验证数据）。
+
+**Phase 2 展望**：全部 12 图 + 代码生成器 + MAG-based 5 个图表。
 
 ## 开发日志
 
 > 每次 session 结束前更新此区块。新对话开始时 Claude Code 自动读取，了解当前进度。
+
+### 2026-04-14（Phase 1 迭代 3）
+- **阶段**：迭代 3 完成（α 箱线图 + log2FC 差异柱图）
+- **已完成**：
+  - 模块 B：
+    - `envmeta/analysis/alpha_boxplot.py`（~145 行）：多指数箱线图 + Kruskal-Wallis + 两两 Mann-Whitney U + BH 校正，子图网格 + 散点叠加 + 显著性横线
+    - `envmeta/analysis/log2fc.py`（~175 行）：Welch's t-test + BH 校正 + log2FC（pseudocount 避零），4 元素 2×2 水平柱图 + 星号标注
+  - app.py：
+    - α 多样性页面（+75 行）：指数多选 / 子图列数 / p 阈值 / 画布尺寸 + 三键下载
+    - log2FC 页面（+80 行）：组 A/B 双下拉 / 元素过滤 / padj 阈值 / |log2FC| 阈值 + 三键下载
+  - 测试：`tests/test_alpha_boxplot.py`（4 case）+ `tests/test_log2fc.py`（5 case），**40/40 全绿 9.07 s**
+  - 论文积累：
+    - `paper/benchmarks/validation/alpha_boxplot/` 含 PDF + stats TSV + README
+    - `paper/benchmarks/validation/log2fc/` 含 3 组对 PDF + stats TSV + README
+    - `time_comparison.md` 补 α（R 260 行 / 35 min vs EnvMeta 3 点击 / 5 s）和 log2FC（py 230 行 / 50 min vs 4 点击 / 3 s）两行
+  - Git：2 个 commit（α + log2FC）
+- **遇到的问题**：
+  - 首版 log2fc `element_filter` 只过滤绘图不过滤 stats → 测试失败 → 改为同时过滤（TSV 导出也一致）
+  - 小样本（n=3-4/组）导致所有 padj > 0.05 —— 真实研究数据（n≥10）应能观察到显著差异
+- **下一步**：Phase 1 迭代 4 — 代码生成器雏形 + RDA + combined 样式 + LEfSe（见顶部计划）
+- **量化**：
+  - 新增代码：alpha_boxplot 145 + log2fc 175 + 测试 120 + app.py +155 = ~595 行
+  - 测试：31 → 40 case（+9）
+  - 累计分析图表：3 → 5 种（堆叠图/PCoA/元素循环热图/α 多样性/log2FC）
 
 ### 2026-04-13（晚 — Phase 1 迭代 2）
 - **阶段**：迭代 2 完成（PCoA + 元素循环热图 + 文件识别扩展 + 模块 C 雏形）
