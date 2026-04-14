@@ -213,20 +213,31 @@ def analyze(
                    color=palette[g], label=g, edgecolor="white",
                    linewidth=0.8, zorder=3)
 
-    # 环境因子箭头
+    # 环境因子箭头：把箭头缩放到样本 scatter 范围的 ~80%，再乘用户 arrow_scale
+    site_extent = float(np.abs(site).max()) or 1e-9
+    biplot_extent = float(np.abs(biplot).max()) or 1e-9
+    auto_scale = 0.8 * site_extent / biplot_extent
+    scale = p["arrow_scale"] * auto_scale
+    arrow_ends = biplot[:, :2] * scale    # (n_env, 2)
+
     if p["show_env_arrows"]:
-        scale = p["arrow_scale"] * max(np.abs(site).max() / max(np.abs(biplot).max(), 1e-9), 1.0)
         for i, factor in enumerate(env_num_cols):
-            x, y = biplot[i, 0] * scale, biplot[i, 1] * scale
+            x, y = arrow_ends[i]
             ax.annotate(
                 "", xy=(x, y), xytext=(0, 0),
                 arrowprops=dict(arrowstyle="->", color="#555", lw=1.2),
+                zorder=4,
             )
             sig = mantel_rows[i]["significance"]
             label = f"{factor}{sig}" if sig else factor
-            ax.text(x * 1.08, y * 1.08, label, fontsize=8, color="#333",
+            # 标签放在箭头尾端外侧一点
+            pad = 0.08 * site_extent
+            tx = x + (pad if x >= 0 else -pad)
+            ty = y + (pad if y >= 0 else -pad)
+            ax.text(tx, ty, label, fontsize=8, color="#333",
                     ha="left" if x >= 0 else "right",
-                    va="bottom" if y >= 0 else "top")
+                    va="bottom" if y >= 0 else "top",
+                    zorder=5)
 
     if p["show_sample_labels"]:
         for i, s in enumerate(kept_cols):
@@ -240,5 +251,13 @@ def analyze(
     ax.legend(loc="best", frameon=False, fontsize=9)
     for spine in ("top", "right"):
         ax.spines[spine].set_visible(False)
+
+    # 确保箭头和标签都在视野内（matplotlib 不自动扩展 annotate 的 xy）
+    all_x = np.concatenate([site[:, 0], arrow_ends[:, 0], [0]])
+    all_y = np.concatenate([site[:, 1], arrow_ends[:, 1], [0]])
+    x_pad = (all_x.max() - all_x.min()) * 0.18 + 0.02
+    y_pad = (all_y.max() - all_y.min()) * 0.18 + 0.02
+    ax.set_xlim(all_x.min() - x_pad, all_x.max() + x_pad)
+    ax.set_ylim(all_y.min() - y_pad, all_y.max() + y_pad)
 
     return AnalysisResult(figure=fig, stats=stats_df, params=p)
