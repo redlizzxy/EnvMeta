@@ -38,6 +38,8 @@ DEFAULTS = {
     "palette": None,
     "drop_unclassified": True,
     "random_seed": 123,
+    "use_alias_labels": True,    # True → 用 metadata 的 Group+Replicate 生成 CK_1 风格标签
+    "explained_ref": "constrained",  # "constrained"（R 风格，占约束方差）| "total"（占总方差）
 }
 
 DEFAULT_PALETTE = {"CK": "#1c9cbd", "A": "#e3943d", "B": "#92181e"}
@@ -146,20 +148,88 @@ def analyze(
     Y = _hellinger(species_by_sample)
     X = StandardScaler().fit_transform(env_mat)
 
-    # skbio RDA
+    # skbio RDA（完整模型）
     ord_res = skbio_rda(Y, X, sample_ids=kept_cols, feature_ids=ab.index.tolist(),
                         constraint_ids=env_num_cols)
 
     # 坐标
-    site = ord_res.samples.iloc[:, :2].to_numpy()  # 样本得分（RDA1, RDA2）
-    biplot = ord_res.biplot_scores.iloc[:, :2].to_numpy()  # 环境因子箭头
-    explained = ord_res.proportion_explained.iloc[:2].to_numpy()
+    site = ord_res.samples.iloc[:, :2].to_numpy()
+    biplot = ord_res.biplot_scores.iloc[:, :2].to_numpy()
 
-    # Bray-Curtis 距离 + Mantel（按环境因子）
+    # 解释度：占约束方差（R vegan 风格）或占总方差
+    all_eigvals = ord_res.eigvals.to_numpy()
+    n_constrained = min(len(all_eigvals), X.shape[1])
+    constrained_inertia = float(all_eigvals[:n_constrained].sum())
+    total_inertia = float(all_eigvals.sum())
+    if p["explained_ref"] == "constrained" and constrained_inertia > 0:
+        explained = all_eigvals[:2] / constrained_inertia
+    else:
+        explained = ord_res.proportion_explained.iloc[:2].to_numpy()
+
+    # 别名标签（metadata Group_Replicate → CK_1 风格）
+    meta_sample_col = "SampleID" if "SampleID" in metadata_df.columns else "Sample_ID"
+    meta_idx_df = metadata_df.set_index(meta_sample_col)
+    if p["use_alias_labels"] and "Replicate" in metadata_df.columns:
+        sample_labels = [
+            f"{meta_idx_df.loc[s, p['group_col']]}_{meta_idx_df.loc[s, 'Replicate']}"
+            if s in meta_idx_df.index else s
+            for s in kept_cols
+        ]
+    else:
+        sample_labels = list(kept_cols)
+
+    # 各因子显著性（逐项置换 F 检验，对标 R anova.cca by="terms"）
+    n_samples = Y.shape[0]
+    k = X.shape[1]
+    residual_inertia = total_inertia - constrained_inertia
+    df_resid = max(n_samples - k - 1, 1)
+    rng = np.random.default_rng(p["random_seed"])
+    anova_rows = []
+    for j, factor in enumerate(env_num_cols):
+        # 观测：去掉 factor j 的约束方差差
+        X_reduced = np.delete(X, j, axis=1)
+        ord_red = skbio_rda(Y, X_reduced, sample_ids=kept_cols,
+                            feature_ids=ab.index.tolist())
+        red_eig = ord_red.eigvals.to_numpy()
+        red_constrained = float(red_eig[:max(k - 1, 1)].sum())
+        contrib_obs = constrained_inertia - red_constrained
+        F_obs = (contrib_obs / 1.0) / (residual_inertia / df_resid) if residual_inertia > 0 else np.nan
+
+        # 置换：打乱 factor j 列
+        perm_F = []
+        for _ in range(p["n_permutations"]):
+            X_perm = X.copy()
+            X_perm[:, j] = rng.permutation(X_perm[:, j])
+            try:
+                ord_p = skbio_rda(Y, X_perm, sample_ids=kept_cols,
+                                  feature_ids=ab.index.tolist())
+                p_eig = ord_p.eigvals.to_numpy()
+                p_constrained = float(p_eig[:k].sum())
+                p_residual = total_inertia - p_constrained
+                # factor j 的置换贡献：整体约束 - 去掉 j 的约束
+                X_perm_red = np.delete(X_perm, j, axis=1)
+                ord_pr = skbio_rda(Y, X_perm_red, sample_ids=kept_cols,
+                                   feature_ids=ab.index.tolist())
+                pr_constrained = float(ord_pr.eigvals.to_numpy()[:max(k - 1, 1)].sum())
+                contrib_perm = p_constrained - pr_constrained
+                F_perm = (contrib_perm / 1.0) / (p_residual / df_resid) if p_residual > 0 else 0.0
+                perm_F.append(F_perm)
+            except Exception:
+                perm_F.append(0.0)
+        perm_F = np.asarray(perm_F)
+        pv_anova = float((np.sum(perm_F >= F_obs) + 1) / (len(perm_F) + 1)) if len(perm_F) else 1.0
+        anova_rows.append({
+            "variable": factor, "type": "anova_terms",
+            "F": float(F_obs), "p": pv_anova,
+            "significance": _sig_label(pv_anova),
+            "arrow_x": float(biplot[j, 0]),
+            "arrow_y": float(biplot[j, 1]),
+        })
+
+    # Bray-Curtis 距离 + Mantel（保留为辅助统计）
     from scipy.spatial.distance import pdist, squareform
     bc = squareform(pdist(species_by_sample, metric="braycurtis"))
     dm_species = DistanceMatrix(bc, ids=kept_cols)
-
     mantel_rows = []
     for i, factor in enumerate(env_num_cols):
         env_vec = env_mat[:, i]
@@ -174,18 +244,19 @@ def analyze(
         mantel_rows.append({
             "variable": factor, "type": "mantel",
             "mantel_r": float(r), "mantel_p": float(pv),
-            "significance": _sig_label(pv),
-            "arrow_x": float(biplot[i, 0]),
-            "arrow_y": float(biplot[i, 1]),
         })
 
-    # stats：解释度 + Mantel
     stats_rows = [
         {"variable": "RDA1", "type": "explained_variance",
          "value": float(explained[0])},
         {"variable": "RDA2", "type": "explained_variance",
          "value": float(explained[1])},
+        {"variable": "constrained", "type": "inertia",
+         "value": constrained_inertia},
+        {"variable": "total", "type": "inertia",
+         "value": total_inertia},
     ]
+    stats_rows.extend(anova_rows)
     stats_rows.extend(mantel_rows)
     stats_df = pd.DataFrame(stats_rows)
 
@@ -196,10 +267,7 @@ def analyze(
     )
 
     # 样本点（按组颜色）
-    meta_idx = metadata_df.set_index(
-        "SampleID" if "SampleID" in metadata_df.columns else "Sample_ID"
-    )
-    groups = [str(meta_idx.loc[s, p["group_col"]]) if s in meta_idx.index else "?"
+    groups = [str(meta_idx_df.loc[s, p["group_col"]]) if s in meta_idx_df.index else "?"
               for s in kept_cols]
     palette = {**DEFAULT_PALETTE, **(p["palette"] or {})}
     group_order = list(dict.fromkeys(groups))
@@ -228,7 +296,7 @@ def analyze(
                 arrowprops=dict(arrowstyle="->", color="#555", lw=1.2),
                 zorder=4,
             )
-            sig = mantel_rows[i]["significance"]
+            sig = anova_rows[i]["significance"]
             label = f"{factor}{sig}" if sig else factor
             # 标签放在箭头尾端外侧一点
             pad = 0.08 * site_extent
@@ -240,7 +308,7 @@ def analyze(
                     zorder=5)
 
     if p["show_sample_labels"]:
-        for i, s in enumerate(kept_cols):
+        for i, s in enumerate(sample_labels):
             ax.text(site[i, 0], site[i, 1], f" {s}", fontsize=7,
                     color="#333", va="center")
 
