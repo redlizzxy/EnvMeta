@@ -183,40 +183,70 @@ git push                    # 推送到 origin/master
 3. **截图留档**：每个模块完成后截一张 EnvMeta 的界面截图，保存到 `paper/figures/screenshot_模块名.png`。
 4. **开发日志量化**：每次开发日志除了记录做了什么，加一行量化数据（代码行数、验证结果、耗时对比）。
 
-## 下次 session 计划（2026-04-15 起）
+## 下次 session 计划（2026-04-16 起）
 
-**当前进度**：Phase 0 + Phase 1 迭代 1/2/3 完成。本地可跑 5 种分析（堆叠图 / PCoA / 元素循环热图 / α 多样性 / log2FC），文件识别覆盖 7 类，测试 40/40 全绿。
+**当前进度**：Phase 0 + Phase 1 迭代 1/2/3/4 完成。Phase 1 Reads-based 全部 6 种分析（堆叠图 / PCoA / 基因热图 / α 多样性 / log2FC / RDA）+ 代码生成器 + combined 样式端到端可用。文件识别覆盖 7 类，测试 61/61 全绿。
+
+**Phase 1 基本收口** — 剩余只有 LEfSe（迭代 5 或并入 Phase 2）。
 
 **建议下次做**（按优先级）：
 
-1. **RDA 排序图**（移植 `scripts/R/03_RDA.R`，~3-4 小时）
-   - 环境因子约束排序，Mantel 检验
-   - 需要：丰度表（abundance_wide）+ 环境因子表（env_factors）
-   - 用 `skbio.stats.ordination` 或自己算；箭头映射环境因子
-   - 新建 `envmeta/analysis/rda.py` + app.py 页面 + 测试
+1. **LEfSe 差异分析**（移植 `scripts/R/04_LEfSe.R`，~2 小时）
+   - LDA + KW 分析，输出柱图（LDA score 由大到小）
+   - Python 端用 `scipy.stats.kruskal` 做总检验 + `sklearn.discriminant_analysis.LinearDiscriminantAnalysis` 算 LDA score
+   - 新建 `envmeta/analysis/lefse.py` + app.py 页面 + 测试
+   - 完成后 Phase 1 Reads-based 全部 7 图闭环
 
-2. **代码生成器雏形**（~1.5 小时）
-   - 新建 `envmeta/export/code_generator.py`
-   - 每个 analysis 的 `result.params` → 渲染成独立可运行的 .py 脚本
-   - 便于用户"继续调整"或纳入论文 SI
+2. **进入 Phase 2：MAG-based 图表**（按优先级排序）
+   - `envmeta/analysis/mag_quality.py` ← `scripts/python/06_MAG_quality.py`（MAG 质量散点图，最简单 ~1.5h）
+   - `envmeta/analysis/mag_heatmap.py` ← `scripts/python/07_MAG_abundance_heatmap.py`（Top30 MAG 丰度热图，含聚类 ~3h）
+   - `envmeta/analysis/pathway.py` ← `scripts/python/08_pathway_completeness.py`（通路完整度气泡图 ~2h）
+   - `envmeta/analysis/gene_profile.py` ← `scripts/python/06_MAG_gene_profile.py`（MAG 元素循环基因谱 ~2h）
+   - `envmeta/analysis/network.py` ← `scripts/python/09_cooccurrence_network.py`（共现网络 ~3h）
 
-3. **combined 样式堆叠图**（~0.5 小时）
-   - 原 R 脚本支持 sample + group 并排；现在只做其中一种
-   - 修改 stackplot.py 加 `style="combined"`
+3. **SVG / TIFF 导出**（~0.5 小时）
+   - 修改 `envmeta/export/figure_export.py` 增加 SVG + TIFF 格式支持
+   - 每页导出区追加 2 个下载按钮（对应"SCI 投稿"和"毕业论文"预设）
 
-4. **LEfSe 差异分析**（移植 `scripts/R/04_LEfSe.R`，~2 小时）
-   - LDA + KW 分析，输出柱图 / 进化分支图
-   - Python 端用 `skbio` 做 KW，LDA 用 `sklearn.discriminant_analysis`
+**建议顺序**：先 1（小但收尾 Phase 1），再按 MAG 图表的依赖与复杂度递增开 Phase 2。
 
-**建议顺序**：先做 2（代码生成器，基础能力，所有图都受益）→ 1（RDA，最后一个 Reads-based 图）→ 3（小改动）。4 留给迭代 5 或 Phase 2。
+**阻塞项**：装 R 做 EnvMeta vs 原脚本的 PDF 侧侧对比（论文关键验证数据，目前所有 6 张 Reads-based 都等这一步）。
 
-**阻塞项**：装 R 做 EnvMeta vs 原脚本的 PDF 侧侧对比（论文关键验证数据）。
-
-**Phase 2 展望**：全部 12 图 + 代码生成器 + MAG-based 5 个图表。
+**里程碑**：
+- Phase 1 基本完成 → 开始准备论文 Methods 草稿（代码生成器 + 效率对比表 + validation PDF 都已齐全）
+- Phase 2：补齐 5 张 MAG 图 → v0.5 内部测试版
+- Phase 3：循环图生成器（核心创新 → v1.0 发布）
 
 ## 开发日志
 
 > 每次 session 结束前更新此区块。新对话开始时 Claude Code 自动读取，了解当前进度。
+
+### 2026-04-15（Phase 1 迭代 4 — Phase 1 基本收口）
+- **阶段**：迭代 4 完成（代码生成器 + combined 堆叠图 + RDA 排序图）
+- **已完成**：
+  - 模块 D 深化：`envmeta/export/code_generator.py`（~175 行）
+    - 支持 6 种分析模板（stackplot / pcoa / gene_heatmap / alpha_boxplot / log2fc / rda）
+    - `generate(analysis_id, file_paths, params, output_base) -> str` 返回独立可运行的 Python 源码
+    - 自动剔除 `_` 开头的私有键（中间 DataFrame）
+  - 模块 B 扩展：
+    - `envmeta/analysis/stackplot.py` 新 style="combined"（sample/group 并排 58%:42%），stats 用 MultiIndex 列
+    - `envmeta/analysis/rda.py`（~220 行）：Hellinger + skbio RDA + Mantel 逐因子检验 + 样本 ID 自动对齐（两级命名兜底）
+  - app.py：
+    - 5 个分析页下方加「⬇️ 复现脚本（.py）」按钮（`_reproduce_button` 辅助函数）
+    - 堆叠图 radio 加 combined 选项
+    - 新 RDA 页面（3 文件上传 + 参数侧边栏 + 4 键下载）
+  - 测试：`test_code_generator.py`（15）+ `test_stackplot.py`（+2）+ `test_rda.py`（4），**61/61 全绿 8.35 s**
+  - 论文积累：`paper/benchmarks/validation/rda/` 含 PDF + stats + README；time_comparison.md 补 RDA 行（264 行 R / 60 min vs EnvMeta 3 点击 / 2 s）
+  - Git：3 个 commit（code_generator / combined / RDA）
+- **遇到的问题**：
+  - env_factors.txt 的 SampleID 用别名（`CK_1`）而 Species.txt 列用原始 ID（`2_1`）→ RDA 模块内部用 (Group, 出现顺序) 兜底对齐
+  - skbio 和 R vegan 的 RDA 轴方向可能镜像（数值绝对值一致）→ 不影响统计意义，留论文写作时统一
+- **下一步**：Phase 1 迭代 5 = LEfSe（收口 Phase 1），之后 Phase 2 做 MAG-based 5 图
+- **量化**：
+  - 新增代码：code_generator 175 + rda 220 + stackplot 重构 +70 + app.py +140 + 测试 +80 = ~685 行
+  - 测试：40 → 61 case（+21）
+  - Reads-based 分析图表：5 → 6 种 + combined 样式
+  - 代码生成器受益面：6 种分析自动支持下载 .py 复现
 
 ### 2026-04-14（Phase 1 迭代 3）
 - **阶段**：迭代 3 完成（α 箱线图 + log2FC 差异柱图）
