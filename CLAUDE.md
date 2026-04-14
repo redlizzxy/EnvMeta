@@ -221,6 +221,33 @@ git push                    # 推送到 origin/master
 
 > 每次 session 结束前更新此区块。新对话开始时 Claude Code 自动读取，了解当前进度。
 
+### 2026-04-17（Phase 2 迭代 1 — MAG 质量散点图）
+- **阶段**：进入 Phase 2（MAG-based）。首个 MAG 图完成
+- **已完成**：
+  - 模块 B：`envmeta/analysis/mag_quality.py`（~260 行）
+    - 对标 `scripts/python/06_MAG_quality.py`，简化输入：CheckM2 质量 + GTDB 分类
+      + Keystone 列表（后两者可选）
+    - Phylum 颜色 12 门 + Other；少于 `min_phylum_count` 合并为 Other
+    - 质量 3 级（High/Medium/Low）阈值可调（`high_completeness/high_contamination/…`）
+    - Keystone 菱形 + 标签高亮
+    - stats 长表：summary（3 行）+ detail（每 MAG 质量分类）
+  - 模块 D：`envmeta/export/code_generator.py` 新增 `_tpl_mag_quality`（SUPPORTED 7 → 8）
+  - app.py：MAG-based 页面下 "MAG 质量评估"（3 文件上传，后两可选）+ 4 键下载
+  - 测试：`tests/test_mag_quality.py` 5 个 case，**76/76 全绿 13.6 s**
+  - 论文积累：
+    - `paper/benchmarks/validation/mag_quality/` 含 PDF + stats TSV + README
+    - 168 MAG：High 35 / Medium 111 / Low 22；14 个 keystone 标注
+    - `time_comparison.md` 补 MAG 质量行（py 287 行 / 45 min vs EnvMeta 3 点击 / 2 s）
+- **下一步**：Phase 2 剩余 4 图
+  - `mag_heatmap` ← `07_MAG_abundance_heatmap.py`（Top30 MAG + 聚类 + 三段配色 ~3h）
+  - `pathway` ← `08_pathway_completeness.py`（通路完整度气泡图 ~2h）
+  - `gene_profile` ← `06_MAG_gene_profile.py`（MAG 元素循环基因谱 ~2h）
+  - `network` ← `09_cooccurrence_network.py`（共现网络 ~3h）
+- **量化**：
+  - 新增代码：mag_quality 260 + test 55 + app.py +75 + code_gen +12 = ~402 行
+  - 测试：69 → 76 case（+7：5 新 + 2 参数化）
+  - 累计分析图表：7 Reads-based + 1 MAG-based = 8 种
+
 ### 2026-04-16（Phase 1 迭代 5 — LEfSe 收口 Phase 1 Reads-based）
 - **阶段**：迭代 5 完成 — Phase 1 Reads-based 全部 7 张图闭环
 - **前置修复**（基于 2026-04-15 R 对照）：`fix(rda)` commit e7a1b96 — 约束方差归一 +

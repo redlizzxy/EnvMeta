@@ -7,7 +7,10 @@ import pandas as pd
 import streamlit as st
 
 from envmeta import __version__
-from envmeta.analysis import gene_heatmap, lefse as lefse_mod, pcoa, rda as rda_mod, stackplot
+from envmeta.analysis import (
+    gene_heatmap, lefse as lefse_mod,
+    mag_quality as mag_quality_mod, pcoa, rda as rda_mod, stackplot,
+)
 from envmeta.export.code_generator import generate as generate_code
 from envmeta.export.figure_export import export_to_bytes
 from envmeta.file_manager.detector import FileType, detect, read_table
@@ -657,7 +660,79 @@ elif page == "MAG-based 分析":
         "选择分析类型",
         ["MAG 质量评估", "MAG 丰度热图", "代谢通路完整度", "MAG 元素循环基因谱", "共现网络图"],
     )
-    st.info(f"「{analysis_type}」模块开发中 — Phase 2 将实现。")
+
+    if analysis_type == "MAG 质量评估":
+        checkm_files = _files_of(FileType.CHECKM_QUALITY)
+        if not checkm_files:
+            st.warning("需要 1 个 CheckM / CheckM2 质量表（含 Completeness/Contamination/Genome_Size 列）。")
+            st.stop()
+        q_name = st.selectbox("CheckM 质量表", list(checkm_files.keys()), key="mq_checkm")
+        t_name = st.selectbox(
+            "GTDB 分类表（可选）",
+            ["（无）"] + [n for n in st.session_state.files.keys() if n != q_name],
+            key="mq_tax",
+        )
+        k_name = st.selectbox(
+            "Keystone 物种列表（可选）",
+            ["（无）"] + [n for n in st.session_state.files.keys()
+                         if n not in (q_name, t_name)],
+            key="mq_ks",
+        )
+
+        with st.sidebar:
+            st.subheader("MAG 质量参数")
+            hc = st.slider("高质量 Completeness ≥", 50, 100, 90, key="mq_hc")
+            hcon = st.slider("高质量 Contamination <", 1, 10, 5, key="mq_hcon")
+            mc = st.slider("中质量 Completeness ≥", 30, 80, 50, key="mq_mc")
+            mcon = st.slider("中质量 Contamination <", 5, 20, 10, key="mq_mcon")
+            size = render_figure_size({"width_mm": 260, "height_mm": 140}, prefix="mq")
+
+        if st.button("生成 MAG 质量图", type="primary", key="mq_go"):
+            q = checkm_files[q_name]["df"]
+            t = st.session_state.files[t_name]["df"] if t_name != "（无）" else None
+            # taxonomy 表若没有标题，需要设列名
+            if t is not None and "classification" not in [c.lower() for c in t.columns] \
+                    and "taxonomy" not in [c.lower() for c in t.columns]:
+                # 约定：无表头的 MAG\tTaxonomy 两列格式
+                if t.shape[1] == 2:
+                    t = t.copy()
+                    t.columns = ["MAG", "Taxonomy"]
+            k = st.session_state.files[k_name]["df"] if k_name != "（无）" else None
+            params = {
+                "high_completeness": float(hc), "high_contamination": float(hcon),
+                "med_completeness": float(mc), "med_contamination": float(mcon),
+                **size,
+            }
+            try:
+                result = mag_quality_mod.analyze(q, t, k, params)
+            except ValueError as e:
+                st.error(str(e))
+                st.stop()
+            st.session_state["_mq_last"] = result
+
+        last = st.session_state.get("_mq_last")
+        if last is not None:
+            st.pyplot(last.figure, use_container_width=False)
+            d1, d2, d3 = st.columns(3)
+            with d1:
+                st.download_button("⬇️ PNG", data=export_to_bytes(last.figure, "png"),
+                                   file_name="mag_quality.png", mime="image/png", key="mq_png")
+            with d2:
+                st.download_button("⬇️ PDF（矢量）", data=export_to_bytes(last.figure, "pdf"),
+                                   file_name="mag_quality.pdf", mime="application/pdf", key="mq_pdf")
+            with d3:
+                st.download_button("⬇️ 统计表（TSV）",
+                                   data=last.stats.to_csv(sep="\t", index=False).encode("utf-8"),
+                                   file_name="mag_quality_stats.tsv",
+                                   mime="text/tab-separated-values", key="mq_tsv")
+            files_map = {"quality": q_name}
+            if t_name != "（无）": files_map["taxonomy"] = t_name
+            if k_name != "（无）": files_map["keystone"] = k_name
+            _reproduce_button("mag_quality", files_map, last.params, key="mq_code")
+            with st.expander("查看统计表"):
+                st.dataframe(last.stats, use_container_width=True)
+    else:
+        st.info(f"「{analysis_type}」模块开发中 — Phase 2 继续。")
 
 elif page == "生物地球化学循环图":
     st.title("生物地球化学循环图生成器")

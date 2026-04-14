@@ -9,7 +9,7 @@
 | LEfSe | 206 (R, 04_LEfSe.R) + Galaxy LEfSe 外部依赖 | 7+（装 Galaxy/R/dplyr + 预跑 + 写脚本） | ~75 min（含 Galaxy 环境准备） | ✅ pip install（内置 KW + LDA，无需 Galaxy） | 3（上传 2 文件 + 调阈值 + 点生成） | ~3 s | 2026-04-16 |
 | 基因热图 | 514 (py, 05_gene_heatmap_log2fc.py, 含 log2FC 部分) | 6+（装 matplotlib/调整颜色/位置/字体） | ~90 min | ✅ pip install + 知识库 JSON | 3（上传 2 文件 + 点生成） | ~8 s | 2026-04-13 |
 | log2FC | 含在 514 行 05_gene_heatmap_log2fc.py（后半段 ~230 行） | 5+（装 scipy/statsmodels + 配色） | ~50 min | ✅ pip install + 知识库 JSON | 4（上传 2 文件 + 选组对 + 点生成） | ~3 s | 2026-04-14 |
-| MAG质量 | | | | | | | |
+| MAG质量 | 287 (py, 06_MAG_quality.py) | 5+（argparse + bac120/ar53 合并 + 配色/图例布局）| ~45 min | ✅ pip install | 3（上传 2-3 文件 + 点生成）| ~2 s | 2026-04-17 |
 | MAG丰度热图 | | | | | | | |
 | 通路完整度 | | | | | | | |
 | 基因谱 | | | | | | | |

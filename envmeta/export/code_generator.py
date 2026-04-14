@@ -14,7 +14,7 @@ from typing import Callable
 
 from envmeta import __version__
 
-SUPPORTED = {"stackplot", "pcoa", "gene_heatmap", "alpha_boxplot", "log2fc", "rda", "lefse"}
+SUPPORTED = {"stackplot", "pcoa", "gene_heatmap", "alpha_boxplot", "log2fc", "rda", "lefse", "mag_quality"}
 
 _HEADER_TEMPLATE = '''"""
 由 EnvMeta v{version} 于 {timestamp} 生成。
@@ -160,6 +160,19 @@ print(f"Saved: {output_base}.pdf + {output_base}_stats.tsv")
 '''
 
 
+def _tpl_mag_quality(files: dict, params: dict, output_base: str) -> str:
+    return _header("mag_quality", "mag_quality", files, params, output_base) + f'''
+quality_df = pd.read_csv(FILES["quality"], sep="\\t")
+taxonomy_df = pd.read_csv(FILES["taxonomy"], sep="\\t", header=None, names=["MAG", "Taxonomy"]) if FILES.get("taxonomy") else None
+keystone_df = pd.read_csv(FILES["keystone"], sep="\\t") if FILES.get("keystone") else None
+
+result = mag_quality.analyze(quality_df, taxonomy_df, keystone_df, PARAMS)
+export_figure(result.figure, "{output_base}.pdf", "pdf")
+result.stats.to_csv("{output_base}_stats.tsv", sep="\\t", index=False)
+print(f"Saved: {output_base}.pdf + {output_base}_stats.tsv")
+'''
+
+
 _TEMPLATES: dict[str, Callable[[dict, dict, str], str]] = {
     "stackplot": _tpl_stackplot,
     "pcoa": _tpl_pcoa,
@@ -168,6 +181,7 @@ _TEMPLATES: dict[str, Callable[[dict, dict, str], str]] = {
     "log2fc": _tpl_log2fc,
     "rda": _tpl_rda,
     "lefse": _tpl_lefse,
+    "mag_quality": _tpl_mag_quality,
 }
 
 
