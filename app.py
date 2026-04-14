@@ -7,7 +7,7 @@ import pandas as pd
 import streamlit as st
 
 from envmeta import __version__
-from envmeta.analysis import gene_heatmap, pcoa, stackplot
+from envmeta.analysis import gene_heatmap, pcoa, rda as rda_mod, stackplot
 from envmeta.export.code_generator import generate as generate_code
 from envmeta.export.figure_export import export_to_bytes
 from envmeta.file_manager.detector import FileType, detect, read_table
@@ -508,9 +508,78 @@ elif page == "Reads-based 分析":
                 st.dataframe(last.stats.sort_values("padj").round(4),
                              use_container_width=True)
 
+    # ── RDA 排序图 ─────────────────────────────────
+    elif analysis_type == "RDA/CCA 排序":
+        abundance_files = _files_of(FileType.ABUNDANCE_WIDE)
+        env_files = _files_of(FileType.ENV_FACTORS)
+        metadata_files = _files_of(FileType.METADATA)
+        if not abundance_files or not env_files or not metadata_files:
+            st.warning(
+                f"需要 1 丰度表 + 1 环境因子表 + 1 metadata。当前："
+                f"丰度 {len(abundance_files)}，env {len(env_files)}，metadata {len(metadata_files)}。"
+            )
+            st.stop()
+
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            ab_name = st.selectbox("丰度表", list(abundance_files.keys()), key="rda_ab")
+        with c2:
+            env_name = st.selectbox("环境因子表", list(env_files.keys()), key="rda_env")
+        with c3:
+            md_name = st.selectbox("Metadata", list(metadata_files.keys()), key="rda_md")
+
+        st.sidebar.markdown("---")
+        st.sidebar.subheader("参数")
+        n_perm = st.sidebar.select_slider("Mantel 置换次数",
+                                          options=[99, 499, 999], value=999, key="rda_n_perm")
+        show_arrows = st.sidebar.checkbox("显示环境因子箭头", value=True, key="rda_arrows")
+        show_labels = st.sidebar.checkbox("显示样本标签", value=True, key="rda_labels")
+        arrow_scale = st.sidebar.slider("箭头缩放", 0.5, 3.0, 1.0, step=0.1, key="rda_scale")
+        drop_unc = st.sidebar.checkbox("过滤 unclassified", value=True, key="rda_drop_unc")
+        size = render_figure_size({"width_mm": 180, "height_mm": 140}, prefix="rda")
+
+        params = {
+            "n_permutations": n_perm, "show_env_arrows": show_arrows,
+            "show_sample_labels": show_labels, "arrow_scale": arrow_scale,
+            "drop_unclassified": drop_unc, **size,
+        }
+
+        if st.button("🎨 生成图表", type="primary", key="rda_go"):
+            try:
+                result = rda_mod.analyze(
+                    abundance_files[ab_name]["df"],
+                    env_files[env_name]["df"],
+                    metadata_files[md_name]["df"],
+                    params,
+                )
+                st.session_state["last_rda"] = result
+            except Exception as e:
+                st.error(f"生成失败：{e}")
+
+        last = st.session_state.get("last_rda")
+        if last is not None:
+            st.pyplot(last.figure, use_container_width=True)
+            d1, d2, d3 = st.columns(3)
+            with d1:
+                st.download_button("⬇️ PNG（300 DPI）", data=export_to_bytes(last.figure, "png"),
+                                   file_name="rda.png", mime="image/png", key="rda_png")
+            with d2:
+                st.download_button("⬇️ PDF（矢量）", data=export_to_bytes(last.figure, "pdf"),
+                                   file_name="rda.pdf", mime="application/pdf", key="rda_pdf")
+            with d3:
+                st.download_button("⬇️ 统计表（TSV）",
+                                   data=last.stats.to_csv(sep="\t", index=False).encode("utf-8"),
+                                   file_name="rda_stats.tsv",
+                                   mime="text/tab-separated-values", key="rda_tsv")
+            _reproduce_button("rda",
+                              {"abundance": ab_name, "env_factors": env_name, "metadata": md_name},
+                              last.params, key="rda_code")
+            with st.expander("查看 RDA 统计表"):
+                st.dataframe(last.stats.round(4), use_container_width=True)
+
     # 未实现的子页面
     else:
-        st.info(f"「{analysis_type}」将在 Phase 1 迭代 4 或 Phase 2 实现。")
+        st.info(f"「{analysis_type}」将在 Phase 2 实现。")
 
 # ══════════════════════════════════════════════════════════
 # 其他占位页面
