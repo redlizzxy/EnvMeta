@@ -50,6 +50,26 @@ def pathway_display(kb: dict | None = None, lang: str = "en") -> dict[str, str]:
     return out
 
 
+def pathway_ko_sets(kb: dict | None = None) -> dict[str, list[str]]:
+    """{pathway_id: [ko, ...]}，用于通路完整度计算。"""
+    kb = kb or load_kb()
+    out: dict[str, list[str]] = {}
+    for el in kb["elements"].values():
+        for pw_id, pw in el["pathways"].items():
+            out[pw_id] = list(pw["genes"].keys())
+    return out
+
+
+def pathway_element_map(kb: dict | None = None) -> dict[str, str]:
+    """{pathway_id: element_id}。"""
+    kb = kb or load_kb()
+    out: dict[str, str] = {}
+    for eid, el in kb["elements"].items():
+        for pw_id in el["pathways"].keys():
+            out[pw_id] = eid
+    return out
+
+
 def element_pathway_ko_order(kb: dict | None = None) -> list[tuple[str, str, str]]:
     """按 element → pathway → KO 的自然顺序返回 [(element, pathway, ko), ...]。"""
     kb = kb or load_kb()

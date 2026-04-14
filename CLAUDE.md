@@ -221,6 +221,31 @@ git push                    # 推送到 origin/master
 
 > 每次 session 结束前更新此区块。新对话开始时 Claude Code 自动读取，了解当前进度。
 
+### 2026-04-17（Phase 2 迭代 2 — MAG 通路完整度）
+- **阶段**：Phase 2 第 2 图 — Phase 3 循环图硬前置 1/2 完成
+- **已完成**：
+  - 模块 B：`envmeta/analysis/pathway.py`（~320 行）
+    - 对标 `scripts/python/08_pathway_completeness.py`（970 行），收敛到 ~320 行
+    - 通路定义从**知识库** `elements.json` 动态读取（4 元素 × 18 通路 × 57 KO），
+      不再硬编码；自动继承 KB 更新
+    - 支持 heatmap / bubble 双样式；`max_mags` / `sort_by` / `element_filter` 参数
+    - 元素彩条 + 门彩条 + keystone ★ 标记
+  - 模块 E（知识库）：`envmeta/geocycle/knowledge_base/__init__.py` 新增
+    `pathway_ko_sets()` / `pathway_element_map()` 两个索引工具
+  - 模块 D：`code_generator` SUPPORTED 8 → 9
+  - app.py：MAG-based 下 "代谢通路完整度" 页面（4 文件上传，3 个可选 + heatmap/bubble 切换）
+  - 测试：`tests/test_pathway.py` 6 个 case，**84/84 全绿 16.7 s**
+  - 论文积累：
+    - `paper/benchmarks/validation/pathway/` 含 heatmap + bubble 双 PDF + stats TSV
+    - 168 MAG × 18 通路完整度计算；14 keystone 正确标注
+    - `time_comparison.md` 补通路完整度行（py 970 行 / 120 min vs EnvMeta 3 点击 / 3 s）
+- **Phase 3 前置进度**：✅ pathway 完成，⏳ gene_profile 下一步
+- **下一步**：`gene_profile`（Phase 3 前置 2/2）→ 然后 **Phase 3 v1 循环图**
+- **量化**：
+  - 新增代码：pathway 320 + kb helpers +18 + test 70 + app.py +85 + code_gen +12 = ~505 行
+  - 测试：76 → 84 case（+8：6 新 + 2 参数化）
+  - 累计分析图表：7 Reads + 2 MAG = 9 种
+
 ### 2026-04-17（Phase 2 迭代 1 — MAG 质量散点图）
 - **阶段**：进入 Phase 2（MAG-based）。首个 MAG 图完成
 - **已完成**：

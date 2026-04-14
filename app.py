@@ -9,7 +9,9 @@ import streamlit as st
 from envmeta import __version__
 from envmeta.analysis import (
     gene_heatmap, lefse as lefse_mod,
-    mag_quality as mag_quality_mod, pcoa, rda as rda_mod, stackplot,
+    mag_quality as mag_quality_mod,
+    pathway as pathway_mod,
+    pcoa, rda as rda_mod, stackplot,
 )
 from envmeta.export.code_generator import generate as generate_code
 from envmeta.export.figure_export import export_to_bytes
@@ -729,6 +731,94 @@ elif page == "MAG-based 分析":
             if t_name != "（无）": files_map["taxonomy"] = t_name
             if k_name != "（无）": files_map["keystone"] = k_name
             _reproduce_button("mag_quality", files_map, last.params, key="mq_code")
+            with st.expander("查看统计表"):
+                st.dataframe(last.stats, use_container_width=True)
+    elif analysis_type == "代谢通路完整度":
+        # KO 注释表的文件类型目前落在 UNKNOWN 或 ABUNDANCE_WIDE，允许用户手选任何表
+        ko_candidates = list(st.session_state.files.keys())
+        if not ko_candidates:
+            st.warning("需要至少 1 个 KO 注释表（长格式：MAG + KEGG_ko 两列）。")
+            st.stop()
+        ko_name = st.selectbox("KO 注释表（MAG + KEGG_ko 长表）", ko_candidates, key="pw_ko")
+        t_name = st.selectbox(
+            "GTDB 分类表（可选）",
+            ["（无）"] + [n for n in ko_candidates if n != ko_name],
+            key="pw_tax",
+        )
+        k_name = st.selectbox(
+            "Keystone 物种列表（可选）",
+            ["（无）"] + [n for n in ko_candidates if n not in (ko_name, t_name)],
+            key="pw_ks",
+        )
+        a_name = st.selectbox(
+            "MAG 丰度表（可选，用于 Top-N 过滤 / 气泡大小）",
+            ["（无）"] + [n for n in ko_candidates
+                         if n not in (ko_name, t_name, k_name)],
+            key="pw_ab",
+        )
+
+        with st.sidebar:
+            st.subheader("通路完整度参数")
+            style = st.radio("图样式", ["heatmap", "bubble"], key="pw_style")
+            sort_by = st.selectbox(
+                "排序方式",
+                ["phylum_then_total", "total", "abundance"],
+                key="pw_sort",
+            )
+            elem_opts = ["arsenic", "sulfur", "iron", "nitrogen"]
+            elem_sel = st.multiselect("元素过滤（空=全部）", elem_opts,
+                                      default=[], key="pw_elem")
+            max_mags = st.slider("最多显示 MAG 数（0=全部）", 0, 200, 50,
+                                 step=10, key="pw_max")
+            size = render_figure_size({"width_mm": 280, "height_mm": 200},
+                                      prefix="pw")
+
+        if st.button("生成通路完整度图", type="primary", key="pw_go"):
+            ko = st.session_state.files[ko_name]["df"]
+            t = st.session_state.files[t_name]["df"] if t_name != "（无）" else None
+            if t is not None and t.shape[1] == 2 and "classification" not in [
+                    c.lower() for c in t.columns] and "taxonomy" not in [
+                    c.lower() for c in t.columns]:
+                t = t.copy()
+                t.columns = ["MAG", "Taxonomy"]
+            k = st.session_state.files[k_name]["df"] if k_name != "（无）" else None
+            a = st.session_state.files[a_name]["df"] if a_name != "（无）" else None
+            params = {
+                "style": style,
+                "sort_by": sort_by,
+                "element_filter": elem_sel or None,
+                "max_mags": max_mags or None,
+                **size,
+            }
+            try:
+                result = pathway_mod.analyze(ko, t, k, a, params=params)
+            except ValueError as e:
+                st.error(str(e))
+                st.stop()
+            st.session_state["_pw_last"] = result
+
+        last = st.session_state.get("_pw_last")
+        if last is not None:
+            st.pyplot(last.figure, use_container_width=False)
+            d1, d2, d3 = st.columns(3)
+            with d1:
+                st.download_button("⬇️ PNG", data=export_to_bytes(last.figure, "png"),
+                                   file_name="pathway.png", mime="image/png",
+                                   key="pw_png")
+            with d2:
+                st.download_button("⬇️ PDF（矢量）", data=export_to_bytes(last.figure, "pdf"),
+                                   file_name="pathway.pdf",
+                                   mime="application/pdf", key="pw_pdf")
+            with d3:
+                st.download_button("⬇️ 统计表（TSV）",
+                                   data=last.stats.to_csv(sep="\t", index=False).encode("utf-8"),
+                                   file_name="pathway_stats.tsv",
+                                   mime="text/tab-separated-values", key="pw_tsv")
+            files_map = {"ko_annotation": ko_name}
+            if t_name != "（无）": files_map["taxonomy"] = t_name
+            if k_name != "（无）": files_map["keystone"] = k_name
+            if a_name != "（无）": files_map["abundance"] = a_name
+            _reproduce_button("pathway", files_map, last.params, key="pw_code")
             with st.expander("查看统计表"):
                 st.dataframe(last.stats, use_container_width=True)
     else:
