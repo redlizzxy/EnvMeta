@@ -59,10 +59,24 @@ class ElementCycle:
 
 
 @dataclass
+class SensitivityRow:
+    """一条通路在多档完整度阈值下的 Top-1 contributor 稳定性。"""
+    pathway_id: str
+    element: str
+    display_name: str
+    thresholds: list[float]
+    top1_by_threshold: list[str | None]
+    n_active_by_threshold: list[int]
+    robust: bool   # True = 三档 Top-1 一致
+
+
+@dataclass
 class CycleData:
     """一次推断的完整结果（供 renderer 消费 + JSON 导出）。"""
     elements: list[ElementCycle] = field(default_factory=list)
     env_correlations: list[EnvCorrelation] = field(default_factory=list)
+    full_corr_matrix: list[EnvCorrelation] = field(default_factory=list)  # 不过滤
+    sensitivity: list[SensitivityRow] = field(default_factory=list)
     params: dict = field(default_factory=dict)
     meta: dict = field(default_factory=dict)   # 样本数、MAG 数等汇总
 
@@ -89,5 +103,23 @@ class CycleData:
                 "display_name": ec.env_factor,
                 "mean_completeness": ec.rho,
                 "total_contribution": ec.p_value,
+            })
+        for ec in self.full_corr_matrix:
+            rows.append({
+                "type": "full_correlation",
+                "pathway_id": ec.pathway_id,
+                "display_name": ec.env_factor,
+                "mean_completeness": ec.rho,
+                "total_contribution": ec.p_value,
+            })
+        for sr in self.sensitivity:
+            rows.append({
+                "type": "sensitivity",
+                "element": sr.element,
+                "pathway_id": sr.pathway_id,
+                "display_name": sr.display_name,
+                "top_mag": "|".join(str(x) for x in sr.top1_by_threshold),
+                "n_active_mags": sum(sr.n_active_by_threshold),
+                "mean_completeness": 1.0 if sr.robust else 0.0,  # robust flag
             })
         return pd.DataFrame(rows)

@@ -29,7 +29,8 @@ from envmeta.geocycle.knowledge_base import (
     pathway_ko_sets,
 )
 from envmeta.geocycle.model import (
-    CycleData, ElementCycle, EnvCorrelation, MAGContribution, PathwayActivity,
+    CycleData, ElementCycle, EnvCorrelation, MAGContribution,
+    PathwayActivity, SensitivityRow,
 )
 
 DEFAULTS = {
@@ -37,6 +38,7 @@ DEFAULTS = {
     "top_n_contributors": 5,          # 每条通路保留 Top-N 贡献 MAG
     "env_rho_min": 0.5,               # 环境相关性最低 |rho|
     "env_p_max": 0.05,                # 相关性显著性阈值
+    "sensitivity_thresholds": [30.0, 50.0, 70.0],  # S1 新增：完整度敏感度扫描
 }
 
 
@@ -163,9 +165,9 @@ def _env_correlations(
     """
     if (env_df is None or env_df.empty
             or abundance_df is None or abundance_df.empty):
-        return []
+        return [], []
     if metadata_df is None:
-        return []
+        return [], []
 
     ab = abundance_df.copy()
     ab = ab.rename(columns={_mag_col(ab): "MAG"})
@@ -179,7 +181,7 @@ def _env_correlations(
                     if c not in (env_sample_col, group_col, "Replicate")
                     and pd.to_numeric(env_df[c], errors="coerce").notna().mean() > 0.9]
     if not env_num_cols:
-        return []
+        return [], []
 
     # env 对齐到 abundance 列；fallback 按 group 顺序（与 rda 同思路）
     env_ids = env_df[env_sample_col].astype(str).tolist()
@@ -204,15 +206,16 @@ def _env_correlations(
             common = keep_cols
             env_aligned = env_df.iloc[env_idx].reset_index(drop=True)
         else:
-            return []
+            return [], []
     else:
         env_aligned = env_df.set_index(env_sample_col).loc[common].reset_index()
 
     if len(common) < 4:
-        return []
+        return [], []
     ab_mat = ab_mat[common]
 
-    out: list[EnvCorrelation] = []
+    filtered: list[EnvCorrelation] = []
+    full: list[EnvCorrelation] = []
     for pw_id, kos in pw_kos.items():
         # 样本级活性：Σ_MAG abundance_MAG × |MAG 的 KO ∩ 通路 KO|
         per_sample = np.zeros(len(common))
@@ -232,13 +235,61 @@ def _env_correlations(
                 continue
             if np.isnan(rho):
                 continue
+            ec = EnvCorrelation(
+                pathway_id=pw_id, env_factor=factor,
+                rho=float(rho), p_value=float(pv),
+                n_samples=len(common),
+            )
+            full.append(ec)   # 所有非 NaN 都进完整矩阵
             if abs(rho) >= rho_min and pv <= p_max:
-                out.append(EnvCorrelation(
-                    pathway_id=pw_id, env_factor=factor,
-                    rho=float(rho), p_value=float(pv),
-                    n_samples=len(common),
-                ))
-    return out
+                filtered.append(ec)
+    return filtered, full
+
+
+def _sensitivity_scan(
+    mag_kos: dict[str, set[str]],
+    base: pd.DataFrame,
+    pw_kos: dict[str, list[str]],
+    thresholds: list[float],
+    pw_elem: dict[str, str],
+    pw_display: dict[str, str],
+) -> list[SensitivityRow]:
+    """在多档完整度阈值下扫描每条通路的 Top-1 contributor 稳定性。
+
+    Top-1 = 活跃 MAG 里 completeness × log1p(abundance) 最高者的 label。
+    robust = 所有阈值档下 Top-1 一致。
+    """
+    mag_meta = base.set_index("MAG")
+    rows: list[SensitivityRow] = []
+    for pw_id, kos in pw_kos.items():
+        k_set = set(kos)
+        top1_list: list[str | None] = []
+        n_active_list: list[int] = []
+        for thr in thresholds:
+            contributors = []
+            for mag, owned in mag_kos.items():
+                comp = len(owned & k_set) / len(k_set) * 100 if kos else 0.0
+                if comp < thr:
+                    continue
+                m = mag_meta.loc[mag] if mag in mag_meta.index else None
+                ab = float(m["abundance_mean"]) if m is not None else 0.0
+                genus = str(m["Genus"]) if (m is not None and "Genus" in m.index) else ""
+                label = genus if genus else mag
+                contributors.append((comp * np.log1p(ab), label))
+            contributors.sort(reverse=True)
+            top1_list.append(contributors[0][1] if contributors else None)
+            n_active_list.append(len(contributors))
+        non_none = [t for t in top1_list if t is not None]
+        robust = len(set(non_none)) <= 1 and len(non_none) == len(top1_list)
+        rows.append(SensitivityRow(
+            pathway_id=pw_id, element=pw_elem.get(pw_id, "unknown"),
+            display_name=pw_display.get(pw_id, pw_id),
+            thresholds=list(thresholds),
+            top1_by_threshold=top1_list,
+            n_active_by_threshold=n_active_list,
+            robust=robust,
+        ))
+    return rows
 
 
 def infer(
@@ -281,9 +332,16 @@ def infer(
     for ec in elements.values():
         ec.pathways.sort(key=lambda x: x.total_contribution, reverse=True)
 
-    env_corrs = _env_correlations(
+    env_corrs, full_corr = _env_correlations(
         mag_kos, abundance_df, env_df, metadata_df, pw_kos,
         rho_min=p["env_rho_min"], p_max=p["env_p_max"],
+    )
+
+    # 敏感度扫描
+    sensitivity = _sensitivity_scan(
+        mag_kos, base, pw_kos,
+        thresholds=p["sensitivity_thresholds"],
+        pw_elem=pw_elem, pw_display=pathway_display(lang="en"),
     )
 
     meta = {
@@ -292,11 +350,15 @@ def infer(
         "n_pathways_active": sum(
             1 for a in activities.values() if a.n_active_mags > 0),
         "n_env_correlations": len(env_corrs),
+        "n_full_corr": len(full_corr),
+        "n_sensitivity_robust": sum(1 for s in sensitivity if s.robust),
     }
 
     return CycleData(
         elements=list(elements.values()),
         env_correlations=env_corrs,
+        full_corr_matrix=full_corr,
+        sensitivity=sensitivity,
         params=p,
         meta=meta,
     )

@@ -1007,8 +1007,30 @@ elif page == "生物地球化学循环图":
                                data=last.stats.to_csv(sep="\t", index=False).encode("utf-8"),
                                file_name="cycle_stats.tsv",
                                mime="text/tab-separated-values", key="cy_tsv")
-        with st.expander("推断详情（活跃通路 + 环境耦合）"):
-            st.dataframe(last.stats, use_container_width=True)
+        st.info(
+            "⚠️ **输出是描述性的，不是因果性的。** "
+            "Top-completeness contributor 只表示该 MAG 的 KO 覆盖该通路最多，"
+            "**不等于驱动**该通路。相关 ≠ 因果。因果解读需要领域专家基于证据自行判断。"
+        )
+        with st.expander("活跃通路 + 超阈值环境耦合（主结果）"):
+            st.dataframe(
+                last.stats[last.stats["type"].isin(["pathway", "env_correlation"])],
+                use_container_width=True,
+            )
+        with st.expander("完整环境相关矩阵（不过滤，用于判断 confounding）"):
+            st.caption("同一通路同时与多个环境因子相关时，提示潜在共变。")
+            st.dataframe(
+                last.stats[last.stats["type"] == "full_correlation"],
+                use_container_width=True,
+            )
+        with st.expander("阈值敏感度扫描（robust = Top-1 在 30/50/70% 三档一致）"):
+            sens = last.stats[last.stats["type"] == "sensitivity"].copy()
+            if not sens.empty:
+                sens["robust"] = sens["mean_completeness"].apply(
+                    lambda x: "✅ robust" if x >= 0.5 else "⚠️ threshold-sensitive")
+                st.dataframe(sens[["element", "pathway_id", "display_name",
+                                   "top_mag", "robust"]],
+                             use_container_width=True)
 
 elif page == "导出中心":
     st.title("导出中心")

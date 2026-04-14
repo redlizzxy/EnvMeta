@@ -156,6 +156,67 @@ git push                    # 推送到 origin/master
 - **Phase 3**：循环图 v1（推断引擎 + 静态渲染）
 - **Phase 4**：循环图交互编辑 + 产品打磨 → v1.0 发布
 
+## 产品定位与核心设计决策（2026-04-17 确认）
+
+### 定位
+
+EnvMeta **不是**预装所有环境机制的权威工具，而是一个：
+
+> **可定制的环境生信分析框架 + 通用循环图推断引擎 + 论文-EnvMeta 绑定发布协议**
+
+### 核心设计原则
+
+| 原则 | 含义 | 理由 |
+|---|---|---|
+| **领域中立** | 核心代码不内嵌任何具体机制/研究主题目录 | 科学问题空间无穷，不可枚举；避免确认偏差 |
+| **用户自带知识** | 机制 YAML / 知识库扩展 / 分析插件都由用户提供 | 维护人不承担社区知识更新负担 |
+| **完全离线** | 所有功能本地可用，无网络依赖 | 符合学术界数据保密 + 降低维护复杂度 |
+| **Fork 而非社区** | 每篇论文绑定一份定制 EnvMeta 发布 | 分布式发布，无中心化维护瓶颈 |
+| **描述而非断言** | 循环图输出"谁承载什么 + 什么与什么相关"，不下因果结论 | 因果判断是用户职责；工具避免附和假说 |
+
+### 拒绝的设计
+
+- ❌ 自动检测研究主题（env 列名 + KO 频度**推不出**"砷修复"等研究意图）
+- ❌ 下拉选研究领域（无法穷举科学问题）
+- ❌ 预装竞争机制目录（违反"不维护社区"原则）
+- ❌ 嵌入 KEGG 快照（过期 + 违反离线原则）
+- ❌ 完整 GUI KB 编辑器（5% 用户会用，投入回报低）
+
+### 采用的架构（5 层）
+
+| 层 | 内容 | 状态 |
+|---|---|---|
+| L1 通用循环图内核 | 描述性推断 + 去偏 + 敏感度 | Phase 3 v1 已有，S1 去偏待做 |
+| L2 机制 YAML 评分器 | 用户上传假说 YAML → 证据评分 | S3 计划 |
+| L3 插件框架 | 用户上传 Python `analyze()` → 自动注册 GUI | S8 计划（可选）|
+| L4 Fork Bundle | 打包配置 + 插件 + YAML + KB + 样例数据 | S4 计划 |
+| L5 KB 工具 | schema 校验 + template + diff/merge CLI | S5 计划 |
+
+### 市场现实（诚实校准）
+
+- 预期峰值：**50-200 活跃用户 / 1-2 年**（不是上千）
+- 真实采用：自己课题组（确定）+ 同行复现（每篇 7-35 人）+ 小众外部（5-50 实验室）
+- 论文目标：**iMeta / Bioinformatics / Front Microbiol 方法学论文**；博士论文章节完美匹配
+
+### KB 制作难度分层
+
+| 场景 | 工作量 | 难度 |
+|---|---|---|
+| 给现有元素加通路 | 30 min | ⭐ |
+| 加新通路 + KO | 1-2 h | ⭐⭐ |
+| 加新元素循环（如 Hg / C）| 4-8 h | ⭐⭐⭐⭐ |
+| 换研究领域（全碳循环 100+ KO）| 1-2 天 | ⭐⭐⭐⭐⭐ |
+
+**关键理解**：KB 成本 = 一次性 + 与论文研究副产物重叠（占论文周期 <1%）。EnvMeta
+降低**机械**成本 ~50%，但**智力**成本（哪些 KO 属于哪通路）无法降低。
+
+### 当前执行路线：B（27h / 8 session）
+
+S1 v1 去偏 → S2 置换零假设 + 可信度标签 → S3 机制 YAML 评分器 → S4 Fork Bundle →
+S5 KB 工具 → S6 `mag_heatmap` → S7 `network`(Gephi-prep) → S9 论文起草
+
+S8 插件框架推迟到论文接收后再做。完整计划见 `C:\Users\REDLIZZ\.claude\plans\logical-drifting-metcalfe.md`。
+
 ## Backlog（累积 TODO，每次迭代前筛选）
 
 **Phase 1 迭代 2 候选**：
@@ -220,6 +281,37 @@ git push                    # 推送到 origin/master
 ## 开发日志
 
 > 每次 session 结束前更新此区块。新对话开始时 Claude Code 自动读取，了解当前进度。
+
+### 2026-04-17（S1 — 循环图 v1 去偏：描述性中立语言 + 完整矩阵 + 敏感度扫描）
+- **阶段**：路线 B Session 1 完成。响应 2026-04-17 讨论的"避免确认偏差"要求
+- **核心改造**：
+  - `paper/benchmarks/validation/cycle_diagram/README.md` 重写：
+    - "drives / 主导" → "top-completeness contributor"
+    - 新增"Interpretation Guidance"警告段：描述性 ≠ 因果性
+    - 指出 5/5 As↔Total_As 高相关的替代解释（"高 As 选择有 arsC 的 MAG"）
+    - 承诺 S2 置换检验 + S3 机制 YAML 评分器
+  - `envmeta/geocycle/model.py`：`CycleData` 新增 `full_corr_matrix` + `sensitivity` 字段；
+    新 dataclass `SensitivityRow`
+  - `envmeta/geocycle/inference.py`：
+    - `_env_correlations()` 返回 (filtered, full) 双列表
+    - 新增 `_sensitivity_scan()`：扫描 `sensitivity_thresholds=[30, 50, 70]` 三档，
+      每通路 Top-1 contributor 一致性 → `robust` / `threshold-sensitive` 标签
+    - `DEFAULTS` 加 `sensitivity_thresholds`
+  - `app.py` 循环图页：
+    - 顶部增加"⚠️ 输出是描述性的，不是因果性的"警示条
+    - 3 个展开区：主结果 / 完整相关矩阵 / 阈值敏感度
+  - 验证产物拆分为 3 份 TSV（主 / full_corr / sensitivity）
+- **实测数据**：
+  - 18 通路里 **12 robust / 6 threshold-sensitive**（告诉用户哪些结论稳健）
+  - **完整相关矩阵 68 条 vs 过滤后 16 条** —— 用户可看到"Arsenate reduction 还和 Eh 相关 0.42"
+    这类潜在 confounding
+- **测试**：`tests/test_cycle_diagram.py` +3 case（full matrix、sensitivity、新 stats types），
+  **101/101 全绿 26.7 s**
+- **下一步**：S2 置换零假设检验 + 可信度标签（strong/suggestive/weak/spurious?）
+- **量化**：
+  - 修改：model +22 行、inference +65 行、app.py +20 行、README 重写 65→95 行
+  - 测试：98 → 101 case（+3）
+  - 合计：~150 行净新增
 
 ### 2026-04-17（**Phase 3 v1 — 生物地球化学循环图自动推断 ⭐ 核心卖点**）
 - **阶段**：Phase 3 v1 完成 — 论文 hero figure 自动生成
