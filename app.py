@@ -7,7 +7,7 @@ import pandas as pd
 import streamlit as st
 
 from envmeta import __version__
-from envmeta.analysis import gene_heatmap, pcoa, rda as rda_mod, stackplot
+from envmeta.analysis import gene_heatmap, lefse as lefse_mod, pcoa, rda as rda_mod, stackplot
 from envmeta.export.code_generator import generate as generate_code
 from envmeta.export.figure_export import export_to_bytes
 from envmeta.file_manager.detector import FileType, detect, read_table
@@ -575,6 +575,73 @@ elif page == "Reads-based 分析":
                               {"abundance": ab_name, "env_factors": env_name, "metadata": md_name},
                               last.params, key="rda_code")
             with st.expander("查看 RDA 统计表"):
+                st.dataframe(last.stats.round(4), use_container_width=True)
+
+    # ── LEfSe 差异分析 ──────────────────────────────────
+    elif analysis_type == "LEfSe 差异分析":
+        abundance_files = _files_of(FileType.ABUNDANCE_WIDE)
+        metadata_files = _files_of(FileType.METADATA)
+        if not abundance_files or not metadata_files:
+            st.warning(
+                f"需要 1 个丰度表（Species/Genus/Phylum）+ 1 个 metadata。"
+                f"当前：丰度表 {len(abundance_files)}，metadata {len(metadata_files)}。"
+            )
+            st.stop()
+        ab_name = st.selectbox("丰度表", list(abundance_files.keys()), key="lefse_ab")
+        md_name = st.selectbox("Metadata", list(metadata_files.keys()), key="lefse_md")
+
+        with st.sidebar:
+            st.subheader("LEfSe 参数")
+            alpha_kw = st.slider("Kruskal-Wallis α", 0.01, 0.2, 0.05, step=0.01,
+                                 key="lefse_alpha")
+            lda_thresh = st.slider("LDA 阈值（log10）", 1.0, 5.0, 2.0, step=0.1,
+                                   key="lefse_lda")
+            tax_all = ["Kingdom", "Phylum", "Class", "Order", "Family",
+                       "Genus", "Species", "Strain"]
+            tax_levels = st.multiselect(
+                "限制分类层级（空 = 全部）", tax_all, default=[],
+                key="lefse_tax",
+            )
+            max_features = st.slider("最多展示特征数（0 = 全部）", 0, 100, 40,
+                                     step=5, key="lefse_max")
+            w, h = render_figure_size(default_w=180, default_h=200, key_prefix="lefse_")
+
+        if st.button("生成 LEfSe 图", type="primary", key="lefse_go"):
+            ab = abundance_files[ab_name]["df"]
+            md = metadata_files[md_name]["df"]
+            params = {
+                "alpha_kw": alpha_kw,
+                "lda_threshold": lda_thresh,
+                "tax_levels": tax_levels or None,
+                "max_features": max_features or None,
+                "width_mm": w, "height_mm": h,
+            }
+            try:
+                result = lefse_mod.analyze(ab, md, params)
+            except ValueError as e:
+                st.error(str(e))
+                st.stop()
+            st.session_state["_lefse_last"] = result
+
+        last = st.session_state.get("_lefse_last")
+        if last is not None:
+            st.pyplot(last.figure, use_container_width=False)
+            d1, d2, d3 = st.columns(3)
+            with d1:
+                st.download_button("⬇️ PNG", data=export_to_bytes(last.figure, "png"),
+                                   file_name="lefse.png", mime="image/png", key="lefse_png")
+            with d2:
+                st.download_button("⬇️ PDF（矢量）", data=export_to_bytes(last.figure, "pdf"),
+                                   file_name="lefse.pdf", mime="application/pdf", key="lefse_pdf")
+            with d3:
+                st.download_button("⬇️ 统计表（TSV）",
+                                   data=last.stats.to_csv(sep="\t", index=False).encode("utf-8"),
+                                   file_name="lefse_stats.tsv",
+                                   mime="text/tab-separated-values", key="lefse_tsv")
+            _reproduce_button("lefse",
+                              {"abundance": ab_name, "metadata": md_name},
+                              last.params, key="lefse_code")
+            with st.expander("查看 LEfSe 统计表"):
                 st.dataframe(last.stats.round(4), use_container_width=True)
 
     # 未实现的子页面

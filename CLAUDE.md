@@ -221,7 +221,37 @@ git push                    # 推送到 origin/master
 
 > 每次 session 结束前更新此区块。新对话开始时 Claude Code 自动读取，了解当前进度。
 
-### 2026-04-15（Phase 1 迭代 4 — Phase 1 基本收口）
+### 2026-04-16（Phase 1 迭代 5 — LEfSe 收口 Phase 1 Reads-based）
+- **阶段**：迭代 5 完成 — Phase 1 Reads-based 全部 7 张图闭环
+- **前置修复**（基于 2026-04-15 R 对照）：`fix(rda)` commit e7a1b96 — 约束方差归一 +
+  逐因子边际置换 F 检验 + `use_alias_labels` CK_1 风格标签。讨论 A/B/C/D 方案后
+  选 A 保持现状（算法层对齐，工程/出版美化留 Phase 2）
+- **已完成**：
+  - 模块 B：`envmeta/analysis/lefse.py`（~180 行）
+    - 内置 LEfSe 流程（不依赖 Galaxy 外部工具）：KW 筛选 + 组均值最大组 = enriched
+      + `log10(1 + 1e6 × |max_mean - min_mean|)` 近似 LDA 效应量
+    - 自动识别分类层级（`k__/p__/.../s__` 前缀正则）
+    - 参数：`alpha_kw` / `lda_threshold` / `tax_levels` / `max_features` / `group_order` / `palette`
+    - 水平条形图按组上色，组内按 LDA 降序
+  - 模块 D：`envmeta/export/code_generator.py` 新增 `_tpl_lefse`（SUPPORTED 6 → 7 种）
+  - app.py：新 LEfSe 子页面（丰度表 + metadata 两输入 + 4 键下载 + 参数侧边栏）
+  - 测试：`tests/test_lefse.py` 6 个 case，**69/69 全绿 11.7 s**（含自动获得的 2 个 code_generator 参数化 case）
+  - 论文积累：
+    - `paper/benchmarks/validation/lefse/` 含 species + genus 两版 PDF + stats TSV + README
+    - `time_comparison.md` 补 LEfSe 行（R 206 行 + Galaxy 外部 / 75 min vs EnvMeta 3 点击 / 3 s）
+- **遇到的问题**：
+  - 原 R 脚本 `04_LEfSe.R` 只绘制 Galaxy LEfSe 预跑结果 → EnvMeta 须内置算法，避免用户装 Galaxy
+  - 样本量小（n=3-4/组），KW 显著门槛须放宽到 α=0.1 才有结果；文档注明
+- **下一步**：**Phase 1 Reads-based 全部闭环 → 可进入 Phase 2（MAG-based 5 图）**
+  - 优先级：`mag_quality` → `mag_heatmap` → `pathway` → `gene_profile` → `network`
+  - 阻塞项：装 R + Galaxy LEfSe 做侧侧对比（论文 Methods 证据）
+- **量化**：
+  - 新增代码：lefse 180 + test_lefse 55 + app.py +70 + code_generator +12 = ~317 行
+  - 测试：61 → 69 case（+8：6 新 + 2 参数化）
+  - Reads-based 分析：6 → 7 种
+  - **Phase 1 基本闭环**：7/7 Reads-based 图 + 代码生成器 + combined 样式 + 文件识别 7 类
+
+### 2026-04-15（Phase 1 迭代 4 — RDA + 代码生成器 + combined 堆叠图）
 - **阶段**：迭代 4 完成（代码生成器 + combined 堆叠图 + RDA 排序图）
 - **已完成**：
   - 模块 D 深化：`envmeta/export/code_generator.py`（~175 行）

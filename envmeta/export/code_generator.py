@@ -14,7 +14,7 @@ from typing import Callable
 
 from envmeta import __version__
 
-SUPPORTED = {"stackplot", "pcoa", "gene_heatmap", "alpha_boxplot", "log2fc", "rda"}
+SUPPORTED = {"stackplot", "pcoa", "gene_heatmap", "alpha_boxplot", "log2fc", "rda", "lefse"}
 
 _HEADER_TEMPLATE = '''"""
 由 EnvMeta v{version} 于 {timestamp} 生成。
@@ -148,6 +148,18 @@ print(f"Saved: {output_base}.pdf + {output_base}_stats.tsv")
 '''
 
 
+def _tpl_lefse(files: dict, params: dict, output_base: str) -> str:
+    return _header("lefse", "lefse", files, params, output_base) + f'''
+abundance_df = pd.read_csv(FILES["abundance"], sep="\\t")
+metadata_df = pd.read_csv(FILES["metadata"], sep="\\t")
+
+result = lefse.analyze(abundance_df, metadata_df, PARAMS)
+export_figure(result.figure, "{output_base}.pdf", "pdf")
+result.stats.to_csv("{output_base}_stats.tsv", sep="\\t", index=False)
+print(f"Saved: {output_base}.pdf + {output_base}_stats.tsv")
+'''
+
+
 _TEMPLATES: dict[str, Callable[[dict, dict, str], str]] = {
     "stackplot": _tpl_stackplot,
     "pcoa": _tpl_pcoa,
@@ -155,6 +167,7 @@ _TEMPLATES: dict[str, Callable[[dict, dict, str], str]] = {
     "alpha_boxplot": _tpl_alpha_boxplot,
     "log2fc": _tpl_log2fc,
     "rda": _tpl_rda,
+    "lefse": _tpl_lefse,
 }
 
 
