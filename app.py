@@ -333,9 +333,73 @@ elif page == "Reads-based 分析":
                 st.dataframe(last.params["_raw_means"].round(2),
                              use_container_width=True)
 
+    # ── α 多样性箱线图 ─────────────────────────────────
+    elif analysis_type == "α多样性":
+        alpha_files = _files_of(FileType.ALPHA_DIVERSITY)
+        metadata_files = _files_of(FileType.METADATA)
+        if not alpha_files or not metadata_files:
+            st.warning(
+                f"需要 1 个 α 多样性表 + 1 个 metadata。当前：α 表 {len(alpha_files)}，metadata {len(metadata_files)}。"
+            )
+            st.stop()
+
+        c1, c2 = st.columns(2)
+        with c1:
+            alpha_name = st.selectbox("α 多样性表", list(alpha_files.keys()), key="alpha_file")
+        with c2:
+            md_name = st.selectbox("Metadata", list(metadata_files.keys()), key="alpha_md")
+
+        alpha_df = alpha_files[alpha_name]["df"]
+        sample_col = next((c for c in alpha_df.columns
+                           if c.lower().replace("_", "") == "sampleid"), alpha_df.columns[0])
+        candidate_metrics = [c for c in alpha_df.columns
+                             if c != sample_col
+                             and pd.to_numeric(alpha_df[c], errors="coerce").notna().mean() > 0.95]
+
+        st.sidebar.markdown("---")
+        st.sidebar.subheader("参数")
+        metrics = st.sidebar.multiselect(
+            "展示指数", candidate_metrics, default=candidate_metrics, key="alpha_metrics"
+        )
+        n_cols = st.sidebar.slider("子图列数", 1, 5, min(3, len(metrics) or 1), key="alpha_ncols")
+        show_pvalues = st.sidebar.checkbox("显示组间 p 值", value=True, key="alpha_showp")
+        alpha_cut = st.sidebar.slider("p 阈值", 0.01, 0.10, 0.05, step=0.01, key="alpha_cut")
+        size = render_figure_size({"width_mm": 200, "height_mm": 120}, prefix="alpha")
+
+        params = {
+            "metrics": metrics or None, "n_cols": n_cols,
+            "show_pvalues": show_pvalues, "alpha": alpha_cut, **size,
+        }
+
+        if st.button("🎨 生成图表", type="primary", key="alpha_go"):
+            try:
+                from envmeta.analysis import alpha_boxplot
+                result = alpha_boxplot.analyze(alpha_df, metadata_files[md_name]["df"], params)
+                st.session_state["last_alpha"] = result
+            except Exception as e:
+                st.error(f"生成失败：{e}")
+
+        last = st.session_state.get("last_alpha")
+        if last is not None:
+            st.pyplot(last.figure, use_container_width=True)
+            d1, d2, d3 = st.columns(3)
+            with d1:
+                st.download_button("⬇️ PNG（300 DPI）", data=export_to_bytes(last.figure, "png"),
+                                   file_name="alpha_boxplot.png", mime="image/png", key="alpha_png")
+            with d2:
+                st.download_button("⬇️ PDF（矢量）", data=export_to_bytes(last.figure, "pdf"),
+                                   file_name="alpha_boxplot.pdf", mime="application/pdf", key="alpha_pdf")
+            with d3:
+                st.download_button("⬇️ 统计表（TSV）",
+                                   data=last.stats.to_csv(sep="\t", index=False).encode("utf-8"),
+                                   file_name="alpha_stats.tsv",
+                                   mime="text/tab-separated-values", key="alpha_tsv")
+            with st.expander("查看统计表"):
+                st.dataframe(last.stats.round(4), use_container_width=True)
+
     # 未实现的子页面
     else:
-        st.info(f"「{analysis_type}」将在 Phase 1 迭代 3 或 Phase 2 实现。")
+        st.info(f"「{analysis_type}」将在 Phase 1 迭代 3/4 或 Phase 2 实现。")
 
 # ══════════════════════════════════════════════════════════
 # 其他占位页面
