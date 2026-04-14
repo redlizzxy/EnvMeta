@@ -40,6 +40,7 @@ DEFAULTS = {
     "random_seed": 123,
     "use_alias_labels": True,    # True → 用 metadata 的 Group+Replicate 生成 CK_1 风格标签
     "explained_ref": "constrained",  # "constrained"（R 风格，占约束方差）| "total"（占总方差）
+    "anova_by": "terms",         # "terms"（R 序贯，对标 anova.cca by="terms"）| "margin"（边际）
 }
 
 DEFAULT_PALETTE = {"CK": "#1c9cbd", "A": "#e3943d", "B": "#92181e"}
@@ -178,40 +179,51 @@ def analyze(
     else:
         sample_labels = list(kept_cols)
 
-    # 各因子显著性（逐项置换 F 检验，对标 R anova.cca by="terms"）
+    # 各因子显著性（置换 F 检验，anova_by 控制序贯 vs 边际）
     n_samples = Y.shape[0]
     k = X.shape[1]
     residual_inertia = total_inertia - constrained_inertia
     df_resid = max(n_samples - k - 1, 1)
     rng = np.random.default_rng(p["random_seed"])
+
+    def _constrained_sum(X_in: np.ndarray) -> float:
+        if X_in.shape[1] == 0:
+            return 0.0
+        ord_r = skbio_rda(Y, X_in, sample_ids=kept_cols,
+                          feature_ids=ab.index.tolist())
+        n_c = min(len(ord_r.eigvals), X_in.shape[1])
+        return float(ord_r.eigvals.to_numpy()[:n_c].sum())
+
     anova_rows = []
     for j, factor in enumerate(env_num_cols):
-        # 观测：去掉 factor j 的约束方差差
-        X_reduced = np.delete(X, j, axis=1)
-        ord_red = skbio_rda(Y, X_reduced, sample_ids=kept_cols,
-                            feature_ids=ab.index.tolist())
-        red_eig = ord_red.eigvals.to_numpy()
-        red_constrained = float(red_eig[:max(k - 1, 1)].sum())
-        contrib_obs = constrained_inertia - red_constrained
+        if p["anova_by"] == "terms":
+            # 序贯：前 j 列 vs 前 j+1 列
+            before = _constrained_sum(X[:, :j]) if j > 0 else 0.0
+            after = _constrained_sum(X[:, :j + 1])
+            contrib_obs = after - before
+        else:
+            # 边际：完整模型 vs 去掉第 j 列
+            X_reduced = np.delete(X, j, axis=1)
+            contrib_obs = constrained_inertia - _constrained_sum(X_reduced)
+
         F_obs = (contrib_obs / 1.0) / (residual_inertia / df_resid) if residual_inertia > 0 else np.nan
 
-        # 置换：打乱 factor j 列
         perm_F = []
         for _ in range(p["n_permutations"]):
             X_perm = X.copy()
             X_perm[:, j] = rng.permutation(X_perm[:, j])
             try:
-                ord_p = skbio_rda(Y, X_perm, sample_ids=kept_cols,
-                                  feature_ids=ab.index.tolist())
-                p_eig = ord_p.eigvals.to_numpy()
-                p_constrained = float(p_eig[:k].sum())
-                p_residual = total_inertia - p_constrained
-                # factor j 的置换贡献：整体约束 - 去掉 j 的约束
-                X_perm_red = np.delete(X_perm, j, axis=1)
-                ord_pr = skbio_rda(Y, X_perm_red, sample_ids=kept_cols,
-                                   feature_ids=ab.index.tolist())
-                pr_constrained = float(ord_pr.eigvals.to_numpy()[:max(k - 1, 1)].sum())
-                contrib_perm = p_constrained - pr_constrained
+                if p["anova_by"] == "terms":
+                    before_p = _constrained_sum(X_perm[:, :j]) if j > 0 else 0.0
+                    after_p = _constrained_sum(X_perm[:, :j + 1])
+                    contrib_perm = after_p - before_p
+                    p_full = _constrained_sum(X_perm)
+                    p_residual = total_inertia - p_full
+                else:
+                    X_perm_red = np.delete(X_perm, j, axis=1)
+                    p_full = _constrained_sum(X_perm)
+                    contrib_perm = p_full - _constrained_sum(X_perm_red)
+                    p_residual = total_inertia - p_full
                 F_perm = (contrib_perm / 1.0) / (p_residual / df_resid) if p_residual > 0 else 0.0
                 perm_F.append(F_perm)
             except Exception:
@@ -219,16 +231,17 @@ def analyze(
         perm_F = np.asarray(perm_F)
         pv_anova = float((np.sum(perm_F >= F_obs) + 1) / (len(perm_F) + 1)) if len(perm_F) else 1.0
         anova_rows.append({
-            "variable": factor, "type": "anova_terms",
+            "variable": factor,
+            "type": f"anova_{p['anova_by']}",
             "F": float(F_obs), "p": pv_anova,
             "significance": _sig_label(pv_anova),
             "arrow_x": float(biplot[j, 0]),
             "arrow_y": float(biplot[j, 1]),
         })
 
-    # Bray-Curtis 距离 + Mantel（保留为辅助统计）
+    # Mantel：物种距离用 Hellinger-Bray-Curtis（对标 R vegdist(sp_hell, "bray")）
     from scipy.spatial.distance import pdist, squareform
-    bc = squareform(pdist(species_by_sample, metric="braycurtis"))
+    bc = squareform(pdist(Y, metric="braycurtis"))
     dm_species = DistanceMatrix(bc, ids=kept_cols)
     mantel_rows = []
     for i, factor in enumerate(env_num_cols):

@@ -604,7 +604,7 @@ elif page == "Reads-based 分析":
             )
             max_features = st.slider("最多展示特征数（0 = 全部）", 0, 100, 40,
                                      step=5, key="lefse_max")
-            w, h = render_figure_size(default_w=180, default_h=200, key_prefix="lefse_")
+            size = render_figure_size({"width_mm": 180, "height_mm": 200}, prefix="lefse")
 
         if st.button("生成 LEfSe 图", type="primary", key="lefse_go"):
             ab = abundance_files[ab_name]["df"]
@@ -614,7 +614,7 @@ elif page == "Reads-based 分析":
                 "lda_threshold": lda_thresh,
                 "tax_levels": tax_levels or None,
                 "max_features": max_features or None,
-                "width_mm": w, "height_mm": h,
+                **size,
             }
             try:
                 result = lefse_mod.analyze(ab, md, params)

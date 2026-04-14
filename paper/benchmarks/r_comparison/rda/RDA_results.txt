@@ -1,0 +1,38 @@
+=== RDA分析结果 ===
+生成时间: 2026-04-14 11:52:36 
+
+解释度: RDA1 = 32.96 %  RDA2 = 24.94 %
+
+=== 总体显著性 (ANOVA) ===
+Permutation test for rda under reduced model
+Permutation: free
+Number of permutations: 999
+
+Model: rda(formula = sp_hell ~ pH + Eh + TOC + Total_As, data = env_scaled)
+         Df Variance      F Pr(>F)   
+Model     4 0.112484 2.8588  0.003 **
+Residual  5 0.049183                 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+=== 各环境因子显著性 (by terms) ===
+Permutation test for rda under reduced model
+Terms added sequentially (first to last)
+Permutation: free
+Number of permutations: 999
+
+Model: rda(formula = sp_hell ~ pH + Eh + TOC + Total_As, data = env_scaled)
+         Df Variance      F Pr(>F)   
+pH        1 0.038416 3.9054  0.002 **
+Eh        1 0.038137 3.8770  0.003 **
+TOC       1 0.019129 1.9447  0.064 . 
+Total_As  1 0.016802 1.7081  0.118   
+Residual  5 0.049183                 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+=== Mantel检验 ===
+pH: r = 0.347, p = 0.0240
+Eh: r = 0.288, p = 0.0500
+TOC: r = 0.620, p = 0.0020
+Total_As: r = 0.705, p = 0.0010

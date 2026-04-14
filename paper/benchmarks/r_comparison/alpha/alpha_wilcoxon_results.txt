@@ -1,0 +1,66 @@
+=== Alpha多样性 Wilcoxon秩和检验结果 ===
+生成时间: 2026-04-14 11:52:32 
+
+==========  Kraken2  ==========
+---  richness  ---
+  CK: 13898.3333 +/- 90.9634 (n=3)
+  A: 13819.2500 +/- 243.1178 (n=4)
+  B: 13844.6667 +/- 53.2666 (n=3)
+  Pairwise Wilcoxon:
+    CK vs A: p = 0.8597
+    CK vs B: p = 0.6625
+    A vs B: p = 0.5959
+  Kruskal-Wallis: chi2 = 0.700, p = 0.7047
+
+---  chao1  ---
+  CK: 14911.4247 +/- 151.2790 (n=3)
+  A: 14701.3242 +/- 174.3353 (n=4)
+  B: 14745.9186 +/- 88.8255 (n=3)
+  Pairwise Wilcoxon:
+    CK vs A: p = 0.2159
+    CK vs B: p = 0.3827
+    A vs B: p = 1.0000
+  Kruskal-Wallis: chi2 = 2.200, p = 0.3329
+
+---  ACE  ---
+  CK: 14654.0433 +/- 101.4934 (n=3)
+  A: 14478.6096 +/- 196.7670 (n=4)
+  B: 14519.7907 +/- 94.3166 (n=3)
+  Pairwise Wilcoxon:
+    CK vs A: p = 0.2159
+    CK vs B: p = 0.3827
+    A vs B: p = 0.8597
+  Kruskal-Wallis: chi2 = 2.227, p = 0.3284
+
+
+==========  MetaPhlAn4  ==========
+---  observed_species  ---
+  CK: 48.0000 +/- 10.4403 (n=3)
+  A: 33.0000 +/- 3.3665 (n=4)
+  B: 38.0000 +/- 1.7321 (n=3)
+  Pairwise Wilcoxon:
+    CK vs A: p = 0.1116
+    CK vs B: p = 0.6579
+    A vs B: p = 0.0987
+  Kruskal-Wallis: chi2 = 4.826, p = 0.0895
+
+---  shannon  ---
+  CK: 2.1045 +/- 0.1737 (n=3)
+  A: 1.9203 +/- 0.1709 (n=4)
+  B: 1.9023 +/- 0.3004 (n=3)
+  Pairwise Wilcoxon:
+    CK vs A: p = 0.1116
+    CK vs B: p = 0.3827
+    A vs B: p = 1.0000
+  Kruskal-Wallis: chi2 = 2.955, p = 0.2283
+
+---  simpson  ---
+  CK: 0.6922 +/- 0.0345 (n=3)
+  A: 0.7200 +/- 0.0367 (n=4)
+  B: 0.7312 +/- 0.0634 (n=3)
+  Pairwise Wilcoxon:
+    CK vs A: p = 1.0000
+    CK vs B: p = 0.3827
+    A vs B: p = 0.8597
+  Kruskal-Wallis: chi2 = 0.700, p = 0.7047
+
