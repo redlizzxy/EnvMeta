@@ -282,6 +282,35 @@ S8 插件框架推迟到论文接收后再做。完整计划见 `C:\Users\REDLIZ
 
 > 每次 session 结束前更新此区块。新对话开始时 Claude Code 自动读取，了解当前进度。
 
+### 2026-04-17（S2 — 循环图 v1.2 置换零假设 + 可信度标签）
+- **阶段**：路线 B+ Session 2 完成。为每条 env-pathway 相关打可信度等级
+- **核心改造**：
+  - `inference.py` 新增 `_permutation_rho_p()`：999 次置换 + empirical p 替代 scipy Spearman p
+  - 新增 `_confidence_label()`：综合 |ρ| + perm_p + sensitivity robust 打
+    `strong / suggestive / weak / spurious? / unknown` 标签
+  - `_env_correlations()` 接受 perm_n/perm_seed 参数
+  - `infer()` 拿到 sensitivity 后**后处理**每条相关打 confidence 标签
+  - `EnvCorrelation` dataclass 加 `perm_p` 和 `confidence` 字段
+  - `renderer._draw_env_panel()` 显示彩色可信度徽章（绿=strong/橙=suggestive/红=spurious）
+  - `CycleData.meta` 加 n_confidence_strong/suggestive/spurious 计数
+  - `to_flat_stats()` 把 confidence 放在 top_mag 列，perm_p 放在 n_active_mags 列
+- **真实数据结果**（高价值验证）：
+  - **1 strong**：Ammonia oxidation ↔ Eh（ρ=0.835, perm_p<0.01, robust）
+  - **10 suggestive**：Arsenate red / As transport 等（相关性可信但非最强）
+  - **5 spurious?**：S1 讨论里怀疑的"ρ=0.764 共变"**被置换检验证实**
+    —— 5 条通路共享同一 ρ=0.764 vs Total_As，不经 999 次置换考验
+  - 这正是 **S1 去偏 + S2 置换**的价值：告诉用户哪些是真信号、哪些是共变伪信号
+- **测试**：`tests/test_cycle_diagram.py` +4 case（perm 单元、confidence 逻辑边界、
+  字段存在、分布），**105/105 全绿 41.7 s**（加速：fast mode perm_n=99）
+- **论文可写**："confidence labels differentiate robust findings (n=1 strong) from
+  threshold-dependent or confounding-inflated correlations (n=5 spurious) that
+  would not survive permutation-based null hypothesis testing."
+- **下一步**：S2.5 循环图升级（合并细胞 + 级联 + 化学物耦合，~20-25h）
+- **量化**：
+  - 修改：model +3 字段、inference +75 行（perm + confidence）、renderer +25 行（徽章）
+  - 测试：101 → 105 case（+4）
+  - 合计：~120 行净新增
+
 ### 2026-04-17（S1 — 循环图 v1 去偏：描述性中立语言 + 完整矩阵 + 敏感度扫描）
 - **阶段**：路线 B Session 1 完成。响应 2026-04-17 讨论的"避免确认偏差"要求
 - **核心改造**：

@@ -9,9 +9,14 @@ matplotlib.use("Agg")
 
 from envmeta.analysis import cycle_diagram
 from envmeta.export.figure_export import export_to_bytes
-from envmeta.geocycle.inference import infer
+from envmeta.geocycle.inference import (
+    _confidence_label, _permutation_rho_p, infer,
+)
 
 SAMPLE = Path(__file__).parent / "sample_data"
+
+# 测试用小 perm_n 加速
+FAST_PARAMS = {"perm_n": 99}
 
 
 @pytest.fixture
@@ -28,15 +33,15 @@ def cycle_inputs():
 
 def test_inference_smoke(cycle_inputs):
     ko, tax, ks, ab, env, md = cycle_inputs
-    data = infer(ko, tax, ks, ab, env, md)
-    assert len(data.elements) >= 3   # 至少 As/N/S 其一有活跃通路
+    data = infer(ko, tax, ks, ab, env, md, params=FAST_PARAMS)
+    assert len(data.elements) >= 3
     assert data.meta["n_mags"] > 0
     assert data.meta["n_pathways_total"] >= 18
 
 
 def test_inference_elements_have_pathways(cycle_inputs):
     ko, tax, ks, ab, env, md = cycle_inputs
-    data = infer(ko, tax, ks, ab, env, md)
+    data = infer(ko, tax, ks, ab, env, md, params=FAST_PARAMS)
     for ec in data.elements:
         assert len(ec.pathways) > 0
 
@@ -44,29 +49,28 @@ def test_inference_elements_have_pathways(cycle_inputs):
 def test_inference_env_correlations_present(cycle_inputs):
     ko, tax, ks, ab, env, md = cycle_inputs
     data = infer(ko, tax, ks, ab, env, md,
-                 params={"env_rho_min": 0.3, "env_p_max": 0.1})
-    # 真实数据应该有至少 1 条显著相关
-    assert data.meta["n_env_correlations"] >= 0  # 宽松：至少字段存在
+                 params={**FAST_PARAMS, "env_rho_min": 0.3,
+                         "env_p_max": 0.1})
+    assert data.meta["n_env_correlations"] >= 0
 
 
 def test_analyze_returns_figure(cycle_inputs):
     ko, tax, ks, ab, env, md = cycle_inputs
-    r = cycle_diagram.analyze(ko, tax, ks, ab, env, md)
+    r = cycle_diagram.analyze(ko, tax, ks, ab, env, md, params=FAST_PARAMS)
     assert r.figure is not None
     assert not r.stats.empty
     assert "type" in r.stats.columns
 
 
 def test_analyze_minimal_inputs(cycle_inputs):
-    """只给 KO 注释也能跑通（taxonomy/ks/abund/env 都可选）。"""
     ko, *_ = cycle_inputs
-    r = cycle_diagram.analyze(ko)
+    r = cycle_diagram.analyze(ko, params=FAST_PARAMS)
     assert r.figure is not None
 
 
 def test_analyze_export(cycle_inputs):
     ko, tax, ks, ab, env, md = cycle_inputs
-    r = cycle_diagram.analyze(ko, tax, ks, ab, env, md)
+    r = cycle_diagram.analyze(ko, tax, ks, ab, env, md, params=FAST_PARAMS)
     pdf = export_to_bytes(r.figure, "pdf")
     assert pdf.startswith(b"%PDF")
 
@@ -74,35 +78,92 @@ def test_analyze_export(cycle_inputs):
 # ── S1 去偏测试 ────────────────────────────────────────────────
 
 def test_full_correlation_matrix_populated(cycle_inputs):
-    """完整相关矩阵应该包含所有通路 × env 组合（不只超阈值的）。"""
     ko, tax, ks, ab, env, md = cycle_inputs
     data = infer(ko, tax, ks, ab, env, md,
-                 params={"env_rho_min": 0.5, "env_p_max": 0.05})
+                 params={**FAST_PARAMS, "env_rho_min": 0.5,
+                         "env_p_max": 0.05})
     assert len(data.full_corr_matrix) >= len(data.env_correlations)
-    # 完整矩阵应覆盖多因子（Total_As/Eh/TOC/pH）
     factors = {c.env_factor for c in data.full_corr_matrix}
     assert len(factors) >= 2
 
 
 def test_sensitivity_scan_present(cycle_inputs):
-    """敏感度扫描：每通路都应该有 3 档阈值的结果。"""
     ko, tax, ks, ab, env, md = cycle_inputs
-    data = infer(ko, tax, ks, ab, env, md)
+    data = infer(ko, tax, ks, ab, env, md, params=FAST_PARAMS)
     assert len(data.sensitivity) > 0
     for sr in data.sensitivity:
         assert len(sr.thresholds) == 3
         assert len(sr.top1_by_threshold) == 3
         assert len(sr.n_active_by_threshold) == 3
-    # 至少某些通路是 robust 的（三档 Top-1 一致）
     assert any(sr.robust for sr in data.sensitivity)
 
 
 def test_stats_contains_new_types(cycle_inputs):
-    """扁平 stats 应含 full_correlation 和 sensitivity 两个新 type。"""
     ko, tax, ks, ab, env, md = cycle_inputs
-    r = cycle_diagram.analyze(ko, tax, ks, ab, env, md)
+    r = cycle_diagram.analyze(ko, tax, ks, ab, env, md, params=FAST_PARAMS)
     types = set(r.stats["type"])
     assert "pathway" in types
     assert "env_correlation" in types
     assert "full_correlation" in types
     assert "sensitivity" in types
+
+
+# ── S2 置换零假设 + 可信度标签测试 ────────────────────────
+
+def test_permutation_rho_p_unit():
+    """_permutation_rho_p 对已知相关数据应返回合理 ρ 和 p。"""
+    import numpy as np
+    rng = np.random.default_rng(0)
+    x = np.arange(30, dtype=float)
+    y = x * 1.0 + rng.normal(0, 2.0, 30)   # 强相关
+    rho, p = _permutation_rho_p(x, y, n=199, seed=42)
+    assert rho > 0.8
+    assert p < 0.05
+
+    # 无相关
+    y_rand = rng.normal(0, 5, 30)
+    rho2, p2 = _permutation_rho_p(x, y_rand, n=199, seed=42)
+    # 随机数据 ρ 可能小也可能大，但 p 应该不会特别小
+    assert abs(rho2) < 0.6 or p2 > 0.01
+
+
+def test_confidence_label_logic():
+    """各可信度等级的边界。"""
+    # strong: |ρ|>0.7, perm_p<0.01, robust
+    assert _confidence_label(0.85, 0.005, True) == "strong"
+    # suggestive: 0.5<|ρ|≤0.7, perm_p<0.05
+    assert _confidence_label(0.6, 0.02, True) == "suggestive"
+    # weak
+    assert _confidence_label(0.4, 0.08, True) == "weak"
+    # spurious: |ρ|>=0.5 but perm_p>0.05
+    assert _confidence_label(0.55, 0.2, True) == "spurious?"
+    # NaN
+    assert _confidence_label(float("nan"), 0.01, True) == "unknown"
+
+
+def test_env_correlations_have_perm_p(cycle_inputs):
+    """每条 env_correlation 应带 perm_p 和 confidence 字段。"""
+    ko, tax, ks, ab, env, md = cycle_inputs
+    data = infer(ko, tax, ks, ab, env, md,
+                 params={**FAST_PARAMS, "env_rho_min": 0.3,
+                         "env_p_max": 0.1})
+    for ec in data.env_correlations:
+        assert ec.perm_p is not None
+        assert 0.0 <= ec.perm_p <= 1.0
+        assert ec.confidence in {"strong", "suggestive", "weak",
+                                  "spurious?", "none", "unknown"}
+
+
+def test_confidence_labels_distribution(cycle_inputs):
+    """在真实数据上应该产生一些 strong / suggestive 标签。"""
+    ko, tax, ks, ab, env, md = cycle_inputs
+    data = infer(ko, tax, ks, ab, env, md,
+                 params={**FAST_PARAMS, "env_rho_min": 0.3,
+                         "env_p_max": 0.1})
+    labels = [ec.confidence for ec in data.env_correlations]
+    label_set = set(labels)
+    # 真实数据应该至少有 strong 或 suggestive 之一
+    assert label_set & {"strong", "suggestive"}
+    # meta 里应该有相关计数
+    assert "n_confidence_strong" in data.meta
+    assert "n_confidence_suggestive" in data.meta

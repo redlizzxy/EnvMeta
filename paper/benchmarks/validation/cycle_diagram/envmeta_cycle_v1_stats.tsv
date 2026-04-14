@@ -17,19 +17,19 @@ pathway	sulfur	Sulfide oxidation	Sulfide oxidation	21.0	86.5079365079365	355.720
 pathway	sulfur	Dissim. sulfate red.	Dissim. sulfate red.	22.0	76.13636363636364	290.71087811750004	Sulfuricaulis
 pathway	iron	Fe uptake regulation	Fe uptake regulation	153.0	83.00653594771242	1592.0928644720002	DASXPG01
 pathway	iron	Fe transport	Fe transport	113.0	70.94395280235989	1087.2478151700004	DASXPG01
-env_correlation		Arsenate reduction	Total_As		0.85398649245344	0.001660931832843286	
-env_correlation		Arsenite oxidation	Total_As		0.6292532049656925	0.051264028240426314	
-env_correlation		As transport/detox	Total_As		0.8090398349558906	0.004587718466038133	
-env_correlation		As methylation	Total_As		0.7640931774583409	0.010078508648735406	
-env_correlation		As regulation	Total_As		0.7640931774583409	0.010078508648735406	
-env_correlation		Nitrate reduction	Total_As		0.5843065474681431	0.07608869333120227	
-env_correlation		Nitrite reduction	Total_As		0.7640931774583409	0.010078508648735406	
-env_correlation		NO reduction	Total_As		0.6292532049656925	0.051264028240426314	
-env_correlation		Ammonia oxidation	pH		0.6121212121212121	0.059972142477255276	
-env_correlation		Ammonia oxidation	Eh		0.8353813836471727	0.0026207057973530344	
-env_correlation		N fixation	Eh		0.7622092916488802	0.010378624499792637	
-env_correlation		N fixation	TOC		-0.5971484496103001	0.06833633314503816	
-env_correlation		Assim. sulfate red.	Total_As		0.7640931774583409	0.010078508648735406	
-env_correlation		Thiosulfate metab.	Total_As		0.7640931774583409	0.010078508648735406	
-env_correlation		Fe transport	Total_As		0.7191465199607916	0.019077071292362843	
-env_correlation		Fe uptake regulation	Total_As		0.7640931774583409	0.010078508648735406	
+env_correlation		Arsenate reduction	Total_As	0.004	0.85398649245344	0.001660931832843286	suggestive
+env_correlation		Arsenite oxidation	Total_As	0.066	0.6292532049656925	0.051264028240426314	spurious?
+env_correlation		As transport/detox	Total_As	0.01	0.8090398349558906	0.004587718466038133	suggestive
+env_correlation		As methylation	Total_As	0.021	0.7640931774583409	0.010078508648735406	suggestive
+env_correlation		As regulation	Total_As	0.017	0.7640931774583409	0.010078508648735406	suggestive
+env_correlation		Nitrate reduction	Total_As	0.102	0.5843065474681431	0.07608869333120227	spurious?
+env_correlation		Nitrite reduction	Total_As	0.017	0.7640931774583409	0.010078508648735406	suggestive
+env_correlation		NO reduction	Total_As	0.057	0.6292532049656925	0.051264028240426314	spurious?
+env_correlation		Ammonia oxidation	pH	0.058	0.6121212121212121	0.059972142477255276	spurious?
+env_correlation		Ammonia oxidation	Eh	0.004	0.8353813836471727	0.0026207057973530344	strong
+env_correlation		N fixation	Eh	0.015	0.7622092916488802	0.010378624499792637	suggestive
+env_correlation		N fixation	TOC	0.057	-0.5971484496103001	0.06833633314503816	spurious?
+env_correlation		Assim. sulfate red.	Total_As	0.017	0.7640931774583409	0.010078508648735406	suggestive
+env_correlation		Thiosulfate metab.	Total_As	0.017	0.7640931774583409	0.010078508648735406	suggestive
+env_correlation		Fe transport	Total_As	0.033	0.7191465199607916	0.019077071292362843	suggestive
+env_correlation		Fe uptake regulation	Total_As	0.017	0.7640931774583409	0.010078508648735406	suggestive

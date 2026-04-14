@@ -38,8 +38,63 @@ DEFAULTS = {
     "top_n_contributors": 5,          # 每条通路保留 Top-N 贡献 MAG
     "env_rho_min": 0.5,               # 环境相关性最低 |rho|
     "env_p_max": 0.05,                # 相关性显著性阈值
-    "sensitivity_thresholds": [30.0, 50.0, 70.0],  # S1 新增：完整度敏感度扫描
+    "sensitivity_thresholds": [30.0, 50.0, 70.0],  # S1：完整度敏感度扫描
+    "perm_n": 999,                    # S2：置换检验次数
+    "perm_seed": 123,                 # S2：置换随机种子
 }
+
+
+def _permutation_rho_p(x: np.ndarray, y: np.ndarray,
+                        n: int = 999, seed: int = 123) -> tuple[float, float]:
+    """对 (x, y) 做 Spearman 相关 + 置换零假设 empirical p-value。
+
+    置换方法：保持 x 不动，随机打乱 y，重算 Spearman ρ，n 次后
+    empirical p = (sum(|perm_rho| >= |obs_rho|) + 1) / (n + 1)
+    """
+    import warnings
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        obs_rho, _ = sp_stats.spearmanr(x, y)
+    if np.isnan(obs_rho):
+        return float("nan"), 1.0
+    rng = np.random.default_rng(seed)
+    count = 0
+    abs_obs = abs(obs_rho)
+    for _ in range(n):
+        y_perm = rng.permutation(y)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            perm_rho, _ = sp_stats.spearmanr(x, y_perm)
+        if np.isnan(perm_rho):
+            continue
+        if abs(perm_rho) >= abs_obs:
+            count += 1
+    emp_p = (count + 1) / (n + 1)
+    return float(obs_rho), float(emp_p)
+
+
+def _confidence_label(rho: float, perm_p: float,
+                       sensitivity_robust: bool = True) -> str:
+    """基于 |ρ|、置换 p、敏感度稳健性打可信度标签。
+
+    strong       : |ρ|>0.7, perm_p<0.01, robust sensitivity
+    suggestive   : 0.5<|ρ|≤0.7, perm_p<0.05
+    weak         : 0.3<|ρ|≤0.5, perm_p<0.1
+    spurious?    : |ρ|>=0.5 但 perm_p>0.05（相关大但置换验证不支持）
+    none         : 其余
+    """
+    if np.isnan(rho) or np.isnan(perm_p):
+        return "unknown"
+    a = abs(rho)
+    if a > 0.7 and perm_p < 0.01 and sensitivity_robust:
+        return "strong"
+    if a > 0.5 and perm_p < 0.05:
+        return "suggestive"
+    if a >= 0.5 and perm_p >= 0.05:
+        return "spurious?"
+    if 0.3 < a <= 0.5 and perm_p < 0.1:
+        return "weak"
+    return "none"
 
 
 def _classify_mags(
@@ -158,7 +213,9 @@ def _env_correlations(
     pw_kos: dict[str, list[str]],
     rho_min: float,
     p_max: float,
-) -> list[EnvCorrelation]:
+    perm_n: int = 999,
+    perm_seed: int = 123,
+) -> tuple[list[EnvCorrelation], list[EnvCorrelation]]:
     """对每条通路计算"KO 丰度加权总和" vs 每个环境因子的 Spearman。
 
     样本级通路活性 = Σ_MAG (abundance_MAG × |MAG 的 KO ∩ 通路 KO|)。
@@ -235,10 +292,21 @@ def _env_correlations(
                 continue
             if np.isnan(rho):
                 continue
+
+            # 置换检验（S2）：打乱 env 重算 ρ 的经验 p
+            try:
+                _, perm_p = _permutation_rho_p(
+                    per_sample, env_vec, n=perm_n, seed=perm_seed,
+                )
+            except Exception:
+                perm_p = float("nan")
+
             ec = EnvCorrelation(
                 pathway_id=pw_id, env_factor=factor,
                 rho=float(rho), p_value=float(pv),
                 n_samples=len(common),
+                perm_p=float(perm_p) if not np.isnan(perm_p) else None,
+                confidence="unknown",   # 先占位，外部用 sensitivity 信息打标签
             )
             full.append(ec)   # 所有非 NaN 都进完整矩阵
             if abs(rho) >= rho_min and pv <= p_max:
@@ -335,6 +403,7 @@ def infer(
     env_corrs, full_corr = _env_correlations(
         mag_kos, abundance_df, env_df, metadata_df, pw_kos,
         rho_min=p["env_rho_min"], p_max=p["env_p_max"],
+        perm_n=p["perm_n"], perm_seed=p["perm_seed"],
     )
 
     # 敏感度扫描
@@ -344,6 +413,13 @@ def infer(
         pw_elem=pw_elem, pw_display=pathway_display(lang="en"),
     )
 
+    # 给每条 env_correlation 打可信度标签（S2），参考其对应通路的敏感度稳健性
+    robust_map = {s.pathway_id: s.robust for s in sensitivity}
+    for ec in env_corrs + full_corr:
+        robust = robust_map.get(ec.pathway_id, True)
+        pp = ec.perm_p if ec.perm_p is not None else ec.p_value
+        ec.confidence = _confidence_label(ec.rho, pp, sensitivity_robust=robust)
+
     meta = {
         "n_mags": len(base),
         "n_pathways_total": len(pw_kos),
@@ -352,6 +428,11 @@ def infer(
         "n_env_correlations": len(env_corrs),
         "n_full_corr": len(full_corr),
         "n_sensitivity_robust": sum(1 for s in sensitivity if s.robust),
+        "n_confidence_strong": sum(1 for e in env_corrs if e.confidence == "strong"),
+        "n_confidence_suggestive": sum(
+            1 for e in env_corrs if e.confidence == "suggestive"),
+        "n_confidence_spurious": sum(
+            1 for e in env_corrs if e.confidence == "spurious?"),
     }
 
     return CycleData(

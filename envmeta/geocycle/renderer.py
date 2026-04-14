@@ -95,21 +95,41 @@ def _draw_env_panel(fig, data: CycleData, bbox) -> None:
     row_h = 0.8 / max(n, 1)
     ax.text(0.01, 0.96, f"Environmental coupling (|ρ| ≥ {data.params.get('env_rho_min', 0.5)}, p < {data.params.get('env_p_max', 0.05)})",
             transform=ax.transAxes, fontsize=10, fontweight="bold", va="top")
+    # 可信度标签颜色
+    conf_colors = {
+        "strong":     "#27AE60",
+        "suggestive": "#F39C12",
+        "weak":       "#95A5A6",
+        "spurious?":  "#E74C3C",
+        "none":       "#CCCCCC",
+        "unknown":    "#CCCCCC",
+    }
     for i, ec in enumerate(sorted_corrs):
         y = 0.88 - (i + 1) * row_h
         color = "#C0392B" if ec.rho > 0 else "#2980B9"
         bar_w = abs(ec.rho) * 0.3
         ax.add_patch(Rectangle((0.35, y), bar_w, row_h * 0.7,
                                transform=ax.transAxes, color=color, alpha=0.8))
-        sig = "***" if ec.p_value < 0.001 else "**" if ec.p_value < 0.01 else "*"
+        pp = ec.perm_p if ec.perm_p is not None else ec.p_value
+        sig = "***" if pp < 0.001 else "**" if pp < 0.01 else "*" if pp < 0.05 else ""
         ax.text(0.01, y + row_h * 0.3, ec.pathway_id,
                 transform=ax.transAxes, fontsize=8, va="center")
         ax.text(0.22, y + row_h * 0.3, ec.env_factor,
                 transform=ax.transAxes, fontsize=8, va="center",
                 fontweight="bold")
         ax.text(0.35 + bar_w + 0.01, y + row_h * 0.3,
-                f"ρ={ec.rho:.2f} {sig}",
-                transform=ax.transAxes, fontsize=8, va="center", color=color)
+                f"ρ={ec.rho:.2f} permP={pp:.3f} {sig}",
+                transform=ax.transAxes, fontsize=7.5, va="center",
+                color=color)
+        # 可信度徽章
+        conf = ec.confidence or "unknown"
+        ax.text(0.91, y + row_h * 0.3, conf,
+                transform=ax.transAxes, fontsize=7,
+                fontweight="bold", color="white",
+                ha="center", va="center",
+                bbox=dict(facecolor=conf_colors.get(conf, "#888"),
+                          alpha=0.95, pad=2,
+                          boxstyle="round,pad=0.25", edgecolor="none"))
 
 
 def render(data: CycleData, params: dict | None = None) -> plt.Figure:

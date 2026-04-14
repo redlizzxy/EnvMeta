@@ -37,8 +37,10 @@ class EnvCorrelation:
     pathway_id: str
     env_factor: str
     rho: float            # Spearman
-    p_value: float
+    p_value: float        # 分析 p 值（scipy）
     n_samples: int
+    perm_p: float | None = None   # 置换检验 empirical p（S2 新增）
+    confidence: str = "unknown"   # strong / suggestive / weak / spurious? / unknown
 
 
 @dataclass
@@ -103,6 +105,8 @@ class CycleData:
                 "display_name": ec.env_factor,
                 "mean_completeness": ec.rho,
                 "total_contribution": ec.p_value,
+                "top_mag": ec.confidence,    # 复用 top_mag 列放 confidence 标签
+                "n_active_mags": ec.perm_p if ec.perm_p is not None else ec.p_value,
             })
         for ec in self.full_corr_matrix:
             rows.append({
@@ -111,6 +115,8 @@ class CycleData:
                 "display_name": ec.env_factor,
                 "mean_completeness": ec.rho,
                 "total_contribution": ec.p_value,
+                "top_mag": ec.confidence,
+                "n_active_mags": ec.perm_p if ec.perm_p is not None else ec.p_value,
             })
         for sr in self.sensitivity:
             rows.append({
