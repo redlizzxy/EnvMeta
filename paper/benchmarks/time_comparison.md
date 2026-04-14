@@ -4,11 +4,11 @@
 |---------|-------------------|------------------|----------------|---------|-----------------|----------------|---------|
 | 堆叠图 | 177 (R, 01_tax_stackplot.R) | 5+（写脚本/装 R 包/调参/导出） | ~30 min（含调试） | ✅ pip install + sample_data | 3（上传 2 文件 + 选样式 + 点生成） | ~10 s | 2026-04-13 |
 | PCoA | 195 (R, 02_beta_PCoA.R) | 4+（装 vegan/ggrepel/cowplot/写脚本） | ~40 min | ✅ pip install | 3（上传 2 文件 + 点生成） | ~12 s（999 置换） | 2026-04-13 |
-| α多样性 | | | | | | | |
+| α多样性 | 260 (R, 02_alpha_diversity.R) | 5+（vegan/ggpubr + 2×3 子图布局） | ~35 min | ✅ pip install | 3（上传 2 文件 + 勾指数 + 点生成） | ~5 s | 2026-04-14 |
 | RDA排序 | | | | | | | |
 | LEfSe | | | | | | | |
 | 基因热图 | 514 (py, 05_gene_heatmap_log2fc.py, 含 log2FC 部分) | 6+（装 matplotlib/调整颜色/位置/字体） | ~90 min | ✅ pip install + 知识库 JSON | 3（上传 2 文件 + 点生成） | ~8 s | 2026-04-13 |
-| log2FC | | | | | | | |
+| log2FC | 含在 514 行 05_gene_heatmap_log2fc.py（后半段 ~230 行） | 5+（装 scipy/statsmodels + 配色） | ~50 min | ✅ pip install + 知识库 JSON | 4（上传 2 文件 + 选组对 + 点生成） | ~3 s | 2026-04-14 |
 | MAG质量 | | | | | | | |
 | MAG丰度热图 | | | | | | | |
 | 通路完整度 | | | | | | | |

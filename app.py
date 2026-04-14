@@ -397,9 +397,82 @@ elif page == "Reads-based 分析":
             with st.expander("查看统计表"):
                 st.dataframe(last.stats.round(4), use_container_width=True)
 
+    # ── 基因差异分析 log2FC ─────────────────────────────
+    elif analysis_type == "基因差异分析 (log2FC)":
+        ko_files = _files_of(FileType.KO_ABUNDANCE_WIDE)
+        metadata_files = _files_of(FileType.METADATA)
+        if not ko_files or not metadata_files:
+            st.warning(
+                f"需要 1 个 KO 丰度表 + 1 个 metadata。当前：KO 表 {len(ko_files)}，metadata {len(metadata_files)}。"
+            )
+            st.stop()
+
+        c1, c2 = st.columns(2)
+        with c1:
+            ko_name = st.selectbox("KO 丰度表", list(ko_files.keys()), key="log2fc_ko")
+        with c2:
+            md_name = st.selectbox("Metadata", list(metadata_files.keys()), key="log2fc_md")
+
+        md_df = metadata_files[md_name]["df"]
+        group_opts = list(dict.fromkeys(md_df["Group"].astype(str).tolist())) if "Group" in md_df.columns else []
+
+        st.sidebar.markdown("---")
+        st.sidebar.subheader("参数")
+        if len(group_opts) < 2:
+            st.error("metadata 的 Group 列至少需要 2 个不同值")
+            st.stop()
+        group_a = st.sidebar.selectbox("组 A（分子）", group_opts, index=0, key="log2fc_a")
+        group_b = st.sidebar.selectbox("组 B（分母）", group_opts,
+                                       index=1 if group_opts[0] == group_a else 0,
+                                       key="log2fc_b")
+        element_filter = st.sidebar.multiselect(
+            "元素", ["arsenic", "nitrogen", "sulfur", "iron"],
+            default=["arsenic", "nitrogen", "sulfur", "iron"], key="log2fc_el",
+        )
+        alpha_cut = st.sidebar.slider("padj 阈值", 0.01, 0.10, 0.05, step=0.01, key="log2fc_alpha")
+        lfc_thresh = st.sidebar.slider("|log2FC| 阈值", 0.0, 2.0, 1.0, step=0.1, key="log2fc_thresh")
+        size = render_figure_size({"width_mm": 220, "height_mm": 200}, prefix="log2fc")
+
+        params = {
+            "group_a": group_a, "group_b": group_b,
+            "element_filter": element_filter or None,
+            "alpha": alpha_cut, "log2fc_threshold": lfc_thresh, **size,
+        }
+
+        if st.button("🎨 生成图表", type="primary", key="log2fc_go"):
+            try:
+                from envmeta.analysis import log2fc
+                result = log2fc.analyze(ko_files[ko_name]["df"],
+                                         md_df, params)
+                st.session_state["last_log2fc"] = result
+            except Exception as e:
+                st.error(f"生成失败：{e}")
+
+        last = st.session_state.get("last_log2fc")
+        if last is not None:
+            st.pyplot(last.figure, use_container_width=True)
+            d1, d2, d3 = st.columns(3)
+            suffix = f"{last.params['group_a']}_vs_{last.params['group_b']}"
+            with d1:
+                st.download_button("⬇️ PNG（300 DPI）", data=export_to_bytes(last.figure, "png"),
+                                   file_name=f"log2fc_{suffix}.png",
+                                   mime="image/png", key="log2fc_png")
+            with d2:
+                st.download_button("⬇️ PDF（矢量）", data=export_to_bytes(last.figure, "pdf"),
+                                   file_name=f"log2fc_{suffix}.pdf",
+                                   mime="application/pdf", key="log2fc_pdf")
+            with d3:
+                st.download_button("⬇️ 统计表（TSV）",
+                                   data=last.stats.to_csv(sep="\t", index=False).encode("utf-8"),
+                                   file_name=f"log2fc_{suffix}_stats.tsv",
+                                   mime="text/tab-separated-values", key="log2fc_tsv")
+            with st.expander("查看统计表（按 padj 排序）"):
+                st.dataframe(last.stats.sort_values("padj").round(4),
+                             use_container_width=True)
+
     # 未实现的子页面
     else:
-        st.info(f"「{analysis_type}」将在 Phase 1 迭代 3/4 或 Phase 2 实现。")
+        st.info(f"「{analysis_type}」将在 Phase 1 迭代 4 或 Phase 2 实现。")
 
 # ══════════════════════════════════════════════════════════
 # 其他占位页面
