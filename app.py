@@ -8,9 +8,29 @@ import streamlit as st
 
 from envmeta import __version__
 from envmeta.analysis import gene_heatmap, pcoa, stackplot
+from envmeta.export.code_generator import generate as generate_code
 from envmeta.export.figure_export import export_to_bytes
 from envmeta.file_manager.detector import FileType, detect, read_table
 from envmeta.params.common import render_figure_size, render_font_controls
+
+
+def _reproduce_button(analysis_id: str, file_paths: dict[str, str],
+                      params: dict, key: str, output_base: str | None = None):
+    """渲染「下载 .py 复现脚本」按钮。"""
+    try:
+        src = generate_code(analysis_id, file_paths, params,
+                            output_base=output_base or analysis_id)
+    except Exception as e:
+        st.caption(f"⚠️ 无法生成复现脚本：{e}")
+        return
+    st.download_button(
+        "⬇️ 复现脚本（.py）",
+        data=src.encode("utf-8"),
+        file_name=f"{analysis_id}_reproduce.py",
+        mime="text/x-python",
+        key=key,
+        help="独立可运行的 Python 脚本，复现当前参数下的图表",
+    )
 
 # ── 页面配置 ──────────────────────────────────────────────
 st.set_page_config(
@@ -209,6 +229,10 @@ elif page == "Reads-based 分析":
                                    data=last.stats.to_csv(sep="\t").encode("utf-8"),
                                    file_name=f"stackplot_{last.params['style']}_percentage.tsv",
                                    mime="text/tab-separated-values", key="stack_tsv")
+            _reproduce_button("stackplot",
+                              {"abundance": ab_name, "metadata": md_name},
+                              last.params, key="stack_code",
+                              output_base=f"stackplot_{last.params['style']}")
             with st.expander("查看百分比表"):
                 st.dataframe(last.stats.round(2), use_container_width=True)
 
@@ -267,6 +291,9 @@ elif page == "Reads-based 分析":
                                    data=last.stats.to_csv(sep="\t", index=False).encode("utf-8"),
                                    file_name="pcoa_stats.tsv", mime="text/tab-separated-values",
                                    key="pcoa_tsv")
+            _reproduce_button("pcoa",
+                              {"distance": dist_name, "metadata": md_name},
+                              last.params, key="pcoa_code")
             with st.expander("PERMANOVA 两两对比"):
                 st.dataframe(last.params["_stats_tables"]["pairwise_permanova"],
                              use_container_width=True)
@@ -329,6 +356,9 @@ elif page == "Reads-based 分析":
                                    data=last.stats.to_csv(sep="\t").encode("utf-8"),
                                    file_name="gene_heatmap_zscore.tsv",
                                    mime="text/tab-separated-values", key="heat_tsv")
+            _reproduce_button("gene_heatmap",
+                              {"ko_abundance": ko_name, "metadata": md_name},
+                              last.params, key="heat_code")
             with st.expander("原始分组均值矩阵"):
                 st.dataframe(last.params["_raw_means"].round(2),
                              use_container_width=True)
@@ -394,6 +424,9 @@ elif page == "Reads-based 分析":
                                    data=last.stats.to_csv(sep="\t", index=False).encode("utf-8"),
                                    file_name="alpha_stats.tsv",
                                    mime="text/tab-separated-values", key="alpha_tsv")
+            _reproduce_button("alpha_boxplot",
+                              {"alpha": alpha_name, "metadata": md_name},
+                              last.params, key="alpha_code")
             with st.expander("查看统计表"):
                 st.dataframe(last.stats.round(4), use_container_width=True)
 
@@ -466,6 +499,10 @@ elif page == "Reads-based 分析":
                                    data=last.stats.to_csv(sep="\t", index=False).encode("utf-8"),
                                    file_name=f"log2fc_{suffix}_stats.tsv",
                                    mime="text/tab-separated-values", key="log2fc_tsv")
+            _reproduce_button("log2fc",
+                              {"ko_abundance": ko_name, "metadata": md_name},
+                              last.params, key="log2fc_code",
+                              output_base=f"log2fc_{suffix}")
             with st.expander("查看统计表（按 padj 排序）"):
                 st.dataframe(last.stats.sort_values("padj").round(4),
                              use_container_width=True)
