@@ -8,6 +8,7 @@ import streamlit as st
 
 from envmeta import __version__
 from envmeta.analysis import (
+    cycle_diagram as cycle_mod,
     gene_heatmap, gene_profile as gene_profile_mod,
     lefse as lefse_mod,
     mag_quality as mag_quality_mod,
@@ -914,7 +915,100 @@ elif page == "MAG-based 分析":
 
 elif page == "生物地球化学循环图":
     st.title("生物地球化学循环图生成器")
-    st.info("核心创新模块 — Phase 3/4 将实现通路推断与交互编辑。")
+    st.caption("Phase 3 v1 — 从 MAG × KO + 环境因子自动推断活跃元素循环通路")
+
+    file_names = list(st.session_state.files.keys())
+    if not file_names:
+        st.warning("请先在「文件管理」上传 KO 注释表（MAG + KEGG_ko 长表）。")
+        st.stop()
+
+    ko_name = st.selectbox("KO 注释表（必需）", file_names, key="cy_ko")
+    t_name = st.selectbox(
+        "GTDB 分类表（可选，用于 Phylum/Genus 标签）",
+        ["（无）"] + [n for n in file_names if n != ko_name],
+        key="cy_tax",
+    )
+    k_name = st.selectbox(
+        "Keystone 物种列表（可选）",
+        ["（无）"] + [n for n in file_names if n not in (ko_name, t_name)],
+        key="cy_ks",
+    )
+    a_name = st.selectbox(
+        "MAG 丰度表（可选，用于通路贡献加权）",
+        ["（无）"] + [n for n in file_names
+                     if n not in (ko_name, t_name, k_name)],
+        key="cy_ab",
+    )
+    e_name = st.selectbox(
+        "环境因子表（可选，用于 env-pathway 相关性）",
+        ["（无）"] + [n for n in file_names
+                     if n not in (ko_name, t_name, k_name, a_name)],
+        key="cy_env",
+    )
+    m_name = st.selectbox(
+        "Metadata（env 表需要搭配）",
+        ["（无）"] + [n for n in file_names
+                     if n not in (ko_name, t_name, k_name, a_name, e_name)],
+        key="cy_md",
+    )
+
+    with st.sidebar:
+        st.subheader("循环图参数")
+        comp_thresh = st.slider("通路完整度阈值（%）", 0, 100, 50, step=5,
+                                key="cy_comp")
+        top_n = st.slider("每通路显示 Top MAG 数", 1, 10, 5, key="cy_topn")
+        rho_min = st.slider("env-pathway |ρ| 阈值", 0.0, 1.0, 0.5, step=0.05,
+                            key="cy_rho")
+        p_max = st.slider("env-pathway p 阈值", 0.001, 0.2, 0.05, step=0.005,
+                          key="cy_p")
+        show_env = st.checkbox("显示环境耦合面板", True, key="cy_env_panel")
+        size = render_figure_size({"width_mm": 360, "height_mm": 260},
+                                  prefix="cy")
+
+    if st.button("生成循环图", type="primary", key="cy_go"):
+        def _get(n):
+            return st.session_state.files[n]["df"] if n != "（无）" else None
+        ko = st.session_state.files[ko_name]["df"]
+        t = _get(t_name)
+        if t is not None and t.shape[1] == 2 and "classification" not in [
+                c.lower() for c in t.columns] and "taxonomy" not in [
+                c.lower() for c in t.columns]:
+            t = t.copy(); t.columns = ["MAG", "Taxonomy"]
+        params = {
+            "completeness_threshold": float(comp_thresh),
+            "top_n_contributors": top_n,
+            "env_rho_min": rho_min,
+            "env_p_max": p_max,
+            "show_env_panel": show_env,
+            **size,
+        }
+        try:
+            result = cycle_mod.analyze(
+                ko, t, _get(k_name), _get(a_name), _get(e_name), _get(m_name),
+                params=params,
+            )
+        except ValueError as e:
+            st.error(str(e))
+            st.stop()
+        st.session_state["_cy_last"] = result
+
+    last = st.session_state.get("_cy_last")
+    if last is not None:
+        st.pyplot(last.figure, use_container_width=False)
+        d1, d2, d3 = st.columns(3)
+        with d1:
+            st.download_button("⬇️ PNG", data=export_to_bytes(last.figure, "png"),
+                               file_name="cycle.png", mime="image/png", key="cy_png")
+        with d2:
+            st.download_button("⬇️ PDF（矢量）", data=export_to_bytes(last.figure, "pdf"),
+                               file_name="cycle.pdf", mime="application/pdf", key="cy_pdf")
+        with d3:
+            st.download_button("⬇️ 统计表（TSV）",
+                               data=last.stats.to_csv(sep="\t", index=False).encode("utf-8"),
+                               file_name="cycle_stats.tsv",
+                               mime="text/tab-separated-values", key="cy_tsv")
+        with st.expander("推断详情（活跃通路 + 环境耦合）"):
+            st.dataframe(last.stats, use_container_width=True)
 
 elif page == "导出中心":
     st.title("导出中心")

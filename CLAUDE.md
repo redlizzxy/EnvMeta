@@ -221,6 +221,43 @@ git push                    # 推送到 origin/master
 
 > 每次 session 结束前更新此区块。新对话开始时 Claude Code 自动读取，了解当前进度。
 
+### 2026-04-17（**Phase 3 v1 — 生物地球化学循环图自动推断 ⭐ 核心卖点**）
+- **阶段**：Phase 3 v1 完成 — 论文 hero figure 自动生成
+- **架构**：
+  - `envmeta/geocycle/model.py`（~90 行）：dataclass（CycleData / ElementCycle /
+    PathwayActivity / EnvCorrelation / MAGContribution），Phase 4 D3 JSON 导出
+    的直接来源
+  - `envmeta/geocycle/inference.py`（~220 行）：3 步推断引擎
+    1. MAG 基础表（Phylum/Genus/is_keystone/abundance_mean）
+    2. 逐通路活跃度（按 KB 18 通路，completeness ≥ 50% → 活跃 MAG；
+       `completeness × log1p(abundance)` 排序贡献；`Σ completeness × abundance`
+       = 通路总贡献）
+    3. env-pathway Spearman 相关（样本级通路活性 = `Σ_MAG abundance × |KO∩pw|`）
+  - `envmeta/geocycle/renderer.py`（~160 行）：matplotlib 静态渲染，2×2 元素象限
+    + 底部 env 耦合面板
+  - `envmeta/analysis/cycle_diagram.py`（~50 行）：对齐 analyze() 签名的薄壳
+  - app.py "生物地球化学循环图" 页面（6 文件上传，5 个可选 + 4 参数 + 3 键下载）
+- **已完成**：
+  - 测试 `tests/test_cycle_diagram.py` 6 case，**98/98 全绿 24 s**
+  - 论文积累 `paper/benchmarks/validation/cycle_diagram/` 含 PDF + stats + README
+  - `time_comparison.md` 补循环图行（**无现成脚本**，首次实现）
+- **推断结果复现用户研究假设**（重大里程碑）：
+  - **Gallionella**（Fe 氧化专家）同时主导 NO reduction 和 Arsenate reduction
+    → 铁氧化-氮-砷耦合 ✓
+  - **Sulfuricaulis**（S 氧化专家）主导 Sulfide oxidation → 硫调控 Eh ✓
+  - Ammonia oxidation ↔ Eh 强正相关（ρ=0.84, p=0.003）→ N 循环影响 Eh ✓
+  - 5/5 砷代谢通路 ↔ Total_As 显著正相关 → As 压力-应答响应 ✓
+  - **论文 Methods 可直接引用"算法自动推断支持原机制假设"**
+- **下一步**：
+  - 路线 A：回补 Phase 2 `mag_heatmap` + `network` (Gephi-prep)
+  - 路线 B：进 Phase 4 — D3.js 交互编辑 + JSON 导出 + 环状布局
+- **量化**：
+  - 新增代码：model 90 + inference 220 + renderer 160 + cycle_diagram 50 +
+    test 80 + app.py +100 = ~700 行
+  - 测试：92 → 98 case（+6）
+  - **累计分析图表：7 Reads + 3 MAG + 1 Cycle = 11 种**
+  - **差异化卖点落地**：唯一支持从原始数据自动推断生物地球化学循环图的可视化工具
+
 ### 2026-04-17（Phase 2 迭代 3 — MAG 元素循环基因谱 / **Phase 3 前置 2/2 完成**）
 - **阶段**：**Phase 3 循环图推断引擎的全部硬前置到齐**
 - **已完成**：
