@@ -14,7 +14,7 @@ from typing import Callable
 
 from envmeta import __version__
 
-SUPPORTED = {"stackplot", "pcoa", "gene_heatmap", "alpha_boxplot", "log2fc", "rda", "lefse", "mag_quality", "pathway"}
+SUPPORTED = {"stackplot", "pcoa", "gene_heatmap", "alpha_boxplot", "log2fc", "rda", "lefse", "mag_quality", "pathway", "gene_profile"}
 
 _HEADER_TEMPLATE = '''"""
 由 EnvMeta v{version} 于 {timestamp} 生成。
@@ -173,6 +173,20 @@ print(f"Saved: {output_base}.pdf + {output_base}_stats.tsv")
 '''
 
 
+def _tpl_gene_profile(files: dict, params: dict, output_base: str) -> str:
+    return _header("gene_profile", "gene_profile", files, params, output_base) + f'''
+ko_annotation_df = pd.read_csv(FILES["ko_annotation"], sep="\\t")
+taxonomy_df = pd.read_csv(FILES["taxonomy"], sep="\\t", header=None, names=["MAG", "Taxonomy"]) if FILES.get("taxonomy") else None
+keystone_df = pd.read_csv(FILES["keystone"], sep="\\t") if FILES.get("keystone") else None
+abundance_df = pd.read_csv(FILES["abundance"], sep="\\t") if FILES.get("abundance") else None
+
+result = gene_profile.analyze(ko_annotation_df, taxonomy_df, keystone_df, abundance_df, params=PARAMS)
+export_figure(result.figure, "{output_base}.pdf", "pdf")
+result.stats.to_csv("{output_base}_stats.tsv", sep="\\t", index=False)
+print(f"Saved: {output_base}.pdf + {output_base}_stats.tsv")
+'''
+
+
 def _tpl_pathway(files: dict, params: dict, output_base: str) -> str:
     return _header("pathway", "pathway", files, params, output_base) + f'''
 ko_annotation_df = pd.read_csv(FILES["ko_annotation"], sep="\\t")
@@ -197,6 +211,7 @@ _TEMPLATES: dict[str, Callable[[dict, dict, str], str]] = {
     "lefse": _tpl_lefse,
     "mag_quality": _tpl_mag_quality,
     "pathway": _tpl_pathway,
+    "gene_profile": _tpl_gene_profile,
 }
 
 

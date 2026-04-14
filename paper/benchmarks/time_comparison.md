@@ -12,7 +12,7 @@
 | MAG质量 | 287 (py, 06_MAG_quality.py) | 5+（argparse + bac120/ar53 合并 + 配色/图例布局）| ~45 min | ✅ pip install | 3（上传 2-3 文件 + 点生成）| ~2 s | 2026-04-17 |
 | MAG丰度热图 | | | | | | | |
 | 通路完整度 | 970 (py, 08_pathway_completeness.py) | 7+（argparse + bac120/ar53 合并 + 3 张图硬编码布局）| ~120 min | ✅ pip install（KB 自动读 18 通路）| 3（上传 2-4 文件 + 样式切换 + 点生成）| ~3 s | 2026-04-17 |
-| 基因谱 | | | | | | | |
+| 基因谱 | 1080 (py, 06_MAG_gene_profile.py) | 7+（argparse + iTOL 解析 + 两语言版 + 4 张子图）| ~150 min | ✅ pip install（KB 自动提供 KO 顺序）| 3（上传 2-4 文件 + 点生成）| ~3 s | 2026-04-17 |
 | 共现网络 | | | | | | | |
 | 循环图 | — | — | — | — | | | |
 

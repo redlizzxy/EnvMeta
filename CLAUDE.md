@@ -221,6 +221,37 @@ git push                    # 推送到 origin/master
 
 > 每次 session 结束前更新此区块。新对话开始时 Claude Code 自动读取，了解当前进度。
 
+### 2026-04-17（Phase 2 迭代 3 — MAG 元素循环基因谱 / **Phase 3 前置 2/2 完成**）
+- **阶段**：**Phase 3 循环图推断引擎的全部硬前置到齐**
+- **已完成**：
+  - 模块 B：`envmeta/analysis/gene_profile.py`（~220 行，vs 原脚本 1080 行）
+    - MAG × KO 拷贝数矩阵（按元素 KB 顺序排列：As 11 / N 17 / S 15 / Fe 8 = 57 KO，6 个
+      全 0 自动过滤 → 51 active）
+    - 颜色 `log1p(copies)`，顶部元素色带 + 左侧门色带 + keystone ★
+    - `max_mags` / `sort_by` / `element_filter` / `show_gene_names` 可调
+    - 复用 pathway 模块的 `_parse_ko_annotation` / `PHYLUM_COLORS` / `_mag_col`
+  - 模块 D：code_generator SUPPORTED 9 → 10
+  - app.py：MAG 元素循环基因谱 页面（4 文件上传 + 参数 + 4 键下载）
+  - 测试：`tests/test_gene_profile.py` 6 个 case，**92/92 全绿 20.3 s**
+  - 论文积累：
+    - `paper/benchmarks/validation/gene_profile/` 含 PDF + stats TSV + README
+    - 168 MAG × 51 active KO，总拷贝 5144，Top-1 `Mx_All_158`（硫还原专家，Desulfobacterota_B）
+    - 与 pathway 模块 Top-1 `Mx_All_63` 交叉验证一致
+    - `time_comparison.md` 补基因谱行（1080 行 / 150 min vs 3 点击 / 3 s）
+- **Phase 3 前置状态**：
+  - ✅ pathway — 通路完整度矩阵
+  - ✅ gene_profile — MAG × KO 拷贝数矩阵
+  - ✅ gene_heatmap — 样本级 KO 丰度
+  - ✅ KB — 18 通路 × 57 KO 定义
+  - ✅ RDA + log2FC — 环境-功能关联
+  - **全部到齐，可启动 Phase 3 geocycle/inference.py**
+- **下一步**：**Phase 3 v1 — 循环图推断 + 静态渲染**（核心卖点）
+  或按路线：回补 `mag_heatmap`（3h）+ `network`(Gephi-prep, 3h），再进 Phase 3
+- **量化**：
+  - 新增代码：gene_profile 220 + test 65 + app.py +85 + code_gen +12 = ~380 行
+  - 测试：84 → 92 case（+8：6 新 + 2 参数化）
+  - 累计分析图表：7 Reads + 3 MAG = **10 种**
+
 ### 2026-04-17（Phase 2 迭代 2 — MAG 通路完整度）
 - **阶段**：Phase 2 第 2 图 — Phase 3 循环图硬前置 1/2 完成
 - **已完成**：

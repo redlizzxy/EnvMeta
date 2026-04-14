@@ -8,7 +8,8 @@ import streamlit as st
 
 from envmeta import __version__
 from envmeta.analysis import (
-    gene_heatmap, lefse as lefse_mod,
+    gene_heatmap, gene_profile as gene_profile_mod,
+    lefse as lefse_mod,
     mag_quality as mag_quality_mod,
     pathway as pathway_mod,
     pcoa, rda as rda_mod, stackplot,
@@ -819,6 +820,93 @@ elif page == "MAG-based 分析":
             if k_name != "（无）": files_map["keystone"] = k_name
             if a_name != "（无）": files_map["abundance"] = a_name
             _reproduce_button("pathway", files_map, last.params, key="pw_code")
+            with st.expander("查看统计表"):
+                st.dataframe(last.stats, use_container_width=True)
+    elif analysis_type == "MAG 元素循环基因谱":
+        ko_candidates = list(st.session_state.files.keys())
+        if not ko_candidates:
+            st.warning("需要至少 1 个 KO 注释表（MAG + KEGG_ko 长表）。")
+            st.stop()
+        ko_name = st.selectbox("KO 注释表", ko_candidates, key="gp_ko")
+        t_name = st.selectbox(
+            "GTDB 分类表（可选）",
+            ["（无）"] + [n for n in ko_candidates if n != ko_name],
+            key="gp_tax",
+        )
+        k_name = st.selectbox(
+            "Keystone 物种列表（可选）",
+            ["（无）"] + [n for n in ko_candidates if n not in (ko_name, t_name)],
+            key="gp_ks",
+        )
+        a_name = st.selectbox(
+            "MAG 丰度表（可选）",
+            ["（无）"] + [n for n in ko_candidates
+                         if n not in (ko_name, t_name, k_name)],
+            key="gp_ab",
+        )
+
+        with st.sidebar:
+            st.subheader("基因谱参数")
+            sort_by = st.selectbox(
+                "排序方式",
+                ["phylum_then_count", "count", "abundance"],
+                key="gp_sort",
+            )
+            elem_opts = ["arsenic", "sulfur", "iron", "nitrogen"]
+            elem_sel = st.multiselect("元素过滤（空=全部）", elem_opts,
+                                      default=[], key="gp_elem")
+            max_mags = st.slider("最多显示 MAG 数（0=全部）", 0, 200, 60,
+                                 step=10, key="gp_max")
+            show_names = st.checkbox("列标签显示基因名", True, key="gp_names")
+            size = render_figure_size({"width_mm": 340, "height_mm": 220},
+                                      prefix="gp")
+
+        if st.button("生成基因谱图", type="primary", key="gp_go"):
+            ko = st.session_state.files[ko_name]["df"]
+            t = st.session_state.files[t_name]["df"] if t_name != "（无）" else None
+            if t is not None and t.shape[1] == 2 and "classification" not in [
+                    c.lower() for c in t.columns] and "taxonomy" not in [
+                    c.lower() for c in t.columns]:
+                t = t.copy()
+                t.columns = ["MAG", "Taxonomy"]
+            k = st.session_state.files[k_name]["df"] if k_name != "（无）" else None
+            a = st.session_state.files[a_name]["df"] if a_name != "（无）" else None
+            params = {
+                "sort_by": sort_by,
+                "element_filter": elem_sel or None,
+                "max_mags": max_mags or None,
+                "show_gene_names": show_names,
+                **size,
+            }
+            try:
+                result = gene_profile_mod.analyze(ko, t, k, a, params=params)
+            except ValueError as e:
+                st.error(str(e))
+                st.stop()
+            st.session_state["_gp_last"] = result
+
+        last = st.session_state.get("_gp_last")
+        if last is not None:
+            st.pyplot(last.figure, use_container_width=False)
+            d1, d2, d3 = st.columns(3)
+            with d1:
+                st.download_button("⬇️ PNG", data=export_to_bytes(last.figure, "png"),
+                                   file_name="gene_profile.png", mime="image/png",
+                                   key="gp_png")
+            with d2:
+                st.download_button("⬇️ PDF（矢量）", data=export_to_bytes(last.figure, "pdf"),
+                                   file_name="gene_profile.pdf",
+                                   mime="application/pdf", key="gp_pdf")
+            with d3:
+                st.download_button("⬇️ 统计表（TSV）",
+                                   data=last.stats.to_csv(sep="\t", index=False).encode("utf-8"),
+                                   file_name="gene_profile_stats.tsv",
+                                   mime="text/tab-separated-values", key="gp_tsv")
+            files_map = {"ko_annotation": ko_name}
+            if t_name != "（无）": files_map["taxonomy"] = t_name
+            if k_name != "（无）": files_map["keystone"] = k_name
+            if a_name != "（无）": files_map["abundance"] = a_name
+            _reproduce_button("gene_profile", files_map, last.params, key="gp_code")
             with st.expander("查看统计表"):
                 st.dataframe(last.stats, use_container_width=True)
     else:
