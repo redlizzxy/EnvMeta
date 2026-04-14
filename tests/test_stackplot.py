@@ -76,3 +76,24 @@ def test_stackplot_reverse_stack(phylum_and_meta):
     r = stackplot.analyze(ab, md, {"style": "group", "top_n": 5, "reverse_stack": True})
     assert r.figure is not None
     assert r.stats is not None
+
+
+def test_stackplot_combined(phylum_and_meta):
+    """combined 样式：stats 是 MultiIndex 列，sample + group 两段。"""
+    ab, md = phylum_and_meta
+    r = stackplot.analyze(ab, md, {"style": "combined", "top_n": 8})
+    assert r.figure is not None
+    # 顶层列应含 sample 和 group 两段
+    assert set(r.stats.columns.get_level_values(0)) == {"sample", "group"}
+    # 每列百分比之和约为 100
+    for sec in ("sample", "group"):
+        sums = r.stats[sec].sum(axis=0).round(1)
+        assert (sums == 100.0).all()
+
+
+def test_stackplot_combined_shared_taxa(phylum_and_meta):
+    """combined 下 sample 和 group 两段应共用同一组 taxa（同一个行索引）。"""
+    ab, md = phylum_and_meta
+    r = stackplot.analyze(ab, md, {"style": "combined", "top_n": 5})
+    # 行索引唯一且两段共享
+    assert r.stats[("sample", r.stats["sample"].columns[0])].index.equals(r.stats.index)

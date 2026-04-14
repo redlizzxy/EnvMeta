@@ -192,7 +192,8 @@ elif page == "Reads-based 分析":
 
         st.sidebar.markdown("---")
         st.sidebar.subheader("参数")
-        style = st.sidebar.radio("横轴", ["sample", "group"], horizontal=True, key="stack_style")
+        style = st.sidebar.radio("横轴", ["sample", "group", "combined"],
+                                 horizontal=True, key="stack_style")
         top_n = st.sidebar.slider("Top-N", 5, 20, 10, key="stack_top_n")
         sort_by = st.sidebar.selectbox("排序依据", ["mean", "max", "median"], key="stack_sort_by")
         reverse_stack = st.sidebar.checkbox("高丰度在柱顶（反转）", value=False, key="stack_rev")

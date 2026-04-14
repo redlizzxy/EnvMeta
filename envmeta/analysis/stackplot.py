@@ -102,22 +102,16 @@ def _aggregate_by_group(df: pd.DataFrame, metadata: pd.DataFrame, group_col: str
     return agg[ordered]
 
 
-def _build_figure(pct_df: pd.DataFrame, *, width_mm: int, height_mm: int,
-                  palette: list[str], others_label: str,
-                  bar_width: float, show_legend: bool,
-                  reverse_stack: bool = False) -> plt.Figure:
-    """绘制百分比堆叠柱状图。pct_df: Taxonomy × X（样本或分组）。
-    reverse_stack=True 时高丰度项堆在柱顶。"""
-    fig, ax = plt.subplots(figsize=(width_mm / 25.4, height_mm / 25.4), constrained_layout=True)
-
-    # 绘图顺序：默认（reverse_stack=False）高丰度在底，所以从 df 顺序开始画（最先画的在底）
+def _draw_axes(ax, pct_df: pd.DataFrame, *, palette: list[str] | None,
+               others_label: str, bar_width: float,
+               reverse_stack: bool, show_legend: bool,
+               ylabel: str = "Relative abundance (%)") -> None:
+    """在指定 ax 上绘一个百分比堆叠柱。"""
     taxa = pct_df.index.tolist()
-    if reverse_stack:
-        taxa = list(reversed(taxa))
+    draw_order = list(reversed(taxa)) if reverse_stack else taxa
     x_labels = pct_df.columns.tolist()
     x_pos = np.arange(len(x_labels))
 
-    # 颜色：给非-Others 的 taxa 循环分配调色板，Others 用灰
     colors = {}
     palette_cycle = list(palette) if palette else STACK_12
     non_others = [t for t in taxa if t != others_label]
@@ -127,7 +121,7 @@ def _build_figure(pct_df: pd.DataFrame, *, width_mm: int, height_mm: int,
         colors[others_label] = OTHERS_COLOR
 
     bottom = np.zeros(len(x_labels))
-    for t in taxa:
+    for t in draw_order:
         vals = pct_df.loc[t].to_numpy()
         ax.bar(x_pos, vals, bar_width, bottom=bottom, color=colors[t], label=t,
                edgecolor="white", linewidth=0.3)
@@ -135,7 +129,7 @@ def _build_figure(pct_df: pd.DataFrame, *, width_mm: int, height_mm: int,
 
     ax.set_xticks(x_pos)
     ax.set_xticklabels(x_labels, rotation=45, ha="right")
-    ax.set_ylabel("Relative abundance (%)")
+    ax.set_ylabel(ylabel)
     ax.set_ylim(0, 100)
     ax.set_xlim(-0.5, len(x_labels) - 0.5)
     for spine in ("top", "right"):
@@ -145,6 +139,33 @@ def _build_figure(pct_df: pd.DataFrame, *, width_mm: int, height_mm: int,
         ax.legend(loc="center left", bbox_to_anchor=(1.02, 0.5),
                   frameon=False, fontsize=8, title="Taxonomy")
 
+
+def _build_figure(pct_df: pd.DataFrame, *, width_mm: int, height_mm: int,
+                  palette: list[str], others_label: str,
+                  bar_width: float, show_legend: bool,
+                  reverse_stack: bool = False) -> plt.Figure:
+    fig, ax = plt.subplots(figsize=(width_mm / 25.4, height_mm / 25.4), constrained_layout=True)
+    _draw_axes(ax, pct_df, palette=palette, others_label=others_label,
+               bar_width=bar_width, reverse_stack=reverse_stack,
+               show_legend=show_legend)
+    return fig
+
+
+def _build_combined_figure(sample_pct: pd.DataFrame, group_pct: pd.DataFrame, *,
+                           width_mm: int, height_mm: int,
+                           palette: list[str] | None, others_label: str,
+                           bar_width: float, reverse_stack: bool) -> plt.Figure:
+    """sample 和 group 并排；左图无 legend（58% 宽），右图有 legend（42% 宽）。"""
+    fig, (ax_s, ax_g) = plt.subplots(
+        1, 2, figsize=(width_mm / 25.4, height_mm / 25.4),
+        gridspec_kw={"width_ratios": [58, 42]}, constrained_layout=True,
+    )
+    _draw_axes(ax_s, sample_pct, palette=palette, others_label=others_label,
+               bar_width=bar_width, reverse_stack=reverse_stack, show_legend=False)
+    _draw_axes(ax_g, group_pct, palette=palette, others_label=others_label,
+               bar_width=bar_width, reverse_stack=reverse_stack, show_legend=True,
+               ylabel="")
+    ax_g.set_yticklabels([])
     return fig
 
 
@@ -164,25 +185,62 @@ def analyze(
         df = _drop_unclassified(df)
     df = _normalize_to_percent(df)
 
-    if p["style"] == "group":
-        df = _aggregate_by_group(df, metadata_df, p["group_col"])
-    elif p["style"] == "sample":
-        # 只保留 metadata 中出现的样本，并按其顺序
-        known_samples = [s for s in metadata_df["SampleID"].astype(str).tolist() if s in df.columns]
-        if known_samples:
-            df = df[known_samples]
-    else:
-        raise ValueError(f"style 必须是 'sample' 或 'group'，收到 {p['style']!r}")
+    style = p["style"]
+    if style not in ("sample", "group", "combined"):
+        raise ValueError(f"style 必须是 'sample' / 'group' / 'combined'，收到 {style!r}")
 
-    pct = _topn_with_others(df, p["top_n"], p["others_label"], p["sort_by"])
-    pct = _normalize_to_percent(pct)   # Top-N + Others 再归一一次防精度漂移
+    # 样本子集（保留 metadata 出现顺序）
+    known_samples = [s for s in metadata_df["SampleID"].astype(str).tolist() if s in df.columns]
+    df_sample = df[known_samples] if known_samples else df
+    df_group = _aggregate_by_group(df, metadata_df, p["group_col"])
 
-    fig = _build_figure(
-        pct,
+    if style == "sample":
+        pct = _topn_with_others(df_sample, p["top_n"], p["others_label"], p["sort_by"])
+        pct = _normalize_to_percent(pct)
+        fig = _build_figure(
+            pct,
+            width_mm=p["width_mm"], height_mm=p["height_mm"],
+            palette=p["palette"], others_label=p["others_label"],
+            bar_width=p["bar_width"], show_legend=p["show_legend"],
+            reverse_stack=p["reverse_stack"],
+        )
+        return AnalysisResult(figure=fig, stats=pct, params=p)
+
+    if style == "group":
+        pct = _topn_with_others(df_group, p["top_n"], p["others_label"], p["sort_by"])
+        pct = _normalize_to_percent(pct)
+        fig = _build_figure(
+            pct,
+            width_mm=p["width_mm"], height_mm=p["height_mm"],
+            palette=p["palette"], others_label=p["others_label"],
+            bar_width=p["bar_width"], show_legend=p["show_legend"],
+            reverse_stack=p["reverse_stack"],
+        )
+        return AnalysisResult(figure=fig, stats=pct, params=p)
+
+    # combined：先按 group 均值选 Top-N（让两侧用同一组物种），再各自归一
+    ranked = getattr(df_group, _AGG_FUNCS.get(p["sort_by"], "mean"))(axis=1).sort_values(ascending=False)
+    top_taxa = ranked.head(p["top_n"]).index.tolist()
+    rest_taxa = ranked.iloc[p["top_n"]:].index.tolist()
+
+    def _collapse(sub: pd.DataFrame) -> pd.DataFrame:
+        top = sub.loc[[t for t in top_taxa if t in sub.index]]
+        if rest_taxa:
+            rest_sum = sub.loc[[t for t in rest_taxa if t in sub.index]].sum(axis=0)
+            top.loc[p["others_label"]] = rest_sum
+        return _normalize_to_percent(top)
+
+    pct_sample = _collapse(df_sample)
+    pct_group = _collapse(df_group)
+
+    fig = _build_combined_figure(
+        pct_sample, pct_group,
         width_mm=p["width_mm"], height_mm=p["height_mm"],
         palette=p["palette"], others_label=p["others_label"],
-        bar_width=p["bar_width"], show_legend=p["show_legend"],
-        reverse_stack=p["reverse_stack"],
+        bar_width=p["bar_width"], reverse_stack=p["reverse_stack"],
     )
-
-    return AnalysisResult(figure=fig, stats=pct, params=p)
+    # stats 用 MultiIndex: 行 = taxa，列 = (section, sample/group label)
+    combined_stats = pd.concat(
+        {"sample": pct_sample, "group": pct_group}, axis=1,
+    )
+    return AnalysisResult(figure=fig, stats=combined_stats, params=p)
