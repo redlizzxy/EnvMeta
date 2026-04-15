@@ -282,6 +282,99 @@ S8 插件框架推迟到论文接收后再做。完整计划见 `C:\Users\REDLIZ
 
 > 每次 session 结束前更新此区块。新对话开始时 Claude Code 自动读取，了解当前进度。
 
+### 2026-04-19（**Today's Session 总结** — S2.5-14 耦合回归修复 + S3 L2 假说评分器落地）
+
+今日两条主线：**先修 bug，后加大功能**。累计 **3 个 commit / 测试 176 → 189 全绿**。
+
+#### 时间线
+
+| 顺序 | 内容 | commit |
+|---|---|---|
+| 1 | S2.5-14 multi-chain 细胞丢失化学物耦合锚点（As(V)↔Fe(III) 棕色线消失）| 27c32d6 |
+| 2 | 2026-04-19 S2.5-14 session 日志 | 3701f28 |
+| 3 | S3 机制假说 YAML 评分器（L2 层落地） | ff4b1b5 |
+
+#### 关键发现 / 用户反馈
+
+1. **视觉回归一定要用真实数据跑**：S2.5-14 的 bug（MAG-merge 后 merged_genes[0].substrate=None
+   导致 Fe 细胞锚点丢失）**单元测试没捕获**，必须靠用户对比 v29 vs v33 截图才发现。
+   → 修复同时加了 `test_multichain_cell_exposes_fe_iii_for_coupling` 锁死
+2. **"假说评估"与"推断"必须架构解耦**：S3 落地前反复讨论"inference 要不要
+   接受 hypothesis 输入" → 最终决定 **不接受**。hypothesis.py 只读 CycleData，
+   inference.py 零改动。论文可以诚实说 "hypothesis-agnostic inference +
+   separate evaluator"
+3. **skipped 不扣分的语义设计**：如果 claim 指向 KB 没有的耦合 / data 里没跑
+   到的 pathway → **分母剔除**，而不是判为 0 分。否则用户"写得不完整 →
+   分数被压低"会产生误解。CK 组的 3 条实跑数据验证了这个设计合理
+
+#### 本次 session 两个里程碑
+
+**S2.5-14**：
+- 根因 `merged_genes[0].substrate` 取单值，第一个基因若是 fur/tonB 就 None
+- 修复 3 处：物种列表化 + 多链位置 map (`substrate_pos_map`/`product_pos_map`)
+  + species-specific 定位 + 跳过 None substrate 的外部绘制
+- **4/4 KB 耦合线全部回归**：As(III)↔S-2 / As(V)↔Fe(III) (brown) /
+  Fe(II)↔S-2 / NO3-↔As(III)，CK/A/B × 2 ranking 下一致
+
+**S3**：
+- 4 类 claim 全部实现 + 加权总分 + 4 档标签
+- 8 claim 示例 `arsenic_steel_slag.yaml` 对应用户真实论文研究
+- UI 集成到循环图页底部 expander，不破坏现有工作流
+- 真实数据：CK 0.879 / A 0.868 / **B 1.000** — 与 2026-04-17 推断观察完全对齐
+- +12 测试 case（4 claim 各一个 satisfied + 各一个 skipped/unsatisfied 路径
+  + load schema 校验 + to_dataframe/to_json）
+
+#### 测试进展
+
+**176 → 189（+13）**：
+- +1 multichain Fe(III) 暴露回归（S2.5-14）
+- +12 hypothesis 单元（S3）
+
+#### 交付文件（今日新增）
+
+| 类别 | 文件 |
+|---|---|
+| 源码 | `envmeta/geocycle/hypothesis.py`（+430 行）|
+| UI | `app.py` 循环图页 hypothesis expander |
+| 依赖 | `requirements.txt` +pyyaml |
+| 测试 | `tests/test_hypothesis.py`（+12 case）|
+| 测试数据 | `tests/sample_data/sample_hypothesis.yaml` |
+| 论文示例 | `paper/hypotheses/arsenic_steel_slag.yaml` |
+| 论文文档 | `paper/hypotheses/README.md` |
+| 归档 | `paper/benchmarks/validation/hypothesis/` (CK/A/B 各 TSV+JSON + README) |
+
+#### 论文 Methods 素材
+
+> "EnvMeta couples hypothesis-agnostic cycle inference (evidence of pathway
+> activity / MAG contribution / env correlation, all without user-supplied
+> hypothesis input) with an optional hypothesis-testing YAML evaluator."
+
+#### 下次 Session 可选路径
+
+1. **S4 Fork Bundle 导出**（~4h）：打包 elements.json + 用户 YAML + 配置 →
+   zip，落地"论文-EnvMeta 绑定发布"协议。S3 + S4 组合后，L1-L2-L4 三层形成
+   闭环
+2. **S4.5 HTML 交互导出**（~10-15h，论文 SI 杀手锏）：D3.js 独立 HTML 嵌入
+   cycle_data + hypothesis_score JSON，审稿人能直接交互
+3. **S3.5 group_contrast claim**（~2h）：补 S3 v2 缺口。调用 cycle_compare
+   在 YAML 里写"B vs CK total_contribution 比值 ≥ 1.5"
+4. **S6 mag_heatmap**（~3h）：补 Phase 2 欠账
+5. **S9 论文 Methods 起草**：素材已齐（S1 去偏 + S2 置换 + S3 评分器）
+
+**强烈推荐先 S4**：与 S3 天然衔接，工时低，论文叙事完整度直接拉满。
+S4.5 推到论文投稿前冲刺。
+
+#### 今日关键学习
+
+1. **视觉回归不要依赖单元测试**：要跑真实数据 + 用户视觉对比。本次 S2.5-14
+   正是靠用户对比截图发现
+2. **skipped 不是错误处理，是语义设计**：让"不适用"和"不成立"分开，
+   才符合用户的科学判断流程
+3. **架构解耦的成本最低的时候就是"不写"**：S3 没让 inference 接受 hypothesis
+   输入，省去了 5+ 个 API/依赖复杂度，后期维护成本大幅降低
+
+---
+
 ### 2026-04-19（S3 — 机制假说 YAML 评分器 ⭐ L2 层落地）
 
 - **目标**：EnvMeta 推断是描述性无假说的，用户想"评估我的假说数据支不支持"需要
