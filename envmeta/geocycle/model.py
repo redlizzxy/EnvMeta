@@ -16,6 +16,10 @@ class MAGContribution:
     completeness: float   # 0-100
     abundance_mean: float  # MAG 在所有样本的平均丰度
     label: str | None = None  # 展示名（优先 Genus；兜底 MAG id）
+    # v1.2 新增：MAG 在该通路里实际持有的 KO 基因级联（supports Mockup 10 渲染）
+    #   每项 {"ko", "name", "substrate", "product"}；substrate/product 可为 None
+    #   顺序：按 KB 在通路里的登记顺序（保留 KO 字典的插入序）
+    genes: list[dict] = field(default_factory=list)
 
 
 @dataclass

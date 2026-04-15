@@ -25,7 +25,8 @@ from envmeta.analysis.pathway import (
 )
 from envmeta.geocycle.knowledge_base import (
     element_colors, element_display,
-    flat_ko_map, load_kb, pathway_display, pathway_element_map,
+    flat_ko_map, ko_substrate_product_map, load_kb,
+    pathway_display, pathway_element_map,
     pathway_ko_sets,
 )
 from envmeta.geocycle.model import (
@@ -166,6 +167,8 @@ def _pathway_activity(
     reactions = {pw_id: pw.get("reaction")
                  for el in kb["elements"].values()
                  for pw_id, pw in el["pathways"].items()}
+    ko_flat = flat_ko_map(kb)                     # {ko: (gene_name, pw_id, elem)}
+    ko_sub_prod = ko_substrate_product_map(kb)    # {ko: {substrate, product}}
 
     mag_meta = base.set_index("MAG")
     activities: dict[str, PathwayActivity] = {}
@@ -181,9 +184,22 @@ def _pathway_activity(
             ab = float(m["abundance_mean"]) if m is not None else 0.0
             genus = str(m["Genus"]) if (m is not None and "Genus" in m.index) else ""
             label = genus if genus else mag
+            # KO 级级联：按 KB 登记顺序保留该 MAG 实际持有的通路 KO
+            genes_list: list[dict] = []
+            for ko in kos:  # kos 保持 KB 里 pathway.genes 的插入序
+                if ko in owned:
+                    sp = ko_sub_prod.get(ko, {})
+                    name = ko_flat[ko][0] if ko in ko_flat else ko
+                    genes_list.append({
+                        "ko": ko,
+                        "name": name,
+                        "substrate": sp.get("substrate"),
+                        "product": sp.get("product"),
+                    })
             contributors.append(MAGContribution(
                 mag=mag, phylum=phy, completeness=comp,
                 abundance_mean=ab, label=label,
+                genes=genes_list,
             ))
         # 按 "completeness × (log1p abundance)" 排序
         contributors.sort(

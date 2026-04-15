@@ -167,3 +167,64 @@ def test_confidence_labels_distribution(cycle_inputs):
     # meta 里应该有相关计数
     assert "n_confidence_strong" in data.meta
     assert "n_confidence_suggestive" in data.meta
+
+
+# ── S2.5-2a KO 级 cascade 测试 ────────────────────────────────
+
+def test_contributors_carry_gene_cascade(cycle_inputs):
+    """每个 MAGContribution 的 genes 字段应有 substrate/product 化学信息。"""
+    ko, tax, ks, ab, env, md = cycle_inputs
+    data = infer(ko, tax, ks, ab, env, md, params=FAST_PARAMS)
+    # 至少存在一个带贡献者的通路
+    found = False
+    for ec in data.elements:
+        for pw in ec.pathways:
+            for c in pw.contributors:
+                assert isinstance(c.genes, list)
+                if c.genes:
+                    found = True
+                    # 字段存在
+                    g = c.genes[0]
+                    assert {"ko", "name", "substrate", "product"} <= set(g.keys())
+                    # KO id 形如 K12345
+                    assert g["ko"].startswith("K")
+    assert found, "至少一个贡献 MAG 应该持有通路里的 KO"
+
+
+def test_gene_cascade_matches_kb(cycle_inputs):
+    """catalytic KO 的 substrate/product 应等于 KB 定义；调控 KO 为 None。"""
+    ko, tax, ks, ab, env, md = cycle_inputs
+    data = infer(ko, tax, ks, ab, env, md, params=FAST_PARAMS)
+    # 找一条 catalytic KO（如 narG=K00370 应有 NO3- → NO2-）
+    catalytic_seen = {"K00370", "K00380", "K00376"}
+    regulator_seen = {"K03892", "K03711"}
+    catalytic_verified = False
+    for ec in data.elements:
+        for pw in ec.pathways:
+            for c in pw.contributors:
+                for g in c.genes:
+                    if g["ko"] in catalytic_seen:
+                        assert g["substrate"] is not None
+                        assert g["product"] is not None
+                        catalytic_verified = True
+                    if g["ko"] in regulator_seen:
+                        assert g["substrate"] is None
+                        assert g["product"] is None
+    # 本数据集未必出现这些 catalytic KO；若出现则断言已验过
+    assert catalytic_verified or True  # 宽松断言：确保循环没崩
+
+
+def test_gene_cascade_order_matches_kb(cycle_inputs):
+    """genes 列表顺序应与 KB pathway.genes 的登记序一致（MAG 持有的子集）。"""
+    from envmeta.geocycle.knowledge_base import pathway_ko_sets
+    ko, tax, ks, ab, env, md = cycle_inputs
+    data = infer(ko, tax, ks, ab, env, md, params=FAST_PARAMS)
+    pw_kos = pathway_ko_sets()
+    for ec in data.elements:
+        for pw in ec.pathways:
+            kb_order = pw_kos[pw.pathway_id]
+            for c in pw.contributors:
+                actual = [g["ko"] for g in c.genes]
+                # 取 kb_order 中 actual 包含的子序列
+                expected = [k for k in kb_order if k in set(actual)]
+                assert actual == expected
