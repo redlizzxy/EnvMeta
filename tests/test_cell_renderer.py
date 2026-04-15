@@ -125,3 +125,59 @@ def test_mini_heatmap_handles_nan():
     fig, ax = _make_ax()
     mini_heatmap(ax, 1.0, 1.0, [0.5, float("nan"), -0.3, None])
     plt.close(fig)
+
+
+# ── S2.5-6 化学式 mathtext + 重复中间产物折叠 ──────────────
+
+def test_pretty_formula_overrides():
+    from envmeta.geocycle.cell_renderer import _pretty_formula
+    assert "SO_4^{2-}" in _pretty_formula("SO4-2")
+    assert "N_2" in _pretty_formula("N2")
+    assert "N_2O" in _pretty_formula("N2O")
+    assert "As_2S_3" in _pretty_formula("As2S3")
+    assert _pretty_formula("As(III)").startswith("$\\mathrm{")
+    # 兜底：未知字符串保持原样
+    assert _pretty_formula("cysteine") == "cysteine"
+    # 空值
+    assert _pretty_formula(None) == ""
+    assert _pretty_formula("") == ""
+
+
+def test_pretty_formula_regex_charge():
+    from envmeta.geocycle.cell_renderer import _pretty_formula
+    # NO3- 自动识别
+    s = _pretty_formula("NO3-")
+    assert "NO_3" in s and "-" in s
+
+
+def test_collapse_identical_intermediates():
+    """Fe transport 式级联（所有产物 = Fe_internal）应折叠中间产物。"""
+    fig, ax = _make_ax()
+    steps = [
+        {"gene": f"G{i}", "substrate": "Fe(III)", "product": "Fe_internal"}
+        for i in range(5)
+    ]
+    r = draw_cascade_cell(
+        ax, cy=3.0, cell_x0=3.0, cell_w=10.0, cell_h=1.3,
+        title="Fe transport", mag_label="Foo",
+        steps=steps, element_color="#E67E22",
+    )
+    # 5 个酶都画出
+    assert len(r["gene_positions"]) == 5
+    plt.close(fig)
+
+
+def test_mixed_intermediates_not_collapsed():
+    """不同中间产物的 denitrification 级联应保留中间产物显示。"""
+    fig, ax = _make_ax()
+    steps = [
+        {"gene": "narG", "substrate": "NO3-", "product": "NO2-"},
+        {"gene": "nirK", "substrate": "NO2-", "product": "NO"},
+        {"gene": "norB", "substrate": "NO",   "product": "N2O"},
+    ]
+    r = draw_cascade_cell(
+        ax, cy=3.0, cell_x0=3.0, cell_w=10.0, cell_h=1.3,
+        title="denitrifier", mag_label="x", steps=steps,
+    )
+    assert len(r["gene_positions"]) == 3
+    plt.close(fig)

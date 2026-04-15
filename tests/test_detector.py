@@ -18,8 +18,9 @@ SAMPLE = Path(__file__).parent / "sample_data"
     ("quality_report.tsv", FileType.CHECKM_QUALITY),
     ("env_factors.txt", FileType.ENV_FACTORS),
     ("abundance.tsv", FileType.ABUNDANCE_WIDE),
-    ("kegg_target_only.tsv", FileType.UNKNOWN),       # 长格式，本迭代不识别
-    ("mag_taxonomy_labels.tsv", FileType.UNKNOWN),
+    ("kegg_target_only.tsv", FileType.KO_ANNOTATION_LONG),   # S2.5-6
+    ("keystone_species.txt", FileType.KEYSTONE_SPECIES),     # S2.5-6
+    ("mag_taxonomy_labels.tsv", FileType.MAG_TAXONOMY),      # S2.5-6
     ("ko_tpm.spf", FileType.KO_ABUNDANCE_WIDE),
 ])
 def test_detect_sample_files(filename, expected):

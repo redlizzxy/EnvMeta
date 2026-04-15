@@ -17,7 +17,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.patches import Rectangle
 
-from envmeta.geocycle.cell_renderer import draw_cascade_cell, genes_to_steps
+from envmeta.geocycle.cell_renderer import (
+    _pretty_formula, draw_cascade_cell, genes_to_steps,
+)
 from envmeta.geocycle.knowledge_base import couplings as kb_couplings
 from envmeta.geocycle.model import CycleData, ElementCycle, PathwayActivity
 
@@ -325,8 +327,8 @@ def _draw_couplings(fig, anchors: list[dict],
                               color=color, alpha=0.75,
                               transform=fig.transFigure, zorder=1)
             fig.lines.append(line)
-        # 中间产物节点
-        fig.text(mx, my, product, ha="center", va="center",
+        # 中间产物节点（化学式下标/上标正确渲染）
+        fig.text(mx, my, _pretty_formula(product), ha="center", va="center",
                  fontsize=7.5, fontweight="bold", color="white",
                  bbox=dict(facecolor=color, alpha=0.9, pad=4,
                            boxstyle="round,pad=0.3", edgecolor="black",

@@ -100,6 +100,9 @@ TYPE_BADGES = {
     FileType.CHECKM_QUALITY: "🧬 CheckM quality",
     FileType.ENV_FACTORS: "🌡️ env factors",
     FileType.KO_ABUNDANCE_WIDE: "🧪 KO abundance",
+    FileType.KO_ANNOTATION_LONG: "🔬 KO 注释（长表）",
+    FileType.KEYSTONE_SPECIES: "⭐ keystone species",
+    FileType.MAG_TAXONOMY: "🌳 MAG taxonomy",
     FileType.UNKNOWN: "❓ unknown",
 }
 TYPE_OPTIONS = [ft.value for ft in FileType]
@@ -958,34 +961,65 @@ elif page == "生物地球化学循环图":
         st.warning("请先在「文件管理」上传 KO 注释表（MAG + KEGG_ko 长表）。")
         st.stop()
 
-    ko_name = st.selectbox("KO 注释表（必需）", file_names, key="cy_ko")
+    # 基于文件识别类型预选最合适的文件（用户可再手动改）
+    def _first_of(*ftypes: FileType) -> str | None:
+        for n, info in st.session_state.files.items():
+            if info["type"] in ftypes:
+                return n
+        return None
+
+    def _idx_or_default(options: list[str], name: str | None) -> int:
+        if name and name in options:
+            return options.index(name)
+        return 0
+
+    ko_default = _first_of(FileType.KO_ANNOTATION_LONG)
+    ko_options = file_names
+    ko_name = st.selectbox(
+        "KO 注释表（必需）", ko_options, key="cy_ko",
+        index=_idx_or_default(ko_options, ko_default),
+    )
+
+    t_default = _first_of(FileType.MAG_TAXONOMY)
+    t_options = ["（无）"] + [n for n in file_names if n != ko_name]
     t_name = st.selectbox(
         "GTDB 分类表（可选，用于 Phylum/Genus 标签）",
-        ["（无）"] + [n for n in file_names if n != ko_name],
-        key="cy_tax",
+        t_options, key="cy_tax",
+        index=_idx_or_default(t_options, t_default),
     )
+
+    k_default = _first_of(FileType.KEYSTONE_SPECIES)
+    k_options = ["（无）"] + [n for n in file_names if n not in (ko_name, t_name)]
     k_name = st.selectbox(
-        "Keystone 物种列表（可选）",
-        ["（无）"] + [n for n in file_names if n not in (ko_name, t_name)],
-        key="cy_ks",
+        "Keystone 物种列表（可选）", k_options, key="cy_ks",
+        index=_idx_or_default(k_options, k_default),
     )
+
+    a_default = _first_of(FileType.ABUNDANCE_WIDE)
+    a_options = ["（无）"] + [n for n in file_names
+                             if n not in (ko_name, t_name, k_name)]
     a_name = st.selectbox(
         "MAG 丰度表（可选，用于通路贡献加权）",
-        ["（无）"] + [n for n in file_names
-                     if n not in (ko_name, t_name, k_name)],
-        key="cy_ab",
+        a_options, key="cy_ab",
+        index=_idx_or_default(a_options, a_default),
     )
+
+    e_default = _first_of(FileType.ENV_FACTORS)
+    e_options = ["（无）"] + [n for n in file_names
+                             if n not in (ko_name, t_name, k_name, a_name)]
     e_name = st.selectbox(
         "环境因子表（可选，用于 env-pathway 相关性）",
-        ["（无）"] + [n for n in file_names
-                     if n not in (ko_name, t_name, k_name, a_name)],
-        key="cy_env",
+        e_options, key="cy_env",
+        index=_idx_or_default(e_options, e_default),
     )
+
+    m_default = _first_of(FileType.METADATA)
+    m_options = ["（无）"] + [n for n in file_names
+                             if n not in (ko_name, t_name, k_name, a_name, e_name)]
     m_name = st.selectbox(
         "Metadata（env 表需要搭配）",
-        ["（无）"] + [n for n in file_names
-                     if n not in (ko_name, t_name, k_name, a_name, e_name)],
-        key="cy_md",
+        m_options, key="cy_md",
+        index=_idx_or_default(m_options, m_default),
     )
 
     # 组选择下拉（S2.5-4）— 读取 metadata 的 Group 列可用值
@@ -1022,10 +1056,21 @@ elif page == "生物地球化学循环图":
             return st.session_state.files[n]["df"] if n != "（无）" else None
         ko = st.session_state.files[ko_name]["df"]
         t = _get(t_name)
-        if t is not None and t.shape[1] == 2 and "classification" not in [
-                c.lower() for c in t.columns] and "taxonomy" not in [
-                c.lower() for c in t.columns]:
-            t = t.copy(); t.columns = ["MAG", "Taxonomy"]
+        if t is not None and t.shape[1] == 2:
+            cols_lower = [c.lower() for c in t.columns]
+            has_header = ("classification" in cols_lower
+                          or "taxonomy" in cols_lower
+                          or any("mag" in c for c in cols_lower))
+            if not has_header:
+                # 首行是 MAG id + 分类字符串（无 header）→ 作为数据行恢复
+                import pandas as _pd
+                original_header = list(t.columns)
+                t = _pd.concat(
+                    [_pd.DataFrame([original_header], columns=["MAG", "Taxonomy"]),
+                     t.rename(columns={t.columns[0]: "MAG",
+                                       t.columns[1]: "Taxonomy"})],
+                    ignore_index=True,
+                )
         params = {
             "completeness_threshold": float(comp_thresh),
             "top_n_contributors": top_n,

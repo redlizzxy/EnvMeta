@@ -24,6 +24,9 @@ class FileType(str, Enum):
     CHECKM_QUALITY = "checkm_quality"
     ENV_FACTORS = "env_factors"
     KO_ABUNDANCE_WIDE = "ko_abundance_wide"
+    KO_ANNOTATION_LONG = "ko_annotation_long"
+    KEYSTONE_SPECIES = "keystone_species"
+    MAG_TAXONOMY = "mag_taxonomy"
     UNKNOWN = "unknown"
 
 
@@ -162,6 +165,52 @@ def _rule_env_factors(df: pd.DataFrame, filename: str) -> tuple[bool, float, str
     return True, 0.85, f"SampleID + Group + {len(non_meta)} 数值环境因子列"
 
 
+def _rule_ko_annotation_long(df: pd.DataFrame, filename: str) -> tuple[bool, float, str]:
+    """MAG × KO 长表（MAG, Gene_ID, KEGG_ko, Description 等）。"""
+    has_mag = _any_col(df, "MAG", "Bin", "Bin_ID", "Genome")
+    has_ko = _any_col(df, "KEGG_ko", "KEGG ko", "KO", "KO_id")
+    if has_mag and has_ko:
+        # 区别于宽表：应该**没有**多个数值样本列
+        num_cols = _numeric_columns(df)
+        # 丰度宽表会有 ≥3 个样本列；长表即使有丰度一般 ≤1
+        if len(num_cols) <= 2:
+            return True, 0.95, "长表：MAG + KEGG_ko（MAG × KO 注释）"
+    return False, 0.0, ""
+
+
+def _rule_keystone_species(df: pd.DataFrame, filename: str) -> tuple[bool, float, str]:
+    """Keystone 物种列表：MAG + 网络度量/选取理由。"""
+    if not _any_col(df, "MAG", "Bin", "Bin_ID"):
+        return False, 0.0, ""
+    hints = ("Degree", "Betweenness", "Closeness", "Selection_Reason",
+             "Keystone", "hub")
+    hits = [h for h in hints if _any_col(df, h)]
+    if hits:
+        return True, 0.9, f"MAG + keystone 指标列（{', '.join(hits)}）"
+    return False, 0.0, ""
+
+
+def _rule_mag_taxonomy(df: pd.DataFrame, filename: str) -> tuple[bool, float, str]:
+    """MAG 分类表（GTDB 格式）。支持有/无 header 两种写法。"""
+    # 有 header 版本
+    if (_any_col(df, "MAG", "Bin", "Genome")
+            and _any_col(df, "classification", "taxonomy", "lineage",
+                         "Taxonomy")):
+        return True, 0.95, "列含 MAG + classification（有 header）"
+    # 无 header 版本：2 列，列名本身就是数据（首行当 header 了）
+    if df.shape[1] == 2:
+        col0_name = str(df.columns[0])
+        col1_name = str(df.columns[1])
+        # 列 1 名字或数据里多数含 d__/p__/... GTDB 前缀
+        tax_re = re.compile(r"[dpocfgs]__")
+        col1_vals = df.iloc[:, 0].astype(str).tolist() + df.iloc[:, 1].astype(str).tolist()
+        tax_hit = sum(1 for v in col1_vals if tax_re.search(v))
+        header_hit = 1 if tax_re.search(col0_name) or tax_re.search(col1_name) else 0
+        if tax_hit / max(len(col1_vals), 1) > 0.5 or header_hit > 0:
+            return True, 0.9, "2 列含 GTDB 分类前缀（无 header）"
+    return False, 0.0, ""
+
+
 def _rule_ko_abundance_wide(df: pd.DataFrame, filename: str) -> tuple[bool, float, str]:
     """宽格式 KO 丰度表：某列叫 KEGG_ko，或首列（或前 2 列中某列）全是 K\d{5} 模式。"""
     if _any_col(df, "KEGG_ko", "KEGG ko"):
@@ -210,6 +259,10 @@ _RULES: list[tuple[FileType, Rule]] = [
     (FileType.CHECKM_QUALITY, _rule_checkm_quality),
     (FileType.ALPHA_DIVERSITY, _rule_alpha_diversity),
     (FileType.DISTANCE_MATRIX, _rule_distance_matrix),
+    # Keystone / MAG 分类 / KO 长表要排在通用 KO 宽表和丰度宽表之前
+    (FileType.KEYSTONE_SPECIES, _rule_keystone_species),
+    (FileType.KO_ANNOTATION_LONG, _rule_ko_annotation_long),
+    (FileType.MAG_TAXONOMY, _rule_mag_taxonomy),
     (FileType.KO_ABUNDANCE_WIDE, _rule_ko_abundance_wide),
     (FileType.METADATA, _rule_metadata),
     (FileType.ABUNDANCE_WIDE, _rule_abundance_wide),

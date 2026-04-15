@@ -6,16 +6,20 @@
 这是**纯视觉原语**，不关心整体布局。主 renderer 负责：
   - 在每个元素象限里决定画几个细胞 / 位置
   - 调用 ``draw_cascade_cell()`` 画单个细胞
-  - 收集返回的 ``substrate_pos`` / ``product_pos`` 用于后续化学物耦合连线（S2.5-2c）
+  - 收集返回的 ``substrate_pos`` / ``product_pos`` 用于后续化学物耦合连线
 
-设计要点：
-  - ``steps`` 由调用端从 ``MAGContribution.genes`` 转换得到
-  - 起始底物取 ``steps[0]["substrate"]``；当首底物不可用（调控型 / 转运型无值）
-    时，回退展示 gene_name 自身作为标题注脚
-  - 空 steps 则只画一个空细胞 + 灰色 "No active enzyme"
+设计要点（S2.5-6）：
+  - 化学物（外部 + 细胞内中间产物）**只有文字**，不画椭圆 / 边框 —— 与用户
+    手绘 Fig 1-d 的视觉一致
+  - 酶/基因仍以彩色椭圆呈现（醒目区分）
+  - 化学式通过 ``_pretty_formula`` 转为 matplotlib mathtext，正确显示下标上标
+    （SO4-2 → SO₄²⁻；As(III)/Fe(II) 保持罗马数字；As2S3 → As₂S₃ 等）
+  - 连续相同的中间产物（常见：转运链里所有基因产物都是 Fe_internal）
+    会被**折叠**，只画酶不画重复中间产物
 """
 from __future__ import annotations
 
+import re
 from typing import Any
 
 import numpy as np
@@ -25,10 +29,79 @@ from matplotlib.patches import Ellipse, FancyArrowPatch, FancyBboxPatch, Rectang
 
 CELL_FILL = "#FDF6E3"
 CELL_EDGE = "#6B4F2A"
-INTERMEDIATE_FILL = "#FFF9C4"
-INTERMEDIATE_EDGE = "#7D5F1A"
+INTERMEDIATE_COLOR = "#7D5F1A"
+EXTERNAL_COLOR = "#222"
 ARROW_COLOR = "#555"
 OUTSIDE_ARROW_COLOR = "#444"
+
+
+# --- 化学式 → matplotlib mathtext ------------------------------------------
+
+_FORMULA_OVERRIDES: dict[str, str] = {
+    "SO4-2":         r"$\mathrm{SO_4^{2-}}$",
+    "SO4^2-":        r"$\mathrm{SO_4^{2-}}$",
+    "SO4":           r"$\mathrm{SO_4}$",
+    "SO3-2":         r"$\mathrm{SO_3^{2-}}$",
+    "S-2":           r"$\mathrm{S^{2-}}$",
+    "S2O3-2":        r"$\mathrm{S_2O_3^{2-}}$",
+    "NO3-":          r"$\mathrm{NO_3^{-}}$",
+    "NO2-":          r"$\mathrm{NO_2^{-}}$",
+    "N2O":           r"$\mathrm{N_2O}$",
+    "N2":            r"$\mathrm{N_2}$",
+    "NH3":           r"$\mathrm{NH_3}$",
+    "NH4+":          r"$\mathrm{NH_4^{+}}$",
+    "NH2OH":         r"$\mathrm{NH_2OH}$",
+    "H2S":           r"$\mathrm{H_2S}$",
+    "As(V)":         r"$\mathrm{As(V)}$",
+    "As(III)":       r"$\mathrm{As(III)}$",
+    "As(V)-adduct":  r"$\mathrm{As(V)}$-adduct",
+    "As(III)-organic": r"$\mathrm{As(III)}$-organic",
+    "As(III)_out":   r"$\mathrm{As(III)_{out}}$",
+    "As-glutathione": r"As-glutathione",
+    "As-glutathione_out": r"As-glutathione$_{\mathrm{out}}$",
+    "MMA/DMA":       r"MMA/DMA",
+    "As2S3":         r"$\mathrm{As_2S_3}$",
+    "FeS":           r"$\mathrm{FeS}$",
+    "Fe(II)":        r"$\mathrm{Fe(II)}$",
+    "Fe(III)":       r"$\mathrm{Fe(III)}$",
+    "Fe_internal":   r"$\mathrm{Fe_{int}}$",
+    "Fe-As_surface": r"Fe–As$_{\mathrm{surf}}$",
+    "APS":           r"APS",
+    "cysteine":      "cysteine",
+    "S-cys":         "S-cys",
+    "S0":            r"$\mathrm{S^{0}}$",
+}
+
+
+_RE_CHARGE = re.compile(r"^(?P<base>[A-Za-z][A-Za-z0-9()/.-]*?)(?P<chg>[-+]\d?|\^\{?[-+0-9]+\}?)$")
+_RE_SUBSCRIPT = re.compile(r"(?P<elem>[A-Z][a-z]?)(?P<sub>\d+)")
+
+
+def _pretty_formula(raw: str | None) -> str:
+    """把原始化学字符串转成 matplotlib mathtext（自动识别下标/上标）。"""
+    if raw is None:
+        return ""
+    s = str(raw).strip()
+    if not s:
+        return ""
+    if s in _FORMULA_OVERRIDES:
+        return _FORMULA_OVERRIDES[s]
+    # 尝试 charge 后缀：NO3-, SO4-2, NH4+
+    m = _RE_CHARGE.match(s)
+    if m:
+        base = m.group("base")
+        chg = m.group("chg").lstrip("^").strip("{}")
+        # 归一化 "-2" → "2-"；"+" → "+"
+        if len(chg) > 1 and chg[0] in "-+":
+            chg = chg[1:] + chg[0]
+        # 数字转下标
+        base_mm = _RE_SUBSCRIPT.sub(lambda mm: mm.group("elem") + "_{" + mm.group("sub") + "}", base)
+        return rf"$\mathrm{{{base_mm}^{{{chg}}}}}$"
+    # 只有下标（H2O, N2）
+    if _RE_SUBSCRIPT.search(s):
+        mm = _RE_SUBSCRIPT.sub(lambda x: x.group("elem") + "_{" + x.group("sub") + "}", s)
+        return rf"$\mathrm{{{mm}}}$"
+    return s
 
 
 def mini_heatmap(ax: Axes, x: float, y: float, vals: list[float],
@@ -47,24 +120,17 @@ def mini_heatmap(ax: Axes, x: float, y: float, vals: list[float],
         ))
 
 
-def _chem_outside(ax: Axes, x: float, y: float, txt: str,
-                  w: float = 1.0, h: float = 0.38) -> tuple[float, float]:
-    """外部化学物节点（白底椭圆）。返回中心坐标。"""
-    ax.add_patch(Ellipse((x, y), w, h,
-                         facecolor="white", edgecolor="#222",
-                         linewidth=1.3, zorder=6))
-    ax.text(x, y, txt, ha="center", va="center",
-            fontsize=9, fontweight="bold", zorder=7)
+def _chem_outside(ax: Axes, x: float, y: float, txt: str) -> tuple[float, float]:
+    """外部化学物节点（纯文字，无椭圆）。返回中心坐标。"""
+    ax.text(x, y, _pretty_formula(txt), ha="center", va="center",
+            fontsize=10, fontweight="bold", color=EXTERNAL_COLOR, zorder=7)
     return (x, y)
 
 
 def _intermediate(ax: Axes, x: float, y: float, txt: str) -> tuple[float, float]:
-    """细胞内部中间产物（浅黄小标签）。"""
-    ax.text(x, y, txt, ha="center", va="center",
-            fontsize=7.5, fontweight="bold", color=INTERMEDIATE_EDGE,
-            bbox=dict(facecolor=INTERMEDIATE_FILL, edgecolor=INTERMEDIATE_EDGE,
-                      linewidth=0.6, boxstyle="round,pad=0.18"),
-            zorder=7)
+    """细胞内部中间产物（纯文字，无黄底）。"""
+    ax.text(x, y, _pretty_formula(txt), ha="center", va="center",
+            fontsize=8, fontweight="bold", color=INTERMEDIATE_COLOR, zorder=7)
     return (x, y)
 
 
@@ -152,57 +218,84 @@ def draw_cascade_cell(
         }
 
     n_steps = len(steps)
+    # 折叠连续相同的中间产物：若 steps[i].product == steps[i+1].substrate（常态）
+    # 并且该产物已作为上一 intermediate 呈现，则不再重复画。
+    # 检查最终产物链的 distinct 数（不含最后一步的最终产物）。
+    inner_products = [str(s.get("product") or "") for s in steps[:-1]]
+    all_same_intermediate = (
+        len(inner_products) >= 1 and len(set(inner_products)) == 1
+        and inner_products[0] != ""
+    )
+
     inner_pad = 0.5
     inner_x0 = cell_x0 + inner_pad
     inner_x1 = cell_x1 - inner_pad
-    slots = 2 * n_steps - 1  # n 基因 + n-1 中间产物
-    if slots == 1:
-        xs = [(inner_x0 + inner_x1) / 2]
-    else:
-        xs = list(np.linspace(inner_x0, inner_x1, slots))
-    gy = cy - (cell_h * 0.15)   # 基因中线略低于细胞中心，留给标题
+    gy = cy - (cell_h * 0.15)
 
     gene_positions: list[tuple[float, float]] = []
-    for idx, x in enumerate(xs):
-        if idx % 2 == 0:
-            si = idx // 2
-            s = steps[si]
-            _gene(ax, x, gy,
-                  name=s.get("gene", "?"),
+    if all_same_intermediate and n_steps >= 2:
+        # 酶紧挨排成一行；中间产物仅显示一次（在酶群中央上方稍小字）
+        xs_genes = list(np.linspace(inner_x0, inner_x1, n_steps))
+        for x, s in zip(xs_genes, steps):
+            _gene(ax, x, gy, name=s.get("gene", "?"),
                   color=s.get("color") or element_color,
-                  corr=s.get("corr"),
-                  show_hm=show_heatmap)
+                  corr=s.get("corr"), show_hm=show_heatmap)
             gene_positions.append((x, gy))
-        else:
-            si = (idx - 1) // 2
-            inter = steps[si].get("product") or "?"
-            _intermediate(ax, x, gy, str(inter))
-
-    if slots > 1:
-        for i in range(slots - 1):
+        # 酶群上方提示中间产物（小字一次）
+        mid_x = (inner_x0 + inner_x1) / 2
+        ax.text(mid_x, gy + cell_h * 0.28,
+                "→ " + _pretty_formula(inner_products[0]) + " →",
+                ha="center", va="center",
+                fontsize=7, fontstyle="italic",
+                color=INTERMEDIATE_COLOR, zorder=7)
+        # 酶之间连接箭头（短）
+        for i in range(len(xs_genes) - 1):
             ax.add_patch(FancyArrowPatch(
-                (xs[i] + 0.38, gy), (xs[i + 1] - 0.38, gy),
-                arrowstyle="-|>", mutation_scale=10,
-                linewidth=0.9, color=ARROW_COLOR, zorder=3,
+                (xs_genes[i] + 0.38, gy), (xs_genes[i + 1] - 0.38, gy),
+                arrowstyle="-|>", mutation_scale=8,
+                linewidth=0.8, color=ARROW_COLOR, zorder=3,
             ))
+    else:
+        slots = 2 * n_steps - 1
+        if slots == 1:
+            xs = [(inner_x0 + inner_x1) / 2]
+        else:
+            xs = list(np.linspace(inner_x0, inner_x1, slots))
+        for idx, x in enumerate(xs):
+            if idx % 2 == 0:
+                si = idx // 2
+                s = steps[si]
+                _gene(ax, x, gy, name=s.get("gene", "?"),
+                      color=s.get("color") or element_color,
+                      corr=s.get("corr"), show_hm=show_heatmap)
+                gene_positions.append((x, gy))
+            else:
+                si = (idx - 1) // 2
+                inter = steps[si].get("product") or "?"
+                _intermediate(ax, x, gy, str(inter))
+        if slots > 1:
+            for i in range(slots - 1):
+                ax.add_patch(FancyArrowPatch(
+                    (xs[i] + 0.38, gy), (xs[i + 1] - 0.38, gy),
+                    arrowstyle="-|>", mutation_scale=10,
+                    linewidth=0.9, color=ARROW_COLOR, zorder=3,
+                ))
 
     substrate_pos = None
     product_pos = None
     if show_outside_chems:
-        # 起始底物（左）
         sub_txt = steps[0].get("substrate")
         if sub_txt:
-            sub_x = cell_x0 - 1.5
+            sub_x = cell_x0 - 1.1
             substrate_pos = _chem_outside(ax, sub_x, cy, str(sub_txt))
             ax.add_patch(FancyArrowPatch(
                 (sub_x + 0.5, cy), (cell_x0 - 0.05, cy),
                 arrowstyle="-|>", mutation_scale=14,
                 linewidth=1.4, color=OUTSIDE_ARROW_COLOR, zorder=4,
             ))
-        # 最终产物（右）
         final = steps[-1].get("product")
         if final:
-            prod_x = cell_x1 + 1.5
+            prod_x = cell_x1 + 1.1
             product_pos = _chem_outside(ax, prod_x, cy, str(final))
             ax.add_patch(FancyArrowPatch(
                 (cell_x1 + 0.05, cy), (prod_x - 0.5, cy),
