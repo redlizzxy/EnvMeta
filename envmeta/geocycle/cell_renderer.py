@@ -311,16 +311,22 @@ def draw_cascade_cell(
 
     gene_positions: list[tuple[float, float]] = []
     if parallel_complex:
-        # 多亚基 / 同工酶紧排，无内部箭头；下方小字标注 (subunits / isozymes)
+        # 多亚基 / 同工酶紧排，无内部箭头
         xs_genes = list(np.linspace(inner_x0, inner_x1, n_steps))
         for x, s in zip(xs_genes, steps):
             _gene(ax, x, gy, name=s.get("gene", "?"),
                   color=s.get("color") or element_color,
                   corr=s.get("corr"), show_hm=show_heatmap)
             gene_positions.append((x, gy))
+        # S2.5-10d: 下方标签优先显示 KEGG complex id
+        complexes = {s.get("complex") for s in steps if s.get("complex")}
+        if len(complexes) == 1:
+            label = f"({next(iter(complexes))} complex)"
+        else:
+            label = "(subunits / isozymes)"
         mid_x = (inner_x0 + inner_x1) / 2
         ax.text(mid_x, gy - cell_h * 0.32,
-                "(subunits / isozymes)",
+                label,
                 ha="center", va="center",
                 fontsize=6.5, fontstyle="italic",
                 color="#666", zorder=7)
@@ -392,12 +398,13 @@ def draw_cascade_cell(
                 if left_prod == right_sub or right_sub == "?":
                     _intermediate(ax, x, gy, left_prod)
                 else:
-                    # 化学链断开（如 sqr 产 S0 → Sox 要 S2O3-2）两端分别显示
-                    _intermediate(ax, x - 0.35, gy, left_prod)
+                    # 化学链断开（如 sqr 产 S0 → Sox 要 S2O3-2）
+                    # 上下堆叠显示以避免水平拥挤；"|" 放中间
+                    _intermediate(ax, x, gy + 0.26, left_prod)
                     ax.text(x, gy, "|", ha="center", va="center",
                             fontsize=10, fontweight="bold",
                             color="#999", zorder=6)
-                    _intermediate(ax, x + 0.35, gy, right_sub)
+                    _intermediate(ax, x, gy - 0.26, right_sub)
         if slots > 1:
             for i in range(slots - 1):
                 ax.add_patch(FancyArrowPatch(

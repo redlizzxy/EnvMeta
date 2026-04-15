@@ -184,11 +184,15 @@ def _draw_element_quadrant_cascade(
         inactive = [pw for pw in ec.pathways if pw.n_active_mags == 0]
         if inactive:
             names = ", ".join(p.display_name for p in inactive)
+            # 长文本自动换行（大约每 50 字符一行）
+            if len(names) > 45:
+                import textwrap
+                names = "\n  ".join(textwrap.wrap(names, width=45))
             ax.text(
-                0.3, 0.18,
+                0.3, 0.35,
                 f"[inactive: {names}]",
-                fontsize=7, color="#999", fontstyle="italic",
-                va="top", ha="left",
+                fontsize=6.5, color="#999", fontstyle="italic",
+                va="bottom", ha="left",
             )
     return anchors
 
