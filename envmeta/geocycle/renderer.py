@@ -18,6 +18,7 @@ import numpy as np
 from matplotlib.patches import Rectangle
 
 from envmeta.geocycle.cell_renderer import draw_cascade_cell, genes_to_steps
+from envmeta.geocycle.knowledge_base import couplings as kb_couplings
 from envmeta.geocycle.model import CycleData, ElementCycle, PathwayActivity
 
 DEFAULTS = {
@@ -28,9 +29,31 @@ DEFAULTS = {
     "max_pathways_per_element": 8,        # v1 回退模式用
     "max_contributors_shown": 3,          # v1 回退模式用
     "cell_mode": "cascade",               # "cascade"（v2，默认）/ "bars"（v1 回退）
+    "show_couplings": True,               # 画跨元素化学物耦合线（S2.5-3）
     "title": "Biogeochemical Cycle Diagram (v2)",
     "cell_height_ratio": 0.22,            # 单细胞占象限高的比例
 }
+
+
+# 化学物名标准化（KB 里写法 vs cell 实际绘制值）—— 统一到同一键做匹配
+_SPECIES_ALIASES = {
+    "sulfide":     "S-2",
+    "H2S":         "S-2",
+    "H₂S":         "S-2",
+    "SO4-2":       "SO4-2",
+    "SO4^2-":      "SO4-2",
+    "As(iii)":     "As(III)",
+    "As(v)":       "As(V)",
+    "Fe(iii)":     "Fe(III)",
+    "Fe(ii)":      "Fe(II)",
+}
+
+
+def _norm_species(s: str | None) -> str | None:
+    if not s:
+        return None
+    s = str(s).strip()
+    return _SPECIES_ALIASES.get(s, s)
 
 
 # =============================================================================
@@ -132,12 +155,17 @@ def _draw_element_quadrant_cascade(
             f"c={contrib.completeness:.0f}%  ab̄={contrib.abundance_mean:.2f}",
             fontsize=6.5, color="#555", ha="right", va="top",
         )
+        # 化学物种名（用于跨元素耦合匹配）
+        sub_species = _norm_species(contrib.genes[0].get("substrate")) if contrib.genes else None
+        prod_species = _norm_species(contrib.genes[-1].get("product")) if contrib.genes else None
         r.update({
             "pathway_id": pw.pathway_id,
             "pathway_name": pw.display_name,
             "mag": contrib.mag,
             "element": ec.element_id,
             "ax": ax,
+            "substrate_species": sub_species,
+            "product_species": prod_species,
         })
         anchors.append(r)
     return anchors
@@ -196,6 +224,119 @@ def _draw_element_quadrant_bars(ax, ec: ElementCycle, cfg: dict) -> None:
                     "→ " + ", ".join(labels),
                     transform=ax.transAxes, fontsize=7.5, color="#333",
                     va="center", ha="left")
+
+
+# =============================================================================
+# 化学物耦合连线（S2.5-3）
+# =============================================================================
+
+def _anchor_fig_point(fig, anchor: dict, which: str) -> tuple[float, float] | None:
+    """把 anchor 的 substrate/product 数据坐标转 fig 坐标。
+
+    which ∈ {"substrate_pos", "product_pos"}
+    """
+    key = which
+    pos = anchor.get(key)
+    ax = anchor.get("ax")
+    if pos is None or ax is None:
+        return None
+    x, y = pos
+    try:
+        fx, fy = fig.transFigure.inverted().transform(
+            ax.transData.transform((x, y)))
+        return (float(fx), float(fy))
+    except Exception:
+        return None
+
+
+def _find_best_pair(
+    anchors: list[dict], species_a: str, species_b: str,
+) -> tuple[dict, str, dict, str] | None:
+    """在 anchors 中找一对"产物匹配 species_a / species_b"的细胞。
+
+    优先：两端都是产物（product_species）；若找不到，退化为 substrate。
+    元素不同时优先（跨元素耦合更有意义）。
+    返回 (anchor_a, pos_key_a, anchor_b, pos_key_b) 或 None。
+    """
+    a_norm = _norm_species(species_a)
+    b_norm = _norm_species(species_b)
+
+    def _candidates(species_norm: str) -> list[tuple[dict, str]]:
+        out: list[tuple[dict, str]] = []
+        for a in anchors:
+            if a.get("product_species") == species_norm and a.get("product_pos"):
+                out.append((a, "product_pos"))
+        for a in anchors:
+            if a.get("substrate_species") == species_norm and a.get("substrate_pos"):
+                # 产物优先（已加在前），这里做 substrate 兜底，但避免重复
+                if not any(x[0] is a and x[1] == "product_pos" for x in out):
+                    out.append((a, "substrate_pos"))
+        return out
+
+    cand_a = _candidates(a_norm)
+    cand_b = _candidates(b_norm)
+    if not cand_a or not cand_b:
+        return None
+
+    # 优先挑"不同元素"的一对
+    for (aa, ka) in cand_a:
+        for (ab, kb) in cand_b:
+            if aa is ab:
+                continue
+            if aa.get("element") != ab.get("element"):
+                return (aa, ka, ab, kb)
+    # 无跨元素时退化
+    for (aa, ka) in cand_a:
+        for (ab, kb) in cand_b:
+            if aa is ab:
+                continue
+            return (aa, ka, ab, kb)
+    return None
+
+
+def _draw_couplings(fig, anchors: list[dict],
+                    couplings_list: list[dict]) -> list[dict]:
+    """跨象限画耦合线：化学物 A ─┐ (产物节点) ┌─ 化学物 B。
+
+    返回实际画出的耦合条目（含 from/to 坐标和 product 节点坐标）供后续检索。
+    """
+    drawn: list[dict] = []
+    for cp in couplings_list:
+        a = cp.get("species_a")
+        b = cp.get("species_b")
+        product = cp.get("product", "")
+        color = cp.get("color", "#555")
+        if not a or not b:
+            continue
+        pair = _find_best_pair(anchors, a, b)
+        if pair is None:
+            continue
+        anchor_a, key_a, anchor_b, key_b = pair
+        p1 = _anchor_fig_point(fig, anchor_a, key_a)
+        p2 = _anchor_fig_point(fig, anchor_b, key_b)
+        if p1 is None or p2 is None:
+            continue
+        mx = (p1[0] + p2[0]) / 2
+        my = (p1[1] + p2[1]) / 2
+        # 两段虚线（用 fig-level lines）
+        for (pa, pb) in [(p1, (mx, my)), ((mx, my), p2)]:
+            line = plt.Line2D([pa[0], pb[0]], [pa[1], pb[1]],
+                              linestyle="--", linewidth=1.6,
+                              color=color, alpha=0.75,
+                              transform=fig.transFigure, zorder=1)
+            fig.lines.append(line)
+        # 中间产物节点
+        fig.text(mx, my, product, ha="center", va="center",
+                 fontsize=7.5, fontweight="bold", color="white",
+                 bbox=dict(facecolor=color, alpha=0.9, pad=4,
+                           boxstyle="round,pad=0.3", edgecolor="black",
+                           linewidth=0.8), zorder=12)
+        drawn.append({
+            "species_a": a, "species_b": b, "product": product,
+            "type": cp.get("type"), "color": color,
+            "from": p1, "to": p2, "mid": (mx, my),
+        })
+    return drawn
 
 
 # =============================================================================
@@ -302,9 +443,15 @@ def render(data: CycleData, params: dict | None = None) -> plt.Figure:
         else:
             _draw_element_quadrant_bars(ax, ec, cfg)
 
+    # 化学物耦合（跨象限连线）— 在 env 面板之前画，以免虚线压到条形
+    drawn_couplings: list[dict] = []
+    if mode == "cascade" and cfg.get("show_couplings", True) and all_anchors:
+        drawn_couplings = _draw_couplings(fig, all_anchors, kb_couplings())
+
     if has_env:
         _draw_env_panel(fig, data, bbox=[left, 0.03, right - left, 0.20])
 
     # 附加到 figure 便于上层（S2.5-3 化学物耦合）检索细胞锚点
     fig._envmeta_cycle_anchors = all_anchors   # type: ignore[attr-defined]
+    fig._envmeta_cycle_couplings = drawn_couplings   # type: ignore[attr-defined]
     return fig

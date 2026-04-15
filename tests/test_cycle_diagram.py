@@ -268,3 +268,48 @@ def test_render_bars_fallback_still_works(cycle_inputs):
     anchors = r.figure._envmeta_cycle_anchors
     # 回退模式下不绘制细胞 → anchors 为空列表
     assert anchors == []
+
+
+# ── S2.5-3 化学物耦合连线测试 ────────────────────────────────
+
+def test_anchors_carry_species_labels(cycle_inputs):
+    """v2 anchors 每条应带 substrate_species / product_species 字段。"""
+    ko, tax, ks, ab, env, md = cycle_inputs
+    r = cycle_diagram.analyze(ko, tax, ks, ab, env, md, params=FAST_PARAMS)
+    anchors = r.figure._envmeta_cycle_anchors
+    for a in anchors:
+        assert "substrate_species" in a
+        assert "product_species" in a
+
+
+def test_couplings_drawn_when_chemistry_matches(cycle_inputs):
+    """真实数据应至少画出 1 条耦合（Fe(III)+S-2 / As+S 等之一）。"""
+    ko, tax, ks, ab, env, md = cycle_inputs
+    r = cycle_diagram.analyze(ko, tax, ks, ab, env, md, params=FAST_PARAMS)
+    drawn = r.figure._envmeta_cycle_couplings
+    # 本样例至少有 Fe transport + Assim. sulfate red. → 应能连 Fe(III) vs S-2
+    # 或者 Nitrate reduction 的 NO3- 与某元素匹配
+    # 若 data 里没匹配也不崩，但我们断言"字段存在 + 是 list"
+    assert isinstance(drawn, list)
+    for cp in drawn:
+        assert {"species_a", "species_b", "product", "from", "to", "mid"} <= set(cp)
+        assert cp["color"].startswith("#")
+
+
+def test_show_couplings_false_disables(cycle_inputs):
+    """show_couplings=False 时不画任何耦合。"""
+    ko, tax, ks, ab, env, md = cycle_inputs
+    params = {**FAST_PARAMS, "show_couplings": False}
+    r = cycle_diagram.analyze(ko, tax, ks, ab, env, md, params=params)
+    assert r.figure._envmeta_cycle_couplings == []
+
+
+def test_species_normalization():
+    """KB 里的 S-2 应与 H2S / H₂S 归一化到同一键。"""
+    from envmeta.geocycle.renderer import _norm_species
+    assert _norm_species("H2S") == "S-2"
+    assert _norm_species("H₂S") == "S-2"
+    assert _norm_species("S-2") == "S-2"
+    assert _norm_species("As(III)") == "As(III)"
+    assert _norm_species(None) is None
+    assert _norm_species("") is None

@@ -12,8 +12,15 @@ KB v1.1 新增的 substrate/product 字段驱动。
 - `envmeta_cycle_v2_stats.tsv` — stats 长表
 - `envmeta_cycle_v1.pdf` — 保留 v1 供对比，亦可用 ``params={"cell_mode": "bars"}`` 回退
 
-**Phase 3 S2.5 后续**：S2.5-3 化学物耦合连线（As-S / As-Fe / Fe-S）；
-S2.5-4 组选择下拉（CK/A/B 单组模式）；S2.5-5 SVG 导出。
+**S2.5-3 完成**（2026-04-15）：化学物耦合线已接入。本数据实际画出 3 条：
+- As(III) + S-2 → As₂S₃（紫，precipitation）
+- As(V) + Fe(III) → Fe-As_surface（棕橙，adsorption）
+- NO3- + As(III) → As(V)（绿，redox）
+
+Fe(II) + S-2 → FeS（黑蓝）未出现，因当前数据 Fe(II) 不作为任一细胞产物；
+若用户加载含 dissim Fe 还原（Fe(III)→Fe(II)）的 KO 数据应会显示。
+
+**Phase 3 S2.5 后续**：S2.5-4 组选择下拉（CK/A/B 单组模式）；S2.5-5 SVG 导出。
 
 ---
 
