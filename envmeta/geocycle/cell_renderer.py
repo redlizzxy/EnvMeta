@@ -418,6 +418,15 @@ def draw_cascade_cell(
     """
     cell_x1 = cell_x0 + cell_w
 
+    # S2.5-10 post2: 提前探测多链场景，动态扩展 cell_h 避免行叠
+    _chain_count = 1
+    if steps:
+        _segs_probe = _segment_by_complex(steps)
+        _chains_probe = _split_into_chains(_segs_probe, steps)
+        _chain_count = max(1, len(_chains_probe))
+    if _chain_count > 1:
+        cell_h = cell_h * _chain_count   # 每多 1 链加一倍高度
+
     ax.add_patch(FancyBboxPatch(
         (cell_x0, cy - cell_h / 2), cell_w, cell_h,
         boxstyle="round,pad=0.1",
@@ -543,35 +552,64 @@ def draw_cascade_cell(
                 gene_positions=gene_positions,
             )
         else:
-            # 多链：每链一行；cell 内部显示各自 substrate/product；
-            # 外部 substrate_pos/product_pos 留给第一/最后一链边界
+            # 多链：每链一行；每行的 substrate/product 画在细胞**外部**
+            # （和单链风格一致），show_outside_chems 控制开关
             n_chains = len(chains)
-            row_h = (cell_h * 0.78) / n_chains
-            ys = [cy + (n_chains - 1) / 2 * row_h - i * row_h
-                   for i in range(n_chains)]
-            # 每行留左/右 inline substrate / product 的空间
-            row_inner_x0 = inner_x0 + 1.4
-            row_inner_x1 = inner_x1 - 1.4
+            row_h = cell_h / n_chains   # cell_h 已经在前面预扩展为 n_chains 倍
+            ys = [cy + cell_h / 2 - (i + 0.5) * row_h for i in range(n_chains)]
             for chain, row_y in zip(chains, ys):
                 _draw_chain_row(
                     ax, chain, steps,
-                    inner_x0=row_inner_x0, inner_x1=row_inner_x1, row_y=row_y,
-                    cell_h=row_h * 1.0, element_color=element_color,
-                    show_heatmap=False,   # 多行时为紧凑关闭 heatmap
-                    inline_chems=True,
-                    inline_left_x=inner_x0 + 0.5,
-                    inline_right_x=inner_x1 - 0.5,
+                    inner_x0=inner_x0, inner_x1=inner_x1, row_y=row_y,
+                    cell_h=row_h, element_color=element_color,
+                    show_heatmap=False,
+                    inline_chems=False,
                     gene_positions=gene_positions,
                 )
+                # 每行外部 substrate / product（和 show_outside_chems 一致）
+                if show_outside_chems:
+                    c_sub = chain[0]
+                    c_prd = chain[-1]
+                    sub_txt = steps[c_sub[0]].get("substrate")
+                    prd_txt = steps[c_prd[-1]].get("product")
+                    if sub_txt:
+                        sub_x = cell_x0 - 1.1
+                        _chem_outside(ax, sub_x, row_y, str(sub_txt))
+                        ax.add_patch(FancyArrowPatch(
+                            (sub_x + 0.5, row_y), (cell_x0 - 0.05, row_y),
+                            arrowstyle="-|>", mutation_scale=14,
+                            linewidth=1.4, color=OUTSIDE_ARROW_COLOR, zorder=4,
+                        ))
+                    if prd_txt:
+                        prd_x = cell_x1 + 1.1
+                        _chem_outside(ax, prd_x, row_y, str(prd_txt))
+                        ax.add_patch(FancyArrowPatch(
+                            (cell_x1 + 0.05, row_y), (prd_x - 0.5, row_y),
+                            arrowstyle="-|>", mutation_scale=14,
+                            linewidth=1.4, color=OUTSIDE_ARROW_COLOR, zorder=4,
+                        ))
 
     substrate_pos = None
     product_pos = None
-    # 多链模式下，各链 inline 自己的 substrate/product，不在外部画
+    # 多链模式：外部 substrate/product 已按行画过；锚点取第一行 substrate + 末行 product
     is_multi_chain = False
     if not (parallel_complex or (all_same_intermediate and n_steps >= 2)):
         _segs = _segment_by_complex(steps)
         _chains = _split_into_chains(_segs, steps)
         is_multi_chain = len(_chains) > 1
+        if is_multi_chain and show_outside_chems:
+            first_chain = _chains[0]
+            last_chain = _chains[-1]
+            n_c = len(_chains)
+            _row_h = cell_h / n_c
+            first_y = cy + cell_h / 2 - 0.5 * _row_h
+            last_y = cy + cell_h / 2 - (n_c - 0.5) * _row_h
+            sub_txt = steps[first_chain[0][0]].get("substrate")
+            prd_txt = steps[last_chain[-1][-1]].get("product")
+            if sub_txt:
+                substrate_pos = (cell_x0 - 1.1, first_y)
+            if prd_txt:
+                product_pos = (cell_x1 + 1.1, last_y)
 
     if show_outside_chems and not is_multi_chain:
         sub_txt = steps[0].get("substrate")
