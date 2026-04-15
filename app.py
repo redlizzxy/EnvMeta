@@ -1118,8 +1118,13 @@ elif page == "生物地球化学循环图":
             )
             if st.button("生成跨组对比表", key="cy_compare_go"):
                 from envmeta.analysis.cycle_compare import compare_groups as _cg
+
+                def _get_df(n):
+                    return (st.session_state.files[n]["df"]
+                            if n != "（无）" else None)
+
                 ko_df = st.session_state.files[ko_name]["df"]
-                t_df = _get(t_name)
+                t_df = _get_df(t_name)
                 if t_df is not None and t_df.shape[1] == 2:
                     cols_lower = [c.lower() for c in t_df.columns]
                     has_header = ("classification" in cols_lower
@@ -1137,8 +1142,8 @@ elif page == "生物地球化学循环图":
                         )
                 try:
                     compare_df = _cg(
-                        ko_df, t_df, _get(k_name), _get(a_name),
-                        _get(e_name), _get(m_name),
+                        ko_df, t_df, _get_df(k_name), _get_df(a_name),
+                        _get_df(e_name), _get_df(m_name),
                         params={"completeness_threshold": float(comp_thresh),
                                 "top_n_contributors": top_n,
                                 "env_rho_min": rho_min,
