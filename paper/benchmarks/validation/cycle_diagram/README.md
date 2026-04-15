@@ -46,6 +46,28 @@ Streamlit 侧栏 radio 切换。非默认判据时 subtitle 会显示 `ranking=X
 
 ---
 
+## MAG 显示标签格式（S2.5-13）
+
+为了让用户一眼看出不同 MAG 是"同属不同菌株"而非"同种未合并"，标签遵循：
+
+| 情形 | 格式 | 例 |
+|---|---|---|
+| GTDB `g__Genus;s__species` | `Genus species` | `Sulfuricaulis marinus` |
+| GTDB `g__Genus;s__` 空（多数 MAG） | `Genus sp. Mx_XX` | `Sulfuricaulis sp. Mx_141` |
+| 无分类 | `MAG_id` | `Mx_All_141` |
+
+这样 `Sulfuricaulis sp. Mx_141` 和 `Sulfuricaulis sp. Mx_110` 清楚呈现为"同属 Sulfuricaulis 的两个不同菌株"，而不是"两个同种未合并"。
+
+---
+
+## 为什么 Fe uptake regulation 没有底物 / 产物（S2.5-13）
+
+`fur` (K03711) 和 `tonB` (K03832) 是**转录调控因子**（transcriptional regulators），不催化"底物→产物"的化学反应。它们通过结合 DNA 和调节其他基因的表达来控制铁摄取——**没有化学催化活性**。因此 KEGG 官方数据里 substrate / product 都是空，我们的 KB 也相应标记为 null。在循环图上表现为"细胞膜内只有酶椭圆、没有穿膜底物产物箭头"，这是**正确的生物学表达**。
+
+如果这种调控型 cell 干扰阅读，可在 Streamlit 勾选"🧪 隐藏纯调控型 cell"，工具会跳过所有基因都是调控型的 cell（如单独的 fur+tonB 组合），使画面聚焦于催化型通路。保留"同 MAG 承载 Fe uptake regulation + Fe transport"这类混合 cell（因为 Fe transport 提供了 Fe(III)→Fe_internal 的催化内容）。
+
+---
+
 ## 如何叙述 A/CK/B 三组循环图的差异（S2.5-7d）
 
 用户常见误解：看三张单组图看起来 "通路潜力一样"，觉得图没用。

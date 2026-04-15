@@ -1048,6 +1048,15 @@ elif page == "生物地球化学循环图":
         max_cells = st.slider("每元素最多细胞数", 1, 6, 3, key="cy_cells")
         show_env = st.checkbox("显示环境耦合面板", True, key="cy_env_panel")
         show_couplings = st.checkbox("显示化学物耦合线", True, key="cy_coup")
+        hide_regulator = st.checkbox(
+            "🧪 隐藏纯调控型 cell（fur/tonB 等无底物产物）",
+            False, key="cy_hide_reg",
+            help=(
+                "调控型基因（如 fur / tonB / arsR 转录因子）不催化底物→产物反应，"
+                "KEGG 里 substrate/product 为空。勾选后隐藏所有基因都为调控型"
+                "的 cell，使画面聚焦于催化型通路。"
+            ),
+        )
         annotate_cg = st.checkbox(
             "🏆 标注跨组最活 ★ + keystone ⭐（仅单组模式有效）",
             False, key="cy_annot_cg",
@@ -1099,6 +1108,7 @@ elif page == "生物地球化学循环图":
             "group_filter": None if group_filter == "All" else group_filter,
             "annotate_cross_group": annotate_cg,
             "contributor_ranking": ranking,
+            "hide_regulator_only_cells": hide_regulator,
             **size,
         }
         try:

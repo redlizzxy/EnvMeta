@@ -35,6 +35,7 @@ DEFAULTS = {
     "show_couplings": True,               # 画跨元素化学物耦合线（S2.5-3）
     "most_active_pathways": set(),        # S2.5-8：当前组里跨组对比最活的 pathway_id
     "show_inactive_pathways": True,       # S2.5-10d：象限底部列 KB 有但数据里 n=0 的通路名
+    "hide_regulator_only_cells": False,   # S2.5-13：隐藏纯调控型 cell（fur/tonB 等全 None substrate/product）
     "title": "Biogeochemical Cycle Diagram (v2)",
     "cell_height_ratio": 0.22,            # 单细胞占象限高的比例
 }
@@ -145,6 +146,15 @@ def _draw_element_quadrant_cascade(
 
     # S2.5-11: 按 MAG 分组，把同物种的多条通路合并为一个 cell（多行渲染）
     groups = _group_picks_by_mag(picked)
+    # S2.5-13: 过滤纯调控型 group（全部 gene 都无 substrate/product）
+    if cfg.get("hide_regulator_only_cells", False):
+        def _group_has_catalytic(pws):
+            for _pw, c in pws:
+                for g in c.genes:
+                    if g.get("substrate") or g.get("product"):
+                        return True
+            return False
+        groups = [(m, pws) for m, pws in groups if _group_has_catalytic(pws)]
     n = len(groups)
     top, bot = 8.4, 0.6
     available = top - bot

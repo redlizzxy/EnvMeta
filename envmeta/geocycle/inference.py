@@ -185,13 +185,18 @@ def _classify_mags(
                 lambda s: next((p[3:] for p in str(s).split(";")
                                 if p.strip().startswith("g__")), "") or ""
             )
+            tax["Species"] = tax[cls_col].apply(
+                lambda s: next((p[3:] for p in str(s).split(";")
+                                if p.strip().startswith("s__")), "") or ""
+            )
         else:
-            tax["Phylum"] = "Unknown"; tax["Genus"] = ""
+            tax["Phylum"] = "Unknown"; tax["Genus"] = ""; tax["Species"] = ""
         all_mags.update(tax["MAG"].astype(str))
-        base = tax[["MAG", "Phylum", "Genus"]].copy()
+        base = tax[["MAG", "Phylum", "Genus", "Species"]].copy()
     else:
         base = pd.DataFrame({"MAG": sorted(all_mags),
-                             "Phylum": "Unknown", "Genus": ""})
+                             "Phylum": "Unknown", "Genus": "",
+                             "Species": ""})
 
     base = base[base["MAG"].isin(all_mags)].drop_duplicates("MAG").reset_index(drop=True)
 
@@ -250,7 +255,15 @@ def _pathway_activity(
             phy = str(m["Phylum"]) if m is not None else "Unknown"
             ab = float(m["abundance_mean"]) if m is not None else 0.0
             genus = str(m["Genus"]) if (m is not None and "Genus" in m.index) else ""
-            label = genus if genus else mag
+            species = str(m["Species"]) if (m is not None and "Species" in m.index) else ""
+            # S2.5-13: 标签格式 Genus + species | Genus sp. Mx_XX | MAG_id
+            if genus and species:
+                label = f"{genus} {species}"
+            elif genus:
+                mag_tail = str(mag).split("_")[-1] if "_" in str(mag) else str(mag)
+                label = f"{genus} sp. Mx_{mag_tail}"
+            else:
+                label = str(mag)
             is_keystone = bool(m["is_keystone"]) if (
                 m is not None and "is_keystone" in m.index) else False
             # KO 级级联：按 KB 登记顺序保留该 MAG 实际持有的通路 KO
