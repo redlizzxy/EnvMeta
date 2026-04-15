@@ -24,6 +24,30 @@ from envmeta.geocycle.inference import DEFAULTS as INF_DEFAULTS, infer
 from envmeta.geocycle.renderer import DEFAULTS as REN_DEFAULTS, render
 
 
+def _compute_most_active_pathways(
+    ko_annotation_df, taxonomy_df, keystone_df, abundance_df,
+    env_df, metadata_df, inf_params, current_group,
+) -> set[str]:
+    """对所有组跑推断，找每条通路 total_contribution 最大的组；
+    返回当前组"最活"的 pathway_id 集合。
+
+    metadata 无 Group 列 → 返回空 set。
+    """
+    if (metadata_df is None or metadata_df.empty
+            or "Group" not in metadata_df.columns):
+        return set()
+    from envmeta.analysis.cycle_compare import compare_groups
+    cmp = compare_groups(
+        ko_annotation_df, taxonomy_df, keystone_df,
+        abundance_df, env_df, metadata_df,
+        params={**inf_params, "group_filter": None},
+    )
+    if cmp.empty:
+        return set()
+    best = cmp.loc[cmp.groupby("pathway_id")["total_contribution"].idxmax()]
+    return set(best.loc[best["group"] == str(current_group), "pathway_id"])
+
+
 def analyze(
     ko_annotation_df: pd.DataFrame,
     taxonomy_df: pd.DataFrame | None = None,
@@ -45,6 +69,21 @@ def analyze(
         env_df, metadata_df,
         params=inf_params,
     )
+
+    # S2.5-8：跨组"最活"标注（仅在单组模式 + 明确开启时做）
+    if (p.get("annotate_cross_group")
+            and inf_params.get("group_filter")
+            and str(inf_params["group_filter"]).lower() not in ("all", "none")):
+        try:
+            most_active = _compute_most_active_pathways(
+                ko_annotation_df, taxonomy_df, keystone_df,
+                abundance_df, env_df, metadata_df,
+                inf_params, inf_params["group_filter"],
+            )
+            ren_params["most_active_pathways"] = most_active
+        except Exception:
+            ren_params["most_active_pathways"] = set()
+
     fig = render(data, params=ren_params)
     return AnalysisResult(
         figure=fig,

@@ -20,6 +20,8 @@ class MAGContribution:
     #   每项 {"ko", "name", "substrate", "product"}；substrate/product 可为 None
     #   顺序：按 KB 在通路里的登记顺序（保留 KO 字典的插入序）
     genes: list[dict] = field(default_factory=list)
+    # v1.3 (S2.5-8)：该 MAG 是否为 keystone species（来自 co-occurrence network）
+    is_keystone: bool = False
 
 
 @dataclass

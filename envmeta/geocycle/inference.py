@@ -234,6 +234,8 @@ def _pathway_activity(
             ab = float(m["abundance_mean"]) if m is not None else 0.0
             genus = str(m["Genus"]) if (m is not None and "Genus" in m.index) else ""
             label = genus if genus else mag
+            is_keystone = bool(m["is_keystone"]) if (
+                m is not None and "is_keystone" in m.index) else False
             # KO 级级联：按 KB 登记顺序保留该 MAG 实际持有的通路 KO
             genes_list: list[dict] = []
             for ko in kos:  # kos 保持 KB 里 pathway.genes 的插入序
@@ -250,6 +252,7 @@ def _pathway_activity(
                 mag=mag, phylum=phy, completeness=comp,
                 abundance_mean=ab, label=label,
                 genes=genes_list,
+                is_keystone=is_keystone,
             ))
         # 按 "completeness × (log1p abundance)" 排序
         contributors.sort(

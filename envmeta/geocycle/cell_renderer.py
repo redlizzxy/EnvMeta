@@ -217,12 +217,31 @@ def draw_cascade_cell(
     ))
 
     pad = min(0.2, cell_h * 0.2)
-    ax.text(cell_x0 + pad, cy + cell_h / 2 - pad * 1.2, title,
-            fontsize=8.5, fontweight="bold", color="#333", zorder=8)
+    title_y = cy + cell_h / 2 - pad * 1.2
+    # S2.5-8：若标题带 "★ " 前缀，红色渲染该星，其余黑色
+    if title.startswith("★ "):
+        ax.text(cell_x0 + pad, title_y, "★",
+                fontsize=11, fontweight="bold", color="#C0392B", zorder=8)
+        ax.text(cell_x0 + pad + 0.35, title_y, title[2:],
+                fontsize=8.5, fontweight="bold", color="#333", zorder=8)
+    else:
+        ax.text(cell_x0 + pad, title_y, title,
+                fontsize=8.5, fontweight="bold", color="#333", zorder=8)
     if mag_label:
-        ax.text(cell_x1 - pad, cy + cell_h / 2 - pad * 1.2, f"[{mag_label}]",
-                fontsize=7, fontstyle="italic", color="#555",
-                ha="right", zorder=8)
+        # keystone 标记：sentinel " ✦" → 金色四角星（DejaVu Sans 支持）
+        if mag_label.endswith(" ✦"):
+            plain = mag_label[:-2]
+            ax.text(cell_x1 - pad, title_y, f"[{plain}]",
+                    fontsize=7, fontstyle="italic", color="#555",
+                    ha="right", zorder=8)
+            ax.text(cell_x1 - pad - len(plain) * 0.08 - 0.32,
+                    title_y, "✦",
+                    fontsize=9, fontweight="bold", color="#D4A017",
+                    ha="right", zorder=8)
+        else:
+            ax.text(cell_x1 - pad, title_y, f"[{mag_label}]",
+                    fontsize=7, fontstyle="italic", color="#555",
+                    ha="right", zorder=8)
 
     if not steps:
         ax.text((cell_x0 + cell_x1) / 2, cy - 0.1,

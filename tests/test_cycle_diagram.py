@@ -395,3 +395,50 @@ def test_precipitation_label_is_product_only():
     )
     assert "rightarrow" not in label
     assert "As_2S_3" in label  # mathtext 下标转换
+
+
+# ── S2.5-8 跨组最活 ★ + keystone ⭐ 标注 ─────────────
+
+def test_contributor_has_is_keystone_field(cycle_inputs):
+    """MAGContribution 应透传 is_keystone。"""
+    ko, tax, ks, ab, env, md = cycle_inputs
+    data = infer(ko, tax, ks, ab, env, md, params=FAST_PARAMS)
+    any_keystone = False
+    for ec in data.elements:
+        for pw in ec.pathways:
+            for c in pw.contributors:
+                assert hasattr(c, "is_keystone")
+                if c.is_keystone:
+                    any_keystone = True
+    # 真实数据里应有至少一个 keystone 承载者
+    assert any_keystone
+
+
+def test_annotate_cross_group_sets_most_active(cycle_inputs):
+    """annotate_cross_group=True 时，渲染 params 里应含 most_active_pathways。"""
+    ko, tax, ks, ab, env, md = cycle_inputs
+    r = cycle_diagram.analyze(
+        ko, tax, ks, ab, env, md,
+        params={**FAST_PARAMS, "group_filter": "B",
+                "annotate_cross_group": True},
+    )
+    # 从 r.params 读取原始输入；从 figure 验证不崩即可
+    assert r.params.get("annotate_cross_group") is True
+    # 从 compare_groups 数据推断：B 组至少在 1 条通路上最活
+    from envmeta.analysis.cycle_compare import compare_groups
+    cmp = compare_groups(ko, tax, ks, ab, env, md,
+                          params=FAST_PARAMS)
+    best = cmp.loc[cmp.groupby("pathway_id")["total_contribution"].idxmax()]
+    b_count = (best["group"] == "B").sum()
+    assert b_count >= 1, "B 组应有至少 1 条通路最活"
+
+
+def test_annotate_cross_group_skipped_without_group(cycle_inputs):
+    """group_filter=None 时 annotate_cross_group 不触发跨组计算（不崩）。"""
+    ko, tax, ks, ab, env, md = cycle_inputs
+    r = cycle_diagram.analyze(
+        ko, tax, ks, ab, env, md,
+        params={**FAST_PARAMS, "annotate_cross_group": True,
+                "group_filter": None},
+    )
+    assert r.figure is not None

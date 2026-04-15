@@ -1048,6 +1048,11 @@ elif page == "生物地球化学循环图":
         max_cells = st.slider("每元素最多细胞数", 1, 6, 3, key="cy_cells")
         show_env = st.checkbox("显示环境耦合面板", True, key="cy_env_panel")
         show_couplings = st.checkbox("显示化学物耦合线", True, key="cy_coup")
+        annotate_cg = st.checkbox(
+            "🏆 标注跨组最活 ★ + keystone ⭐（仅单组模式有效）",
+            False, key="cy_annot_cg",
+            help="选 CK/A/B 单组后勾选；会额外跑 3 次推断，耗时稍增。",
+        )
         size = render_figure_size({"width_mm": 460, "height_mm": 320},
                                   prefix="cy")
 
@@ -1080,6 +1085,7 @@ elif page == "生物地球化学循环图":
             "show_couplings": show_couplings,
             "max_cells_per_element": max_cells,
             "group_filter": None if group_filter == "All" else group_filter,
+            "annotate_cross_group": annotate_cg,
             **size,
         }
         try:

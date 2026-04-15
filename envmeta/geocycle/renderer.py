@@ -32,6 +32,7 @@ DEFAULTS = {
     "max_contributors_shown": 3,          # v1 回退模式用
     "cell_mode": "cascade",               # "cascade"（v2，默认）/ "bars"（v1 回退）
     "show_couplings": True,               # 画跨元素化学物耦合线（S2.5-3）
+    "most_active_pathways": set(),        # S2.5-8：当前组里跨组对比最活的 pathway_id
     "title": "Biogeochemical Cycle Diagram (v2)",
     "cell_height_ratio": 0.22,            # 单细胞占象限高的比例
 }
@@ -129,6 +130,7 @@ def _draw_element_quadrant_cascade(
     cell_h = min(cell_h_max, row_span * 0.75)
     ys = [top - (i + 0.5) * row_span for i in range(n)]
 
+    most_active = set(cfg.get("most_active_pathways") or ())
     anchors: list[dict] = []
     for (pw, contrib), cy in zip(picked, ys):
         n_genes = len(contrib.genes)
@@ -140,8 +142,13 @@ def _draw_element_quadrant_cascade(
             contrib.genes,
             default_color=ec.color,
         )
-        title = pw.display_name
+        # S2.5-8 通路 ★（跨组对比最活）：前缀红星
+        prefix = "★ " if pw.pathway_id in most_active else ""
+        title = prefix + pw.display_name
         mag_label = contrib.label or contrib.mag
+        # S2.5-8 MAG 关键物种标记：label 尾部加 " ✦" sentinel（cell_renderer 识别后着金色）
+        if getattr(contrib, "is_keystone", False):
+            mag_label = mag_label + " ✦"
         r = draw_cascade_cell(
             ax,
             cy=cy, cell_x0=cell_x0, cell_w=cell_w, cell_h=cell_h,
