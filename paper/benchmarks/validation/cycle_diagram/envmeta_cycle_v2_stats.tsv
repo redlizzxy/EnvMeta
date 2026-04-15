@@ -1,0 +1,116 @@
+type	element	pathway_id	display_name	n_active_mags	mean_completeness	total_contribution	top_mag
+pathway	arsenic	As regulation	As regulation	133.0	100.0	1645.949062074	Fen-1038
+pathway	arsenic	As methylation	As methylation	119.0	50.0	738.4380177950002	Fen-1038
+pathway	arsenic	Arsenate reduction	Arsenate reduction	37.0	51.351351351351354	260.10222196200004	Gallionella
+pathway	arsenic	Arsenite oxidation	Arsenite oxidation	16.0	71.875	200.16700442500002	Gallionella
+pathway	arsenic	As transport/detox	As transport/detox	7.0	50.0	87.8492118	Gallionella
+pathway	arsenic	Resp. arsenate red.	Resp. arsenate red.	0.0	0.0	0.0	
+pathway	nitrogen	NO reduction	NO reduction	64.0	100.0	786.8335525839997	Gallionella
+pathway	nitrogen	N2O reduction	N2O reduction	46.0	100.0	491.20133729600013	SCGC-AG-212-J23
+pathway	nitrogen	Nitrate reduction	Nitrate reduction	36.0	55.55555555555556	317.22948514699993	Fen-1038
+pathway	nitrogen	Nitrite reduction	Nitrite reduction	36.0	50.69444444444444	248.80500904450003	Fen-1038
+pathway	nitrogen	N fixation	N fixation	15.0	93.33333333333333	183.76976878999994	JACRMN01
+pathway	nitrogen	Ammonia oxidation	Ammonia oxidation	1.0	100.0	7.73750543	Nitrosotenuis
+pathway	sulfur	Thiosulfate metab.	Thiosulfate metab.	113.0	100.0	1437.5681948100005	DASXPG01
+pathway	sulfur	Assim. sulfate red.	Assim. sulfate red.	62.0	64.11290322580645	441.4157802619999	Gp6-AA40
+pathway	sulfur	Sulfide oxidation	Sulfide oxidation	21.0	86.5079365079365	355.72012115333337	Sulfuricaulis
+pathway	sulfur	Dissim. sulfate red.	Dissim. sulfate red.	22.0	76.13636363636364	290.71087811750004	Sulfuricaulis
+pathway	iron	Fe uptake regulation	Fe uptake regulation	153.0	83.00653594771242	1592.0928644720002	DASXPG01
+pathway	iron	Fe transport	Fe transport	113.0	70.94395280235989	1087.2478151700004	DASXPG01
+env_correlation		Arsenate reduction	Total_As	0.015	0.85398649245344	0.001660931832843286	suggestive
+env_correlation		As transport/detox	Total_As	0.025	0.8090398349558906	0.004587718466038133	suggestive
+env_correlation		As methylation	Total_As	0.04	0.7640931774583409	0.010078508648735406	suggestive
+env_correlation		As regulation	Total_As	0.035	0.7640931774583409	0.010078508648735406	suggestive
+env_correlation		Nitrite reduction	Total_As	0.045	0.7640931774583409	0.010078508648735406	suggestive
+env_correlation		Ammonia oxidation	Eh	0.01	0.8353813836471727	0.0026207057973530344	suggestive
+env_correlation		N fixation	Eh	0.015	0.7622092916488802	0.010378624499792637	suggestive
+env_correlation		Assim. sulfate red.	Total_As	0.035	0.7640931774583409	0.010078508648735406	suggestive
+env_correlation		Thiosulfate metab.	Total_As	0.035	0.7640931774583409	0.010078508648735406	suggestive
+env_correlation		Fe transport	Total_As	0.06	0.7191465199607916	0.019077071292362843	spurious?
+env_correlation		Fe uptake regulation	Total_As	0.035	0.7640931774583409	0.010078508648735406	suggestive
+full_correlation		Arsenate reduction	pH	0.51	-0.23636363636363633	0.5108853175152003	none
+full_correlation		Arsenate reduction	Eh	0.315	0.3597627856582714	0.30721097605026365	none
+full_correlation		Arsenate reduction	TOC	0.47	0.23757518962990434	0.5086569174075679	none
+full_correlation		Arsenate reduction	Total_As	0.015	0.85398649245344	0.001660931832843286	suggestive
+full_correlation		Arsenite oxidation	pH	0.34	-0.32121212121212117	0.36546831043867045	none
+full_correlation		Arsenite oxidation	Eh	0.655	0.16463720699615814	0.6494602227242311	none
+full_correlation		Arsenite oxidation	TOC	0.595	0.20547043427451187	0.5690332123145366	none
+full_correlation		Arsenite oxidation	Total_As	0.07	0.6292532049656925	0.051264028240426314	spurious?
+full_correlation		As transport/detox	pH	0.435	-0.2606060606060606	0.46708905438634024	none
+full_correlation		As transport/detox	Eh	0.325	0.3658604599914625	0.29847680928666376	none
+full_correlation		As transport/detox	TOC	0.655	0.1541028257058839	0.67079199033223	none
+full_correlation		As transport/detox	Total_As	0.025	0.8090398349558906	0.004587718466038133	suggestive
+full_correlation		As methylation	pH	0.6	-0.1515151515151515	0.6760651759978539	none
+full_correlation		As methylation	Eh	0.235	0.4451302263229461	0.1973570541531604	none
+full_correlation		As methylation	TOC	0.86	0.07063046178186345	0.8462643294571666	none
+full_correlation		As methylation	Total_As	0.04	0.7640931774583409	0.010078508648735406	suggestive
+full_correlation		As regulation	pH	0.575	-0.17575757575757575	0.6271883447764846	none
+full_correlation		As regulation	Eh	0.275	0.3963488316574177	0.25683055930758375	none
+full_correlation		As regulation	TOC	0.87	0.07063046178186345	0.8462643294571666	none
+full_correlation		As regulation	Total_As	0.035	0.7640931774583409	0.010078508648735406	suggestive
+full_correlation		Nitrate reduction	pH	0.585	0.18787878787878787	0.6032176100292089	none
+full_correlation		Nitrate reduction	Eh	0.205	0.4573255749893281	0.1838821504940722	none
+full_correlation		Nitrate reduction	TOC	0.43	-0.2632589939142183	0.4624001603553898	none
+full_correlation		Nitrate reduction	Total_As	0.135	0.5843065474681431	0.07608869333120227	spurious?
+full_correlation		Nitrite reduction	pH	0.635	-0.1515151515151515	0.6760651759978539	none
+full_correlation		Nitrite reduction	Eh	0.295	0.3780558086578446	0.2814111157974274	none
+full_correlation		Nitrite reduction	TOC	0.85	0.07063046178186345	0.8462643294571666	none
+full_correlation		Nitrite reduction	Total_As	0.045	0.7640931774583409	0.010078508648735406	suggestive
+full_correlation		NO reduction	pH	0.61	-0.18787878787878787	0.6032176100292089	none
+full_correlation		NO reduction	Eh	0.53	0.21341860166168644	0.5538359932399509	none
+full_correlation		NO reduction	TOC	0.875	0.07705141285294195	0.8324471425916489	none
+full_correlation		NO reduction	Total_As	0.075	0.6292532049656925	0.051264028240426314	spurious?
+full_correlation		N2O reduction	pH	0.83	0.07878787878787878	0.8287173946974606	none
+full_correlation		N2O reduction	Eh	0.185	0.4634232493225192	0.17735410872485316	none
+full_correlation		N2O reduction	TOC	0.83	-0.08347236392402045	0.8186711549075476	none
+full_correlation		N2O reduction	Total_As	0.295	0.4045199174779453	0.24624961912944976	none
+full_correlation		Ammonia oxidation	pH	0.075	0.6121212121212121	0.059972142477255276	spurious?
+full_correlation		Ammonia oxidation	Eh	0.01	0.8353813836471727	0.0026207057973530344	suggestive
+full_correlation		Ammonia oxidation	TOC	0.11	-0.5457808410416722	0.10268505595941058	spurious?
+full_correlation		Ammonia oxidation	Total_As	0.585	0.22473328748774735	0.5324810907508742	none
+full_correlation		N fixation	pH	0.085	0.49090909090909085	0.1496556734208368	weak
+full_correlation		N fixation	Eh	0.015	0.7622092916488802	0.010378624499792637	suggestive
+full_correlation		N fixation	TOC	0.035	-0.5971484496103001	0.06833633314503816	suggestive
+full_correlation		N fixation	Total_As	0.29	0.4045199174779453	0.24624961912944976	none
+full_correlation		Assim. sulfate red.	pH	0.575	-0.17575757575757575	0.6271883447764846	none
+full_correlation		Assim. sulfate red.	Eh	0.275	0.3963488316574177	0.25683055930758375	none
+full_correlation		Assim. sulfate red.	TOC	0.87	0.07063046178186345	0.8462643294571666	none
+full_correlation		Assim. sulfate red.	Total_As	0.035	0.7640931774583409	0.010078508648735406	suggestive
+full_correlation		Dissim. sulfate red.	pH	0.495	0.24848484848484845	0.4887763045192432	none
+full_correlation		Dissim. sulfate red.	Eh	0.165	0.4878139466552834	0.15263398627837133	none
+full_correlation		Dissim. sulfate red.	TOC	0.3	-0.3338894556960818	0.345739642539703	none
+full_correlation		Dissim. sulfate red.	Total_As	0.485	0.2696799449852968	0.4511390079856627	none
+full_correlation		Sulfide oxidation	pH	0.935	0.04242424242424241	0.9073638178128159	none
+full_correlation		Sulfide oxidation	Eh	0.45	0.3048837166595521	0.3916799825200183	none
+full_correlation		Sulfide oxidation	TOC	0.74	-0.12841902142156994	0.7236704513071373	none
+full_correlation		Sulfide oxidation	Total_As	0.23	0.4494665749754947	0.1925017251163438	none
+full_correlation		Thiosulfate metab.	pH	0.575	-0.17575757575757575	0.6271883447764846	none
+full_correlation		Thiosulfate metab.	Eh	0.275	0.3963488316574177	0.25683055930758375	none
+full_correlation		Thiosulfate metab.	TOC	0.87	0.07063046178186345	0.8462643294571666	none
+full_correlation		Thiosulfate metab.	Total_As	0.035	0.7640931774583409	0.010078508648735406	suggestive
+full_correlation		Fe transport	pH	0.695	-0.11515151515151514	0.7514196523258485	none
+full_correlation		Fe transport	Eh	0.3	0.3780558086578446	0.2814111157974274	none
+full_correlation		Fe transport	TOC	0.995	-0.012841902142156992	0.9719129713264786	none
+full_correlation		Fe transport	Total_As	0.06	0.7191465199607916	0.019077071292362843	spurious?
+full_correlation		Fe uptake regulation	pH	0.575	-0.17575757575757575	0.6271883447764846	none
+full_correlation		Fe uptake regulation	Eh	0.275	0.3963488316574177	0.25683055930758375	none
+full_correlation		Fe uptake regulation	TOC	0.87	0.07063046178186345	0.8462643294571666	none
+full_correlation		Fe uptake regulation	Total_As	0.035	0.7640931774583409	0.010078508648735406	suggestive
+sensitivity	arsenic	Arsenate reduction	Arsenate reduction	76.0	0.0		Gallionella|Gallionella|Defluviilinea
+sensitivity	arsenic	Arsenite oxidation	Arsenite oxidation	39.0	1.0		Gallionella|Gallionella|Gallionella
+sensitivity	arsenic	Resp. arsenate red.	Resp. arsenate red.	0.0	0.0		None|None|None
+sensitivity	arsenic	As transport/detox	As transport/detox	71.0	0.0		Gallionella|Gallionella|None
+sensitivity	arsenic	As methylation	As methylation	238.0	0.0		Fen-1038|Fen-1038|None
+sensitivity	arsenic	As regulation	As regulation	399.0	1.0		Fen-1038|Fen-1038|Fen-1038
+sensitivity	nitrogen	Nitrate reduction	Nitrate reduction	102.0	0.0		Fen-1038|Fen-1038|DYIB01
+sensitivity	nitrogen	Nitrite reduction	Nitrite reduction	73.0	0.0		Fen-1038|Fen-1038|Defluviilinea
+sensitivity	nitrogen	NO reduction	NO reduction	192.0	1.0		Gallionella|Gallionella|Gallionella
+sensitivity	nitrogen	N2O reduction	N2O reduction	138.0	1.0		SCGC-AG-212-J23|SCGC-AG-212-J23|SCGC-AG-212-J23
+sensitivity	nitrogen	Ammonia oxidation	Ammonia oxidation	6.0	1.0		Nitrosotenuis|Nitrosotenuis|Nitrosotenuis
+sensitivity	nitrogen	N fixation	N fixation	43.0	1.0		JACRMN01|JACRMN01|JACRMN01
+sensitivity	sulfur	Assim. sulfate red.	Assim. sulfate red.	157.0	1.0		Gp6-AA40|Gp6-AA40|Gp6-AA40
+sensitivity	sulfur	Dissim. sulfate red.	Dissim. sulfate red.	59.0	1.0		Sulfuricaulis|Sulfuricaulis|Sulfuricaulis
+sensitivity	sulfur	Sulfide oxidation	Sulfide oxidation	69.0	1.0		Sulfuricaulis|Sulfuricaulis|Sulfuricaulis
+sensitivity	sulfur	Thiosulfate metab.	Thiosulfate metab.	339.0	1.0		DASXPG01|DASXPG01|DASXPG01
+sensitivity	iron	Fe transport	Fe transport	293.0	1.0		DASXPG01|DASXPG01|DASXPG01
+sensitivity	iron	Fe uptake regulation	Fe uptake regulation	407.0	1.0		DASXPG01|DASXPG01|DASXPG01

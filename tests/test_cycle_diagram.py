@@ -228,3 +228,43 @@ def test_gene_cascade_order_matches_kb(cycle_inputs):
                 # 取 kb_order 中 actual 包含的子序列
                 expected = [k for k in kb_order if k in set(actual)]
                 assert actual == expected
+
+
+# ── S2.5-2c v2 级联渲染测试 ────────────────────────────────
+
+def test_render_cascade_attaches_anchors(cycle_inputs):
+    """v2 渲染应在 fig 上挂 _envmeta_cycle_anchors 供耦合连线用。"""
+    ko, tax, ks, ab, env, md = cycle_inputs
+    r = cycle_diagram.analyze(ko, tax, ks, ab, env, md, params=FAST_PARAMS)
+    anchors = getattr(r.figure, "_envmeta_cycle_anchors", None)
+    assert anchors is not None
+    assert isinstance(anchors, list)
+    # 真实数据有活跃通路，应至少画出 1 个细胞
+    assert len(anchors) >= 1
+    a = anchors[0]
+    assert "pathway_id" in a
+    assert "element" in a
+    assert "cell_box" in a
+
+
+def test_render_cascade_respects_max_cells(cycle_inputs):
+    """max_cells_per_element=2 时每元素最多 2 个细胞。"""
+    ko, tax, ks, ab, env, md = cycle_inputs
+    params = {**FAST_PARAMS, "max_cells_per_element": 2}
+    r = cycle_diagram.analyze(ko, tax, ks, ab, env, md, params=params)
+    anchors = r.figure._envmeta_cycle_anchors
+    # 分组统计每元素细胞数
+    from collections import Counter
+    per_elem = Counter(a["element"] for a in anchors)
+    for n in per_elem.values():
+        assert n <= 2
+
+
+def test_render_bars_fallback_still_works(cycle_inputs):
+    """cell_mode='bars' 应回退 v1 布局（无 anchors）。"""
+    ko, tax, ks, ab, env, md = cycle_inputs
+    params = {**FAST_PARAMS, "cell_mode": "bars"}
+    r = cycle_diagram.analyze(ko, tax, ks, ab, env, md, params=params)
+    anchors = r.figure._envmeta_cycle_anchors
+    # 回退模式下不绘制细胞 → anchors 为空列表
+    assert anchors == []

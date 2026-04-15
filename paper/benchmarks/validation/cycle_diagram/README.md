@@ -1,3 +1,22 @@
+# 生物地球化学循环图 v2 — 合并细胞级联 + 描述性推断
+
+## v2 升级（2026-04-15, Mockup 10 落地）
+
+原 v1 `envmeta_cycle_v1.pdf` 为 2×2 元素抽象柱图；v2 用"合并细胞 + 基因级联"
+替代：每元素象限挑选 Top-K (通路, MAG) 对，每个细胞显示一个 MAG 在该通路上
+实际持有的 KO 链（底物 → 酶 → 中间产物 → … → 最终产物），读取
+KB v1.1 新增的 substrate/product 字段驱动。
+
+- `envmeta_cycle_v2.pdf` — 新版级联渲染（默认输出）
+- `envmeta_cycle_v2.png` — 新版位图预览
+- `envmeta_cycle_v2_stats.tsv` — stats 长表
+- `envmeta_cycle_v1.pdf` — 保留 v1 供对比，亦可用 ``params={"cell_mode": "bars"}`` 回退
+
+**Phase 3 S2.5 后续**：S2.5-3 化学物耦合连线（As-S / As-Fe / Fe-S）；
+S2.5-4 组选择下拉（CK/A/B 单组模式）；S2.5-5 SVG 导出。
+
+---
+
 # 生物地球化学循环图 v1 — 自动描述性推断
 
 ## 重要声明（Interpretation Guidance）
