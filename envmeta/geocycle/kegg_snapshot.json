@@ -1,0 +1,1078 @@
+{
+  "version": "kegg_2026-04-15",
+  "fetched_at": "2026-04-15",
+  "license": "academic",
+  "source": "KEGG REST API (https://rest.kegg.jp)",
+  "citation": "Kanehisa M, Goto S. (2000) Nucleic Acids Res. 28:27-30.",
+  "kos": {
+    "K00366": {
+      "symbol": "nirA",
+      "name": "ferredoxin-nitrite reductase [EC:1.7.7.1]",
+      "definition": "",
+      "pathways": [
+        "map00910",
+        "map01100",
+        "map01120",
+        "map01310"
+      ],
+      "modules": [
+        "M00531"
+      ],
+      "reactions": [
+        "R00790"
+      ],
+      "substrate": "Ammonia",
+      "product": "Nitrite"
+    },
+    "K00367": {
+      "symbol": "narB",
+      "name": "ferredoxin-nitrate reductase [EC:1.7.7.2]",
+      "definition": "",
+      "pathways": [
+        "map00910",
+        "map01100",
+        "map01120",
+        "map01310"
+      ],
+      "modules": [
+        "M00531"
+      ],
+      "reactions": [
+        "R00791"
+      ],
+      "substrate": "Nitrite",
+      "product": "Nitrate"
+    },
+    "K00368": {
+      "symbol": "nirK",
+      "name": "nitrite reductase (NO-forming) [EC:1.7.2.1]",
+      "definition": "",
+      "pathways": [
+        "map00910",
+        "map01100",
+        "map01120",
+        "map01310"
+      ],
+      "modules": [
+        "M00529",
+        "M00973"
+      ],
+      "reactions": [
+        "R00783",
+        "R00785"
+      ],
+      "substrate": "Nitric oxide",
+      "product": "Nitrite"
+    },
+    "K00370": {
+      "symbol": "narG",
+      "name": "nitrate reductase / nitrite oxidoreductase, alpha subunit [EC:1.7.5.1 1.7.99.-]",
+      "definition": "",
+      "pathways": [
+        "map00910",
+        "map01100",
+        "map01120",
+        "map01310",
+        "map02020"
+      ],
+      "modules": [
+        "M00529",
+        "M00530",
+        "M00804"
+      ],
+      "reactions": [
+        "R00798",
+        "R01106",
+        "R09497"
+      ],
+      "substrate": "Nitrite",
+      "product": "Nitrate"
+    },
+    "K00371": {
+      "symbol": "narH",
+      "name": "nitrate reductase / nitrite oxidoreductase, beta subunit [EC:1.7.5.1 1.7.99.-]",
+      "definition": "",
+      "pathways": [
+        "map00910",
+        "map01100",
+        "map01120",
+        "map01310",
+        "map02020"
+      ],
+      "modules": [
+        "M00529",
+        "M00530",
+        "M00804"
+      ],
+      "reactions": [
+        "R00798",
+        "R01106",
+        "R09497"
+      ],
+      "substrate": "Nitrite",
+      "product": "Nitrate"
+    },
+    "K00374": {
+      "symbol": "narI",
+      "name": "nitrate reductase gamma subunit [EC:1.7.5.1 1.7.99.-]",
+      "definition": "",
+      "pathways": [
+        "map00910",
+        "map01100",
+        "map01120",
+        "map01310",
+        "map02020"
+      ],
+      "modules": [
+        "M00529",
+        "M00530"
+      ],
+      "reactions": [
+        "R00798",
+        "R01106",
+        "R09497"
+      ],
+      "substrate": "Nitrite",
+      "product": "Nitrate"
+    },
+    "K00376": {
+      "symbol": "nosZ",
+      "name": "nitrous-oxide reductase [EC:1.7.2.4]",
+      "definition": "",
+      "pathways": [
+        "map00910",
+        "map01100",
+        "map01120",
+        "map01310"
+      ],
+      "modules": [
+        "M00529"
+      ],
+      "reactions": [
+        "R02804"
+      ],
+      "substrate": "Nitrogen",
+      "product": "Nitrous oxide"
+    },
+    "K00380": {
+      "symbol": "cysJ",
+      "name": "sulfite reductase (NADPH) flavoprotein alpha-component [EC:1.8.1.2]",
+      "definition": "",
+      "pathways": [
+        "map00920",
+        "map01100",
+        "map01120",
+        "map01320"
+      ],
+      "modules": [
+        "M00176"
+      ],
+      "reactions": [
+        "R00858"
+      ],
+      "substrate": "Hydrogen sulfide",
+      "product": "Sulfite"
+    },
+    "K00381": {
+      "symbol": "cysI",
+      "name": "sulfite reductase (NADPH) hemoprotein beta-component [EC:1.8.1.2]",
+      "definition": "",
+      "pathways": [
+        "map00920",
+        "map01100",
+        "map01120",
+        "map01320"
+      ],
+      "modules": [
+        "M00176"
+      ],
+      "reactions": [
+        "R00858"
+      ],
+      "substrate": "Hydrogen sulfide",
+      "product": "Sulfite"
+    },
+    "K00390": {
+      "symbol": "cysH",
+      "name": "phosphoadenosine phosphosulfate reductase [EC:1.8.4.8 1.8.4.10]",
+      "definition": "",
+      "pathways": [
+        "map00920",
+        "map01100",
+        "map01120",
+        "map01320"
+      ],
+      "modules": [
+        "M00176"
+      ],
+      "reactions": [
+        "R02021"
+      ],
+      "substrate": "Thioredoxin",
+      "product": "Thioredoxin disulfide"
+    },
+    "K00392": {
+      "symbol": "sir",
+      "name": "sulfite reductase (ferredoxin) [EC:1.8.7.1]",
+      "definition": "",
+      "pathways": [
+        "map00920",
+        "map01100",
+        "map01120",
+        "map01320"
+      ],
+      "modules": [
+        "M00176",
+        "M00987"
+      ],
+      "reactions": [
+        "R00859",
+        "R03600"
+      ],
+      "substrate": "Hydrogen sulfide",
+      "product": "Sulfite"
+    },
+    "K00394": {
+      "symbol": "aprA",
+      "name": "adenylylsulfate reductase, subunit A [EC:1.8.99.2]",
+      "definition": "",
+      "pathways": [
+        "map00920",
+        "map01100",
+        "map01120",
+        "map01320"
+      ],
+      "modules": [
+        "M00596"
+      ],
+      "reactions": [
+        "R00860",
+        "R04927",
+        "R08553"
+      ],
+      "substrate": "Sulfite",
+      "product": "Adenylyl sulfate"
+    },
+    "K00395": {
+      "symbol": "aprB",
+      "name": "adenylylsulfate reductase, subunit B [EC:1.8.99.2]",
+      "definition": "",
+      "pathways": [
+        "map00920",
+        "map01100",
+        "map01120",
+        "map01320"
+      ],
+      "modules": [
+        "M00596"
+      ],
+      "reactions": [
+        "R00860",
+        "R04927",
+        "R08553"
+      ],
+      "substrate": "Sulfite",
+      "product": "Adenylyl sulfate"
+    },
+    "K00537": {
+      "symbol": "arsC",
+      "name": "arsenate reductase (glutaredoxin) [EC:1.20.4.1]",
+      "definition": "",
+      "pathways": [],
+      "modules": [],
+      "reactions": [],
+      "substrate": null,
+      "product": null
+    },
+    "K01011": {
+      "symbol": "TST",
+      "name": "thiosulfate/3-mercaptopyruvate sulfurtransferase [EC:2.8.1.1 2.8.1.2]",
+      "definition": "",
+      "pathways": [
+        "map00270",
+        "map00920",
+        "map01100",
+        "map01120",
+        "map04122"
+      ],
+      "modules": [],
+      "reactions": [
+        "R01931",
+        "R03105"
+      ],
+      "substrate": "Thiosulfate",
+      "product": "Sulfite"
+    },
+    "K01551": {
+      "symbol": "arsA",
+      "name": "arsenite/tail-anchored protein-transporting ATPase [EC:7.3.2.7 7.3.-.-]",
+      "definition": "",
+      "pathways": [
+        "map03060"
+      ],
+      "modules": [],
+      "reactions": [],
+      "substrate": null,
+      "product": null
+    },
+    "K02012": {
+      "symbol": "afuA",
+      "name": "iron(III) transport system substrate-binding protein",
+      "definition": "",
+      "pathways": [
+        "map02010"
+      ],
+      "modules": [],
+      "reactions": [],
+      "substrate": null,
+      "product": null
+    },
+    "K02013": {
+      "symbol": "ABC.FEV.A",
+      "name": "iron complex transport system ATP-binding protein [EC:7.2.2.-]",
+      "definition": "",
+      "pathways": [],
+      "modules": [],
+      "reactions": [],
+      "substrate": null,
+      "product": null
+    },
+    "K02014": {
+      "symbol": "TC.FEV.OM",
+      "name": "iron complex outermembrane recepter protein",
+      "definition": "",
+      "pathways": [],
+      "modules": [],
+      "reactions": [],
+      "substrate": null,
+      "product": null
+    },
+    "K02015": {
+      "symbol": "ABC.FEV.P",
+      "name": "iron complex transport system permease protein",
+      "definition": "",
+      "pathways": [],
+      "modules": [],
+      "reactions": [],
+      "substrate": null,
+      "product": null
+    },
+    "K02016": {
+      "symbol": "ABC.FEV.S",
+      "name": "iron complex transport system substrate-binding protein",
+      "definition": "",
+      "pathways": [],
+      "modules": [],
+      "reactions": [],
+      "substrate": null,
+      "product": null
+    },
+    "K02567": {
+      "symbol": "napA",
+      "name": "nitrate reductase (cytochrome) [EC:1.9.6.1]",
+      "definition": "",
+      "pathways": [
+        "map00910",
+        "map01100",
+        "map01120",
+        "map01310"
+      ],
+      "modules": [
+        "M00529",
+        "M00530"
+      ],
+      "reactions": [
+        "R00798",
+        "R01106",
+        "R03071"
+      ],
+      "substrate": "Nitrite",
+      "product": "Nitrate"
+    },
+    "K02568": {
+      "symbol": "napB",
+      "name": "nitrate reductase (cytochrome), electron transfer subunit",
+      "definition": "",
+      "pathways": [
+        "map00910",
+        "map01100",
+        "map01120",
+        "map01310"
+      ],
+      "modules": [
+        "M00529",
+        "M00530"
+      ],
+      "reactions": [
+        "R00798"
+      ],
+      "substrate": "Nitrite",
+      "product": "Nitrate"
+    },
+    "K02586": {
+      "symbol": "nifD",
+      "name": "nitrogenase molybdenum-iron protein alpha chain [EC:1.18.6.1]",
+      "definition": "",
+      "pathways": [
+        "map00625",
+        "map00910",
+        "map01100",
+        "map01120",
+        "map01310"
+      ],
+      "modules": [
+        "M00175"
+      ],
+      "reactions": [
+        "R05185",
+        "R05496"
+      ],
+      "substrate": "ATP",
+      "product": "Orthophosphate"
+    },
+    "K02591": {
+      "symbol": "nifK",
+      "name": "nitrogenase molybdenum-iron protein beta chain [EC:1.18.6.1]",
+      "definition": "",
+      "pathways": [
+        "map00625",
+        "map00910",
+        "map01100",
+        "map01120",
+        "map01310"
+      ],
+      "modules": [
+        "M00175"
+      ],
+      "reactions": [
+        "R05185",
+        "R05496"
+      ],
+      "substrate": "ATP",
+      "product": "Orthophosphate"
+    },
+    "K03325": {
+      "symbol": "ACR3",
+      "name": "arsenite transporter",
+      "definition": "",
+      "pathways": [],
+      "modules": [],
+      "reactions": [],
+      "substrate": null,
+      "product": null
+    },
+    "K03711": {
+      "symbol": "fur",
+      "name": "Fur family transcriptional regulator, ferric uptake regulator",
+      "definition": "",
+      "pathways": [],
+      "modules": [],
+      "reactions": [],
+      "substrate": null,
+      "product": null
+    },
+    "K03741": {
+      "symbol": "arsC",
+      "name": "arsenate reductase (thioredoxin) [EC:1.20.4.4]",
+      "definition": "",
+      "pathways": [],
+      "modules": [],
+      "reactions": [],
+      "substrate": null,
+      "product": null
+    },
+    "K03832": {
+      "symbol": "tonB",
+      "name": "periplasmic protein TonB",
+      "definition": "",
+      "pathways": [],
+      "modules": [],
+      "reactions": [],
+      "substrate": null,
+      "product": null
+    },
+    "K03892": {
+      "symbol": "arsR",
+      "name": "ArsR family transcriptional regulator, arsenate/arsenite/antimonite-responsive transcriptional repressor",
+      "definition": "",
+      "pathways": [],
+      "modules": [],
+      "reactions": [],
+      "substrate": null,
+      "product": null
+    },
+    "K03893": {
+      "symbol": "arsB",
+      "name": "arsenical pump membrane protein",
+      "definition": "",
+      "pathways": [],
+      "modules": [],
+      "reactions": [],
+      "substrate": null,
+      "product": null
+    },
+    "K04561": {
+      "symbol": "norB",
+      "name": "nitric oxide reductase subunit B [EC:1.7.2.5]",
+      "definition": "",
+      "pathways": [
+        "map00910",
+        "map01100",
+        "map01120",
+        "map01310"
+      ],
+      "modules": [
+        "M00529"
+      ],
+      "reactions": [
+        "R00294"
+      ],
+      "substrate": "Nitric oxide",
+      "product": "Nitrous oxide"
+    },
+    "K07243": {
+      "symbol": "FTR",
+      "name": "high-affinity iron transporter",
+      "definition": "",
+      "pathways": [],
+      "modules": [],
+      "reactions": [],
+      "substrate": null,
+      "product": null
+    },
+    "K07755": {
+      "symbol": "AS3MT",
+      "name": "arsenite methyltransferase [EC:2.1.1.137]",
+      "definition": "",
+      "pathways": [
+        "map05208"
+      ],
+      "modules": [],
+      "reactions": [],
+      "substrate": null,
+      "product": null
+    },
+    "K08355": {
+      "symbol": "aoxA",
+      "name": "arsenite oxidase small subunit [EC:1.20.2.1 1.20.9.1]",
+      "definition": "",
+      "pathways": [],
+      "modules": [],
+      "reactions": [],
+      "substrate": null,
+      "product": null
+    },
+    "K08356": {
+      "symbol": "aoxB",
+      "name": "arsenite oxidase large subunit [EC:1.20.2.1 1.20.9.1]",
+      "definition": "",
+      "pathways": [],
+      "modules": [],
+      "reactions": [],
+      "substrate": null,
+      "product": null
+    },
+    "K10944": {
+      "symbol": "pmoA",
+      "name": "methane monooxygenase subunit A [EC:1.14.18.3]",
+      "definition": "",
+      "pathways": [
+        "map00680",
+        "map01100",
+        "map01120",
+        "map01200"
+      ],
+      "modules": [
+        "M00174"
+      ],
+      "reactions": [
+        "R09518"
+      ],
+      "substrate": "Methane",
+      "product": "Methanol"
+    },
+    "K10945": {
+      "symbol": "pmoB-amoB",
+      "name": "methane/ammonia monooxygenase subunit B",
+      "definition": "",
+      "pathways": [
+        "map00680",
+        "map00910",
+        "map01100",
+        "map01120",
+        "map01200",
+        "map01310"
+      ],
+      "modules": [
+        "M00174",
+        "M00528",
+        "M00804"
+      ],
+      "reactions": [
+        "R00148",
+        "R09518"
+      ],
+      "substrate": "Ammonia",
+      "product": "Hydroxylamine"
+    },
+    "K10946": {
+      "symbol": "pmoC-amoC",
+      "name": "methane/ammonia monooxygenase subunit C",
+      "definition": "",
+      "pathways": [
+        "map00680",
+        "map00910",
+        "map01100",
+        "map01120",
+        "map01200",
+        "map01310"
+      ],
+      "modules": [
+        "M00174",
+        "M00528",
+        "M00804"
+      ],
+      "reactions": [
+        "R00148",
+        "R09518"
+      ],
+      "substrate": "Ammonia",
+      "product": "Hydroxylamine"
+    },
+    "K11180": {
+      "symbol": "dsrA",
+      "name": "dissimilatory sulfite reductase alpha subunit [EC:1.8.1.22]",
+      "definition": "",
+      "pathways": [
+        "map00633",
+        "map00920",
+        "map01100",
+        "map01120",
+        "map01320"
+      ],
+      "modules": [
+        "M00596"
+      ],
+      "reactions": [
+        "R00295",
+        "R00861",
+        "R08035"
+      ],
+      "substrate": "Trithionate",
+      "product": "HSO3-"
+    },
+    "K11181": {
+      "symbol": "dsrB",
+      "name": "dissimilatory sulfite reductase beta subunit [EC:1.8.1.22]",
+      "definition": "",
+      "pathways": [
+        "map00633",
+        "map00920",
+        "map01100",
+        "map01120",
+        "map01320"
+      ],
+      "modules": [
+        "M00596"
+      ],
+      "reactions": [
+        "R00295",
+        "R00861",
+        "R08035"
+      ],
+      "substrate": "Trithionate",
+      "product": "HSO3-"
+    },
+    "K11811": {
+      "symbol": "arsH",
+      "name": "arsenical resistance protein ArsH",
+      "definition": "",
+      "pathways": [],
+      "modules": [],
+      "reactions": [],
+      "substrate": null,
+      "product": null
+    },
+    "K15864": {
+      "symbol": "nirS",
+      "name": "nitrite reductase (NO-forming) / hydroxylamine reductase [EC:1.7.2.1 1.7.99.1]",
+      "definition": "",
+      "pathways": [
+        "map00910",
+        "map01100",
+        "map01120",
+        "map01310"
+      ],
+      "modules": [
+        "M00529",
+        "M00973"
+      ],
+      "reactions": [
+        "R00143",
+        "R00783",
+        "R00785"
+      ],
+      "substrate": "Ammonia",
+      "product": "Hydroxylamine"
+    },
+    "K15877": {
+      "symbol": "CYP55",
+      "name": "fungal nitric oxide reductase [EC:1.7.1.14]",
+      "definition": "",
+      "pathways": [
+        "map00910",
+        "map01100",
+        "map01120"
+      ],
+      "modules": [],
+      "reactions": [
+        "R02492",
+        "R09446",
+        "R09808",
+        "R09809"
+      ],
+      "substrate": "Nitric oxide",
+      "product": "Nitrous oxide"
+    },
+    "K17218": {
+      "symbol": "sqr",
+      "name": "sulfide:quinone oxidoreductase [EC:1.8.5.4]",
+      "definition": "",
+      "pathways": [
+        "map00920",
+        "map01120"
+      ],
+      "modules": [],
+      "reactions": [
+        "R10152"
+      ],
+      "substrate": "Hydrogen sulfide",
+      "product": "Polysulfide"
+    },
+    "K17222": {
+      "symbol": "soxA",
+      "name": "L-cysteine S-thiosulfotransferase [EC:2.8.5.2]",
+      "definition": "",
+      "pathways": [
+        "map00920",
+        "map01100",
+        "map01120",
+        "map01320"
+      ],
+      "modules": [
+        "M00595"
+      ],
+      "reactions": [
+        "R10151",
+        "R12164"
+      ],
+      "substrate": "Thiosulfate",
+      "product": "Sulfate"
+    },
+    "K17223": {
+      "symbol": "soxX",
+      "name": "L-cysteine S-thiosulfotransferase [EC:2.8.5.2]",
+      "definition": "",
+      "pathways": [
+        "map00920",
+        "map01100",
+        "map01120",
+        "map01320"
+      ],
+      "modules": [
+        "M00595"
+      ],
+      "reactions": [
+        "R10151",
+        "R12164"
+      ],
+      "substrate": "Thiosulfate",
+      "product": "Sulfate"
+    },
+    "K17224": {
+      "symbol": "soxB",
+      "name": "S-sulfosulfanyl-L-cysteine sulfohydrolase [EC:3.1.6.20]",
+      "definition": "",
+      "pathways": [
+        "map00920",
+        "map01100",
+        "map01120",
+        "map01320"
+      ],
+      "modules": [
+        "M00595"
+      ],
+      "reactions": [
+        "R10151",
+        "R12096",
+        "R12097"
+      ],
+      "substrate": "Thiosulfate",
+      "product": "Sulfate"
+    },
+    "K17226": {
+      "symbol": "soxY",
+      "name": "sulfur-oxidizing protein SoxY",
+      "definition": "",
+      "pathways": [
+        "map00920",
+        "map01100",
+        "map01120",
+        "map01320"
+      ],
+      "modules": [
+        "M00595"
+      ],
+      "reactions": [
+        "R10151"
+      ],
+      "substrate": "Thiosulfate",
+      "product": "Sulfate"
+    },
+    "K17227": {
+      "symbol": "soxZ",
+      "name": "sulfur-oxidizing protein SoxZ",
+      "definition": "",
+      "pathways": [
+        "map00920",
+        "map01100",
+        "map01120",
+        "map01320"
+      ],
+      "modules": [
+        "M00595"
+      ],
+      "reactions": [
+        "R10151"
+      ],
+      "substrate": "Thiosulfate",
+      "product": "Sulfate"
+    },
+    "K18064": {
+      "symbol": "ACR2",
+      "name": "arsenical-resistance protein 2",
+      "definition": "",
+      "pathways": [],
+      "modules": [],
+      "reactions": [],
+      "substrate": null,
+      "product": null
+    },
+    "K18701": {
+      "symbol": "arsC",
+      "name": "arsenate-mycothiol transferase [EC:2.8.4.2]",
+      "definition": "",
+      "pathways": [],
+      "modules": [],
+      "reactions": [],
+      "substrate": null,
+      "product": null
+    },
+    "K22547": {
+      "symbol": "HAC1",
+      "name": "arsenate reductase [EC:1.20.4.1]",
+      "definition": "",
+      "pathways": [],
+      "modules": [],
+      "reactions": [],
+      "substrate": null,
+      "product": null
+    },
+    "K25223": {
+      "symbol": "arsJ",
+      "name": "MFS transporter, APGE family, 1-arseno-3-phosphoglycerate exporter",
+      "definition": "",
+      "pathways": [],
+      "modules": [],
+      "reactions": [],
+      "substrate": null,
+      "product": null
+    },
+    "K25224": {
+      "symbol": "gapdh",
+      "name": "glyceraldehyde-3-phosphate dehydrogenase (arsenate-transferring) [EC:1.2.1.107]",
+      "definition": "",
+      "pathways": [],
+      "modules": [],
+      "reactions": [],
+      "substrate": null,
+      "product": null
+    },
+    "K28466": {
+      "symbol": "arrA",
+      "name": "arsenate reductase (donor) subunit ArrA [EC:1.20.99.1]",
+      "definition": "",
+      "pathways": [],
+      "modules": [],
+      "reactions": [],
+      "substrate": null,
+      "product": null
+    },
+    "K28467": {
+      "symbol": "arrB",
+      "name": "arsenate reductase (donor) iron-sulfur subunit ArrB",
+      "definition": "",
+      "pathways": [],
+      "modules": [],
+      "reactions": [],
+      "substrate": null,
+      "product": null
+    }
+  },
+  "modules": {
+    "M00174": {
+      "name": "Methane oxidation, methanotroph, methane => formaldehyde",
+      "kos": [
+        "K10944",
+        "K10945",
+        "K10946",
+        "K14028",
+        "K14029",
+        "K16157",
+        "K16158",
+        "K16159",
+        "K16160",
+        "K16161",
+        "K16162",
+        "K23995"
+      ]
+    },
+    "M00175": {
+      "name": "Nitrogen fixation, nitrogen => ammonia",
+      "kos": [
+        "K00531",
+        "K02586",
+        "K02588",
+        "K02591",
+        "K22896",
+        "K22897",
+        "K22898",
+        "K22899"
+      ]
+    },
+    "M00176": {
+      "name": "Assimilatory sulfate reduction, sulfate => H2S",
+      "kos": [
+        "K00380",
+        "K00381",
+        "K00390",
+        "K00392",
+        "K00860",
+        "K00955",
+        "K00956",
+        "K00957",
+        "K00958"
+      ]
+    },
+    "M00528": {
+      "name": "Nitrification, ammonia => nitrite",
+      "kos": [
+        "K10535",
+        "K10945",
+        "K10946",
+        "K28504"
+      ]
+    },
+    "M00529": {
+      "name": "Denitrification, nitrate => nitrogen",
+      "kos": [
+        "K00368",
+        "K00370",
+        "K00371",
+        "K00374",
+        "K00376",
+        "K02305",
+        "K02567",
+        "K02568",
+        "K04561",
+        "K15864"
+      ]
+    },
+    "M00530": {
+      "name": "Dissimilatory nitrate reduction, nitrate => ammonia",
+      "kos": [
+        "K00362",
+        "K00363",
+        "K00370",
+        "K00371",
+        "K00374",
+        "K02567",
+        "K02568",
+        "K03385",
+        "K15876"
+      ]
+    },
+    "M00531": {
+      "name": "Assimilatory nitrate reduction, nitrate => ammonia",
+      "kos": [
+        "K00360",
+        "K00361",
+        "K00366",
+        "K00367",
+        "K00372",
+        "K10534",
+        "K17877",
+        "K26138",
+        "K26139"
+      ]
+    },
+    "M00595": {
+      "name": "Sulfur oxidation, SOX system, thiosulfate => sulfate",
+      "kos": [
+        "K17222",
+        "K17223",
+        "K17224",
+        "K17225",
+        "K17226",
+        "K17227",
+        "K22622"
+      ]
+    },
+    "M00596": {
+      "name": "Dissimilatory sulfate reduction, sulfate => H2S",
+      "kos": [
+        "K00394",
+        "K00395",
+        "K00958",
+        "K11180",
+        "K11181",
+        "K27187",
+        "K27188",
+        "K27189",
+        "K27190",
+        "K27191",
+        "K27196"
+      ]
+    },
+    "M00804": {
+      "name": "Complete nitrification, comammox, ammonia => nitrite => nitrate",
+      "kos": [
+        "K00370",
+        "K00371",
+        "K10535",
+        "K10945",
+        "K10946",
+        "K28504"
+      ]
+    },
+    "M00973": {
+      "name": "Anammox, nitrite + ammonia => nitrogen",
+      "kos": [
+        "K00368",
+        "K15864",
+        "K20932",
+        "K20933",
+        "K20934",
+        "K20935"
+      ]
+    },
+    "M00987": {
+      "name": "Assimilatory sulfate reduction, plants, sulfate => H2S",
+      "kos": [
+        "K00392",
+        "K05907",
+        "K13811"
+      ]
+    }
+  }
+}
