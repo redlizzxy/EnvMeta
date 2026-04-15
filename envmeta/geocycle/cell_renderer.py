@@ -246,11 +246,11 @@ def _draw_chain_row(
     inner_x0: float, inner_x1: float, row_y: float,
     cell_h: float, element_color: str,
     show_heatmap: bool = False,
-    inline_chems: bool = False,
-    inline_left_x: float | None = None,
-    inline_right_x: float | None = None,
+    external_chems: bool = False,
+    cell_x0: float | None = None,
+    cell_x1: float | None = None,
     gene_positions: list[tuple[float, float]] | None = None,
-) -> None:
+) -> tuple[tuple[float, float] | None, tuple[float, float] | None]:
     """画一条"链"在指定 row_y 上。
 
     chain: list of segments，段间化学物自然衔接
@@ -264,7 +264,7 @@ def _draw_chain_row(
     n_seg = len(chain)
     slots = 2 * n_seg - 1 if n_seg > 0 else 0
     if slots == 0:
-        return
+        return (None, None)
     if slots == 1:
         xs = [(inner_x0 + inner_x1) / 2]
     else:
@@ -308,24 +308,29 @@ def _draw_chain_row(
                 linewidth=0.9, color=ARROW_COLOR, zorder=3,
             ))
 
-    # inline substrate / product（多链模式）
-    if inline_chems:
+    # 外部 substrate / product（和单链一致的外部格式）
+    substrate_pos = None
+    product_pos = None
+    if external_chems and cell_x0 is not None and cell_x1 is not None:
         chain_sub = steps[chain[0][0]].get("substrate")
         chain_prod = steps[chain[-1][-1]].get("product")
-        if chain_sub and inline_left_x is not None:
-            _intermediate(ax, inline_left_x, row_y, str(chain_sub))
+        if chain_sub:
+            sub_x = cell_x0 - 1.1
+            substrate_pos = _chem_outside(ax, sub_x, row_y, str(chain_sub))
             ax.add_patch(FancyArrowPatch(
-                (inline_left_x + 0.3, row_y), (inner_x0 - 0.1, row_y),
-                arrowstyle="-|>", mutation_scale=10,
-                linewidth=1.0, color=ARROW_COLOR, zorder=3,
+                (sub_x + 0.5, row_y), (cell_x0 - 0.05, row_y),
+                arrowstyle="-|>", mutation_scale=14,
+                linewidth=1.4, color=OUTSIDE_ARROW_COLOR, zorder=4,
             ))
-        if chain_prod and inline_right_x is not None:
-            _intermediate(ax, inline_right_x, row_y, str(chain_prod))
+        if chain_prod:
+            prod_x = cell_x1 + 1.1
+            product_pos = _chem_outside(ax, prod_x, row_y, str(chain_prod))
             ax.add_patch(FancyArrowPatch(
-                (inner_x1 + 0.1, row_y), (inline_right_x - 0.3, row_y),
-                arrowstyle="-|>", mutation_scale=10,
-                linewidth=1.0, color=ARROW_COLOR, zorder=3,
+                (cell_x1 + 0.05, row_y), (prod_x - 0.5, row_y),
+                arrowstyle="-|>", mutation_scale=14,
+                linewidth=1.4, color=OUTSIDE_ARROW_COLOR, zorder=4,
             ))
+    return substrate_pos, product_pos
 
 
 def _split_into_chains(segments: list[list[int]],
@@ -417,15 +422,6 @@ def draw_cascade_cell(
     }
     """
     cell_x1 = cell_x0 + cell_w
-
-    # S2.5-10 post2: 提前探测多链场景，动态扩展 cell_h 避免行叠
-    _chain_count = 1
-    if steps:
-        _segs_probe = _segment_by_complex(steps)
-        _chains_probe = _split_into_chains(_segs_probe, steps)
-        _chain_count = max(1, len(_chains_probe))
-    if _chain_count > 1:
-        cell_h = cell_h * _chain_count   # 每多 1 链加一倍高度
 
     ax.add_patch(FancyBboxPatch(
         (cell_x0, cy - cell_h / 2), cell_w, cell_h,
@@ -548,68 +544,43 @@ def draw_cascade_cell(
                 inner_x0=inner_x0, inner_x1=inner_x1, row_y=gy,
                 cell_h=cell_h, element_color=element_color,
                 show_heatmap=show_heatmap,
-                inline_chems=False,
+                external_chems=False,
                 gene_positions=gene_positions,
             )
         else:
-            # 多链：每链一行；每行的 substrate/product 画在细胞**外部**
-            # （和单链风格一致），show_outside_chems 控制开关
+            # 多链：每链一行；底物/产物画在 cell 外部（和单链一致格式）
             n_chains = len(chains)
-            row_h = cell_h / n_chains   # cell_h 已经在前面预扩展为 n_chains 倍
-            ys = [cy + cell_h / 2 - (i + 0.5) * row_h for i in range(n_chains)]
-            for chain, row_y in zip(chains, ys):
-                _draw_chain_row(
+            row_h = (cell_h * 0.92) / n_chains
+            ys = [cy + (n_chains - 1) / 2 * row_h - i * row_h
+                   for i in range(n_chains)]
+            multichain_sub = None
+            multichain_prod = None
+            for ci, (chain, row_y) in enumerate(zip(chains, ys)):
+                sub_pos, prod_pos = _draw_chain_row(
                     ax, chain, steps,
                     inner_x0=inner_x0, inner_x1=inner_x1, row_y=row_y,
-                    cell_h=row_h, element_color=element_color,
+                    cell_h=row_h * 0.9, element_color=element_color,
                     show_heatmap=False,
-                    inline_chems=False,
+                    external_chems=True,
+                    cell_x0=cell_x0, cell_x1=cell_x1,
                     gene_positions=gene_positions,
                 )
-                # 每行外部 substrate / product（和 show_outside_chems 一致）
-                if show_outside_chems:
-                    c_sub = chain[0]
-                    c_prd = chain[-1]
-                    sub_txt = steps[c_sub[0]].get("substrate")
-                    prd_txt = steps[c_prd[-1]].get("product")
-                    if sub_txt:
-                        sub_x = cell_x0 - 1.1
-                        _chem_outside(ax, sub_x, row_y, str(sub_txt))
-                        ax.add_patch(FancyArrowPatch(
-                            (sub_x + 0.5, row_y), (cell_x0 - 0.05, row_y),
-                            arrowstyle="-|>", mutation_scale=14,
-                            linewidth=1.4, color=OUTSIDE_ARROW_COLOR, zorder=4,
-                        ))
-                    if prd_txt:
-                        prd_x = cell_x1 + 1.1
-                        _chem_outside(ax, prd_x, row_y, str(prd_txt))
-                        ax.add_patch(FancyArrowPatch(
-                            (cell_x1 + 0.05, row_y), (prd_x - 0.5, row_y),
-                            arrowstyle="-|>", mutation_scale=14,
-                            linewidth=1.4, color=OUTSIDE_ARROW_COLOR, zorder=4,
-                        ))
+                if ci == 0:
+                    multichain_sub = sub_pos
+                if ci == len(chains) - 1:
+                    multichain_prod = prod_pos
 
     substrate_pos = None
     product_pos = None
-    # 多链模式：外部 substrate/product 已按行画过；锚点取第一行 substrate + 末行 product
+    # 多链：已在 _draw_chain_row(external_chems=True) 中画了外部 substrate/product
     is_multi_chain = False
     if not (parallel_complex or (all_same_intermediate and n_steps >= 2)):
         _segs = _segment_by_complex(steps)
         _chains = _split_into_chains(_segs, steps)
         is_multi_chain = len(_chains) > 1
-        if is_multi_chain and show_outside_chems:
-            first_chain = _chains[0]
-            last_chain = _chains[-1]
-            n_c = len(_chains)
-            _row_h = cell_h / n_c
-            first_y = cy + cell_h / 2 - 0.5 * _row_h
-            last_y = cy + cell_h / 2 - (n_c - 0.5) * _row_h
-            sub_txt = steps[first_chain[0][0]].get("substrate")
-            prd_txt = steps[last_chain[-1][-1]].get("product")
-            if sub_txt:
-                substrate_pos = (cell_x0 - 1.1, first_y)
-            if prd_txt:
-                product_pos = (cell_x1 + 1.1, last_y)
+        if is_multi_chain:
+            substrate_pos = locals().get("multichain_sub")
+            product_pos = locals().get("multichain_prod")
 
     if show_outside_chems and not is_multi_chain:
         sub_txt = steps[0].get("substrate")

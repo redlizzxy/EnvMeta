@@ -18,7 +18,8 @@ import numpy as np
 from matplotlib.patches import Rectangle
 
 from envmeta.geocycle.cell_renderer import (
-    _pretty_formula, draw_cascade_cell, genes_to_steps,
+    _pretty_formula, _segment_by_complex, _split_into_chains,
+    draw_cascade_cell, genes_to_steps,
 )
 from envmeta.geocycle.knowledge_base import couplings as kb_couplings
 from envmeta.geocycle.model import CycleData, ElementCycle, PathwayActivity
@@ -124,16 +125,34 @@ def _draw_element_quadrant_cascade(
         return []
 
     n = len(picked)
-    # 垂直均匀分布；顶部留 1.2 给标题
     top, bot = 8.4, 0.6
-    cell_h_max = 1.4
-    row_span = (top - bot) / n
-    cell_h = min(cell_h_max, row_span * 0.75)
-    ys = [top - (i + 0.5) * row_span for i in range(n)]
+    available = top - bot
+    # 预计算每 cell 期望高度：多链 cell（如 sqr + Sox）给 1.6× 基础高
+    base_cell_h = 1.4
+    weights: list[float] = []
+    for pw, contrib in picked:
+        steps_preview = genes_to_steps(contrib.genes, default_color=ec.color)
+        _segs = _segment_by_complex(steps_preview)
+        _chains = _split_into_chains(_segs, steps_preview)
+        weights.append(1.6 if len(_chains) >= 2 else 1.0)
+    total_weight = sum(weights) or 1.0
+    # 缩放到可用高度
+    cell_hs = [base_cell_h * w for w in weights]
+    total_h = sum(cell_hs)
+    if total_h > available * 0.95:
+        scale = (available * 0.95) / total_h
+        cell_hs = [h * scale for h in cell_hs]
+    # 每 cell 纵向中点 cy
+    gap = max(0.05, (available - sum(cell_hs)) / max(n + 1, 1))
+    ys: list[float] = []
+    y_cur = top - gap
+    for h in cell_hs:
+        ys.append(y_cur - h / 2)
+        y_cur -= h + gap
 
     most_active = set(cfg.get("most_active_pathways") or ())
     anchors: list[dict] = []
-    for (pw, contrib), cy in zip(picked, ys):
+    for (pw, contrib), cy, this_cell_h in zip(picked, ys, cell_hs):
         n_genes = len(contrib.genes)
         # 细胞宽随基因数伸缩（2 基因≈5 宽；4 基因≈8.5 宽；上限 10）
         cell_w = float(np.clip(3.5 + n_genes * 1.4, 4.5, 10.0))
@@ -152,7 +171,7 @@ def _draw_element_quadrant_cascade(
             mag_label = mag_label + " ✦"
         r = draw_cascade_cell(
             ax,
-            cy=cy, cell_x0=cell_x0, cell_w=cell_w, cell_h=cell_h,
+            cy=cy, cell_x0=cell_x0, cell_w=cell_w, cell_h=this_cell_h,
             title=title, mag_label=mag_label,
             steps=steps,
             element_color=ec.color,
@@ -161,7 +180,7 @@ def _draw_element_quadrant_cascade(
         )
         # 小信息条：通路完整度 + 贡献度（右下）
         ax.text(
-            17.7, cy - cell_h / 2 - 0.08,
+            17.7, cy - this_cell_h / 2 - 0.08,
             f"c={contrib.completeness:.0f}%  ab̄={contrib.abundance_mean:.2f}",
             fontsize=6.5, color="#555", ha="right", va="top",
         )
