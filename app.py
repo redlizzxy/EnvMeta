@@ -21,6 +21,32 @@ from envmeta.file_manager.detector import FileType, detect, read_table
 from envmeta.params.common import render_figure_size, render_font_controls
 
 
+def _vector_downloads(figure, basename: str, key_prefix: str) -> None:
+    """渲染「SVG（SCI 投稿）」+「TIFF 600dpi（毕业论文 / 期刊位图）」两键。
+
+    与已有的 PNG / PDF 按钮并列出现，让用户按期刊要求一键拿矢量 / 高分位图。
+    """
+    cs = st.columns(2)
+    with cs[0]:
+        st.download_button(
+            "⬇️ SVG（SCI 投稿）",
+            data=export_to_bytes(figure, "svg"),
+            file_name=f"{basename}.svg",
+            mime="image/svg+xml",
+            key=f"{key_prefix}_svg",
+            help="纯矢量图形，无损放大；SCI 投稿多数期刊首选",
+        )
+    with cs[1]:
+        st.download_button(
+            "⬇️ TIFF 600dpi（毕业论文）",
+            data=export_to_bytes(figure, "tiff"),
+            file_name=f"{basename}.tiff",
+            mime="image/tiff",
+            key=f"{key_prefix}_tiff",
+            help="LZW 压缩 600dpi TIFF，符合多数期刊位图最低要求",
+        )
+
+
 def _reproduce_button(analysis_id: str, file_paths: dict[str, str],
                       params: dict, key: str, output_base: str | None = None):
     """渲染「下载 .py 复现脚本」按钮。"""
@@ -237,6 +263,7 @@ elif page == "Reads-based 分析":
                                    data=last.stats.to_csv(sep="\t").encode("utf-8"),
                                    file_name=f"stackplot_{last.params['style']}_percentage.tsv",
                                    mime="text/tab-separated-values", key="stack_tsv")
+            _vector_downloads(last.figure, f"stackplot_{last.params['style']}", "stack")
             _reproduce_button("stackplot",
                               {"abundance": ab_name, "metadata": md_name},
                               last.params, key="stack_code",
@@ -299,6 +326,7 @@ elif page == "Reads-based 分析":
                                    data=last.stats.to_csv(sep="\t", index=False).encode("utf-8"),
                                    file_name="pcoa_stats.tsv", mime="text/tab-separated-values",
                                    key="pcoa_tsv")
+            _vector_downloads(last.figure, "pcoa", "pcoa")
             _reproduce_button("pcoa",
                               {"distance": dist_name, "metadata": md_name},
                               last.params, key="pcoa_code")
@@ -364,6 +392,7 @@ elif page == "Reads-based 分析":
                                    data=last.stats.to_csv(sep="\t").encode("utf-8"),
                                    file_name="gene_heatmap_zscore.tsv",
                                    mime="text/tab-separated-values", key="heat_tsv")
+            _vector_downloads(last.figure, "gene_heatmap", "heat")
             _reproduce_button("gene_heatmap",
                               {"ko_abundance": ko_name, "metadata": md_name},
                               last.params, key="heat_code")
@@ -432,6 +461,7 @@ elif page == "Reads-based 分析":
                                    data=last.stats.to_csv(sep="\t", index=False).encode("utf-8"),
                                    file_name="alpha_stats.tsv",
                                    mime="text/tab-separated-values", key="alpha_tsv")
+            _vector_downloads(last.figure, "alpha_boxplot", "alpha")
             _reproduce_button("alpha_boxplot",
                               {"alpha": alpha_name, "metadata": md_name},
                               last.params, key="alpha_code")
@@ -507,6 +537,7 @@ elif page == "Reads-based 分析":
                                    data=last.stats.to_csv(sep="\t", index=False).encode("utf-8"),
                                    file_name=f"log2fc_{suffix}_stats.tsv",
                                    mime="text/tab-separated-values", key="log2fc_tsv")
+            _vector_downloads(last.figure, f"log2fc_{suffix}", "log2fc")
             _reproduce_button("log2fc",
                               {"ko_abundance": ko_name, "metadata": md_name},
                               last.params, key="log2fc_code",
@@ -578,6 +609,7 @@ elif page == "Reads-based 分析":
                                    data=last.stats.to_csv(sep="\t", index=False).encode("utf-8"),
                                    file_name="rda_stats.tsv",
                                    mime="text/tab-separated-values", key="rda_tsv")
+            _vector_downloads(last.figure, "rda", "rda")
             _reproduce_button("rda",
                               {"abundance": ab_name, "env_factors": env_name, "metadata": md_name},
                               last.params, key="rda_code")
@@ -645,6 +677,7 @@ elif page == "Reads-based 分析":
                                    data=last.stats.to_csv(sep="\t", index=False).encode("utf-8"),
                                    file_name="lefse_stats.tsv",
                                    mime="text/tab-separated-values", key="lefse_tsv")
+            _vector_downloads(last.figure, "lefse", "lefse")
             _reproduce_button("lefse",
                               {"abundance": ab_name, "metadata": md_name},
                               last.params, key="lefse_code")
@@ -732,6 +765,7 @@ elif page == "MAG-based 分析":
             files_map = {"quality": q_name}
             if t_name != "（无）": files_map["taxonomy"] = t_name
             if k_name != "（无）": files_map["keystone"] = k_name
+            _vector_downloads(last.figure, "mag_quality", "mq")
             _reproduce_button("mag_quality", files_map, last.params, key="mq_code")
             with st.expander("查看统计表"):
                 st.dataframe(last.stats, use_container_width=True)
@@ -820,6 +854,7 @@ elif page == "MAG-based 分析":
             if t_name != "（无）": files_map["taxonomy"] = t_name
             if k_name != "（无）": files_map["keystone"] = k_name
             if a_name != "（无）": files_map["abundance"] = a_name
+            _vector_downloads(last.figure, "pathway", "pw")
             _reproduce_button("pathway", files_map, last.params, key="pw_code")
             with st.expander("查看统计表"):
                 st.dataframe(last.stats, use_container_width=True)
@@ -907,6 +942,7 @@ elif page == "MAG-based 分析":
             if t_name != "（无）": files_map["taxonomy"] = t_name
             if k_name != "（无）": files_map["keystone"] = k_name
             if a_name != "（无）": files_map["abundance"] = a_name
+            _vector_downloads(last.figure, "gene_profile", "gp")
             _reproduce_button("gene_profile", files_map, last.params, key="gp_code")
             with st.expander("查看统计表"):
                 st.dataframe(last.stats, use_container_width=True)
@@ -1026,6 +1062,7 @@ elif page == "生物地球化学循环图":
                                data=last.stats.to_csv(sep="\t", index=False).encode("utf-8"),
                                file_name="cycle_stats.tsv",
                                mime="text/tab-separated-values", key="cy_tsv")
+        _vector_downloads(last.figure, "cycle", "cy")
         st.info(
             "⚠️ **输出是描述性的，不是因果性的。** "
             "Top-completeness contributor 只表示该 MAG 的 KO 覆盖该通路最多，"
