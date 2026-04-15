@@ -3,6 +3,8 @@ EnvMeta — 环境微生物宏基因组可视化分析平台
 Streamlit 主入口：streamlit run app.py
 """
 
+from pathlib import Path
+
 import pandas as pd
 import streamlit as st
 
@@ -1216,6 +1218,109 @@ elif page == "生物地球化学循环图":
                 st.dataframe(sens[["element", "pathway_id", "display_name",
                                    "top_mag", "robust"]],
                              use_container_width=True)
+
+        # —— 机制假说 YAML 评分器（S3）——————————————————
+        with st.expander("🧪 假说评分 (可选) — 上传机制 YAML", expanded=False):
+            st.caption(
+                "上传一份机制假说 YAML，对照本次循环图推断结果评分。"
+                "评分是**描述性证据加权**，不是因果证实。"
+                "Schema 说明见 `paper/hypotheses/README.md`。"
+            )
+            _tmpl = (Path("paper") / "hypotheses" / "arsenic_steel_slag.yaml")
+            if _tmpl.exists():
+                st.download_button(
+                    "⬇️ 下载示例 YAML (arsenic_steel_slag)",
+                    data=_tmpl.read_bytes(),
+                    file_name="arsenic_steel_slag.yaml",
+                    mime="application/x-yaml",
+                    key="hyp_tmpl",
+                )
+            hyp_file = st.file_uploader(
+                "假说 YAML", type=["yaml", "yml"], key="hyp_upload",
+            )
+            if hyp_file is not None and st.button("评分", key="hyp_score_go"):
+                try:
+                    from envmeta.geocycle.hypothesis import (
+                        load_hypothesis as _load_hyp,
+                        score as _score_hyp,
+                    )
+                    from envmeta.geocycle.inference import infer as _infer
+
+                    def _get_file(n):
+                        return (st.session_state.files[n]["df"]
+                                if n != "（无）" else None)
+
+                    ko_df2 = st.session_state.files[ko_name]["df"]
+                    t_df2 = _get_file(t_name)
+                    if t_df2 is not None and t_df2.shape[1] == 2:
+                        cols_lower = [c.lower() for c in t_df2.columns]
+                        has_header = ("classification" in cols_lower
+                                      or "taxonomy" in cols_lower
+                                      or any("mag" in c for c in cols_lower))
+                        if not has_header:
+                            original_header = list(t_df2.columns)
+                            t_df2 = pd.concat(
+                                [pd.DataFrame([original_header],
+                                              columns=["MAG", "Taxonomy"]),
+                                 t_df2.rename(columns={t_df2.columns[0]: "MAG",
+                                                       t_df2.columns[1]: "Taxonomy"})],
+                                ignore_index=True,
+                            )
+                    hyp_params = {
+                        "completeness_threshold": float(comp_thresh),
+                        "env_rho_min": rho_min,
+                        "env_p_max": p_max,
+                        "group_filter": None if group_filter == "All" else group_filter,
+                    }
+                    data = _infer(
+                        ko_df2, t_df2, _get_file(k_name), _get_file(a_name),
+                        _get_file(e_name), _get_file(m_name),
+                        params=hyp_params,
+                    )
+                    hyp_obj = _load_hyp(hyp_file.read().decode("utf-8"))
+                    hyp_result = _score_hyp(hyp_obj, data)
+                    st.session_state["_hyp_last"] = hyp_result
+                except Exception as e:
+                    st.error(f"评分失败：{e}")
+            hyp_last = st.session_state.get("_hyp_last")
+            if hyp_last is not None:
+                _color = {
+                    "strong": "#27AE60",
+                    "suggestive": "#F39C12",
+                    "weak": "#95A5A6",
+                    "insufficient": "#E74C3C",
+                }.get(hyp_last.label, "#888")
+                st.markdown(
+                    f"### {hyp_last.hypothesis_name}  "
+                    f"<span style='background:{_color};color:white;"
+                    f"padding:4px 10px;border-radius:6px;font-size:0.85em;'>"
+                    f"{hyp_last.label}</span>  "
+                    f"**{hyp_last.overall_score:.2f}**",
+                    unsafe_allow_html=True,
+                )
+                st.caption(
+                    f"{hyp_last.n_satisfied}/{hyp_last.n_total} claim 满足"
+                    f"（{hyp_last.n_skipped} 条 skipped 不计）"
+                )
+                st.dataframe(hyp_last.to_dataframe(), use_container_width=True)
+                c1, c2 = st.columns(2)
+                with c1:
+                    st.download_button(
+                        "⬇️ 评分报告 (TSV)",
+                        data=hyp_last.to_dataframe()
+                              .to_csv(sep="\t", index=False).encode("utf-8"),
+                        file_name="hypothesis_score.tsv",
+                        mime="text/tab-separated-values",
+                        key="hyp_tsv",
+                    )
+                with c2:
+                    st.download_button(
+                        "⬇️ 评分报告 (JSON)",
+                        data=hyp_last.to_json().encode("utf-8"),
+                        file_name="hypothesis_score.json",
+                        mime="application/json",
+                        key="hyp_json",
+                    )
 
 elif page == "导出中心":
     st.title("导出中心")

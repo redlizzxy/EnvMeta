@@ -1,0 +1,88 @@
+name: "钢渣驱动铁氧化-砷固定机制（假说示例）"
+description: |
+  研究假说：高钢渣配比（B 组）通过促进 Gallionella 类 MAG 的铁氧化活性，
+  产生 Fe(III) 表面吸附砷酸盐；同时 Sulfuricaulis 硫氧化调控 Eh，
+  协同影响砷的生物地球化学循环。
+
+  本 YAML 对应论文实验数据（CK / A / B 三组）的假说条款清单。
+  建议在循环图页选 group=B + ranking=keystone_priority 后评分，
+  获取 "B 组数据支持度" 的证据链。
+author: "EnvMeta 示例"
+version: "1.0"
+
+# 评分阈值（可按学科严格度调）
+strong_threshold: 0.70        # ≥ 0.70 → strong
+suggestive_threshold: 0.40    # ≥ 0.40 → suggestive，否则 weak / insufficient
+
+claims:
+  # ── 铁氧化相关 ───────────────────────────────
+  - id: iron_transport_active
+    type: pathway_active
+    weight: 1.0
+    description: "Fe transport 通路应有活跃 MAG（ABC.FEV.A/P/S 或 afuA）"
+    params:
+      pathway: "Fe transport"
+      min_completeness: 40
+
+  - id: keystone_on_iron
+    type: keystone_in_pathway
+    weight: 0.8
+    description: "铁氧化应由 keystone MAG 承担才支撑'驱动'的叙述"
+    params:
+      pathway: "Fe transport"
+      min_keystones: 1
+
+  # ── 砷代谢相关 ──────────────────────────────
+  - id: arsenate_reduction_active
+    type: pathway_active
+    weight: 1.0
+    description: "arsC（砷酸盐还原酶）活跃是砷循环的基础"
+    params:
+      pathway: "Arsenate reduction"
+      min_completeness: 30
+
+  - id: as_transport_active
+    type: pathway_active
+    weight: 0.8
+    description: "砷转运活跃说明细胞主动处理 As"
+    params:
+      pathway: "As transport/detox"
+      min_completeness: 30
+
+  # ── 跨元素化学耦合 ─────────────────────────
+  - id: fe_as_adsorption_coupling
+    type: coupling_possible
+    weight: 2.0
+    description: "核心假说：As(V) 吸附于 Fe(III) 表面（Fe-As_surface）"
+    params:
+      species_a: "As(V)"
+      species_b: "Fe(III)"
+
+  - id: s_as_precipitation_coupling
+    type: coupling_possible
+    weight: 1.0
+    description: "备选机制：As(III) 与 S²⁻ 形成 As₂S₃ 沉淀"
+    params:
+      species_a: "As(III)"
+      species_b: "S-2"
+
+  # ── 环境相关性 ──────────────────────────────
+  - id: ammonia_ox_eh_link
+    type: env_correlation
+    weight: 1.0
+    description: "氨氧化应与 Eh 正相关（S2 置换检验 strong）"
+    params:
+      pathway: "Ammonia oxidation"
+      env_factor: "Eh"
+      expected_sign: positive
+      min_confidence: suggestive
+
+  - id: arsenate_total_as_link
+    type: env_correlation
+    weight: 0.8
+    description: "砷酸盐还原与总砷正相关（压力-应答响应）"
+    params:
+      pathway: "Arsenate reduction"
+      env_factor: "Total_As"
+      expected_sign: positive
+      min_confidence: weak

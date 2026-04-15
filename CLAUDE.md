@@ -282,6 +282,42 @@ S8 插件框架推迟到论文接收后再做。完整计划见 `C:\Users\REDLIZ
 
 > 每次 session 结束前更新此区块。新对话开始时 Claude Code 自动读取，了解当前进度。
 
+### 2026-04-19（S3 — 机制假说 YAML 评分器 ⭐ L2 层落地）
+
+- **目标**：EnvMeta 推断是描述性无假说的，用户想"评估我的假说数据支不支持"需要
+  独立入口。S3 填 L2 层（"用户自带假说 YAML → 证据评分"），与 inference 架构解耦
+- **4 类 claim**（v1 范围）：
+  - `pathway_active`：通路活跃 + completeness/contribution 阈值
+  - `coupling_possible`：KB 有 species_a↔species_b 配对 AND 两端物种都被观测
+  - `env_correlation`：(pathway, env) 符号方向 + confidence 达 min 阈
+  - `keystone_in_pathway`：通路含 ≥N keystone contributor
+- **聚合**：`overall = Σ(w·score)/Σ(w)`（仅非 skipped），4 档标签
+  strong(≥0.75) / suggestive(≥0.40) / weak(>0) / insufficient
+- **skipped 不扣分**：KB 没有的耦合 / 数据里没跑到的通路 → 从分母剔除，避免
+  "用户写得不完整 → 分数被压低"的误解
+- **交付**（commit 待）：
+  - `envmeta/geocycle/hypothesis.py`（~430 行）：dataclass + load_hypothesis +
+    score + 4 evaluator + 辅助（pathway 模糊匹配、_collect_observed_species）
+  - `paper/hypotheses/arsenic_steel_slag.yaml`：8 claim 示例（对应论文研究假说）
+  - `paper/hypotheses/README.md`：schema 说明 + 4 类 claim 语义 + 撰写 checklist
+  - `tests/sample_data/sample_hypothesis.yaml` + `tests/test_hypothesis.py` (+12 case)
+  - `app.py` 循环图页底部 expander「🧪 假说评分 (可选)」 + 示例下载 +
+    上传 + 评分按钮 + TSV/JSON 下载 + 彩色标签徽章
+  - `paper/benchmarks/validation/hypothesis/`：CK/A/B 三组实跑结果
+- **真实数据结果**（arsenic_steel_slag.yaml vs 样本数据）：
+  - **CK**: 0.879 / strong (5/6 sat, 2 skipped) — 背景铁砷活性已存在
+  - **A**:  0.868 / strong (6/7 sat, 1 skipped) — 中等处理
+  - **B**:  **1.000 / strong** (6/6 sat, 2 skipped) — 高钢渣组满分支持
+  - 三组 skipped 主要是 CK/A 没同时跑出 Fe(III) + S-2 耦合锚点（生物学合理），
+    skipped 不扣分正确体现
+- **论文可写**："hypothesis-agnostic cycle inference + hypothesis-testing YAML
+  evaluator separates evidence from interpretation"
+- **测试**：176 → **189 全绿**（+13：12 hypothesis 新 case + test_overall_label
+  edge + existing regression 不受影响）
+- **下一步**：S4 Fork Bundle 或 S4.5 HTML 交互导出（见 CLAUDE.md 路线）
+
+---
+
 ### 2026-04-19（S2.5-14 — 回归修复：multi-chain 细胞丢失化学物耦合锚点）
 
 - **症状**：用户发现 B 组图中 `As(V)↔Fe(III)` 的棕色耦合线（v29 之前有）在

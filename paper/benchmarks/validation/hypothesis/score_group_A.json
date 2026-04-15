@@ -1,0 +1,130 @@
+{
+  "hypothesis_name": "钢渣驱动铁氧化-砷固定机制（假说示例）",
+  "overall_score": 0.868,
+  "label": "strong",
+  "n_satisfied": 6,
+  "n_total": 7,
+  "n_skipped": 1,
+  "claim_results": [
+    {
+      "claim_id": "iron_transport_active",
+      "claim_type": "pathway_active",
+      "status": "satisfied",
+      "score": 1.0,
+      "weight": 1.0,
+      "evidence": {
+        "pathway_id": "Fe transport",
+        "element": "iron",
+        "n_active_mags": 113,
+        "mean_completeness": 70.94,
+        "total_contribution": 947.06
+      },
+      "explanation": "Fe transport: 113 个 MAG 活跃，平均完整度 71%，总贡献 947.1"
+    },
+    {
+      "claim_id": "keystone_on_iron",
+      "claim_type": "keystone_in_pathway",
+      "status": "satisfied",
+      "score": 1.0,
+      "weight": 0.8,
+      "evidence": {
+        "pathway_id": "Fe transport",
+        "n_keystones": 1,
+        "keystone_labels": [
+          "Sulfuricaulis sp. Mx_141"
+        ],
+        "min_required": 1
+      },
+      "explanation": "Fe transport: 含 1 个 keystone (Sulfuricaulis sp. Mx_141)"
+    },
+    {
+      "claim_id": "arsenate_reduction_active",
+      "claim_type": "pathway_active",
+      "status": "satisfied",
+      "score": 1.0,
+      "weight": 1.0,
+      "evidence": {
+        "pathway_id": "Arsenate reduction",
+        "element": "arsenic",
+        "n_active_mags": 37,
+        "mean_completeness": 51.35,
+        "total_contribution": 237.23
+      },
+      "explanation": "Arsenate reduction: 37 个 MAG 活跃，平均完整度 51%，总贡献 237.2"
+    },
+    {
+      "claim_id": "as_transport_active",
+      "claim_type": "pathway_active",
+      "status": "satisfied",
+      "score": 1.0,
+      "weight": 0.8,
+      "evidence": {
+        "pathway_id": "As transport/detox",
+        "element": "arsenic",
+        "n_active_mags": 7,
+        "mean_completeness": 50.0,
+        "total_contribution": 81.83
+      },
+      "explanation": "As transport/detox: 7 个 MAG 活跃，平均完整度 50%，总贡献 81.8"
+    },
+    {
+      "claim_id": "fe_as_adsorption_coupling",
+      "claim_type": "coupling_possible",
+      "status": "satisfied",
+      "score": 1.0,
+      "weight": 2.0,
+      "evidence": {
+        "kb_product": "Fe-As_surface",
+        "kb_type": "adsorption",
+        "obs_a": true,
+        "obs_b": true
+      },
+      "explanation": "As(V) + Fe(III) → Fe-As_surface (adsorption)：两端物种都被观测到"
+    },
+    {
+      "claim_id": "s_as_precipitation_coupling",
+      "claim_type": "coupling_possible",
+      "status": "satisfied",
+      "score": 1.0,
+      "weight": 1.0,
+      "evidence": {
+        "kb_product": "As2S3",
+        "kb_type": "precipitation",
+        "obs_a": true,
+        "obs_b": true
+      },
+      "explanation": "As(III) + S-2 → As2S3 (precipitation)：两端物种都被观测到"
+    },
+    {
+      "claim_id": "ammonia_ox_eh_link",
+      "claim_type": "env_correlation",
+      "status": "unsatisfied",
+      "score": 0.0,
+      "weight": 1.0,
+      "evidence": {
+        "pathway_id": "Ammonia oxidation",
+        "env_factor": "Eh",
+        "rho": 1.0,
+        "perm_p": 0.05,
+        "confidence": "spurious?"
+      },
+      "explanation": "(Ammonia oxidation, Eh): ρ=+1.00 但 confidence=spurious?，未达 suggestive 要求"
+    },
+    {
+      "claim_id": "arsenate_total_as_link",
+      "claim_type": "env_correlation",
+      "status": "skipped",
+      "score": 0.0,
+      "weight": 0.8,
+      "evidence": {
+        "pathway_query": "Arsenate reduction",
+        "env_factor": "Total_As"
+      },
+      "explanation": "找不到 (Arsenate reduction, Total_As) 的相关性记录"
+    }
+  ],
+  "params": {
+    "strong_threshold": 0.7,
+    "suggestive_threshold": 0.4
+  }
+}

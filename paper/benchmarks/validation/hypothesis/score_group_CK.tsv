@@ -1,0 +1,9 @@
+claim_id	type	status	score	weight	explanation
+iron_transport_active	pathway_active	satisfied	1.0	1.0	Fe transport: 113 个 MAG 活跃，平均完整度 71%，总贡献 906.1
+keystone_on_iron	keystone_in_pathway	unsatisfied	0.0	0.8	Fe transport: 无 keystone contributor
+arsenate_reduction_active	pathway_active	satisfied	1.0	1.0	Arsenate reduction: 37 个 MAG 活跃，平均完整度 51%，总贡献 189.4
+as_transport_active	pathway_active	satisfied	1.0	0.8	As transport/detox: 7 个 MAG 活跃，平均完整度 50%，总贡献 65.0
+fe_as_adsorption_coupling	coupling_possible	satisfied	1.0	2.0	As(V) + Fe(III) → Fe-As_surface (adsorption)：两端物种都被观测到
+s_as_precipitation_coupling	coupling_possible	satisfied	1.0	1.0	As(III) + S-2 → As2S3 (precipitation)：两端物种都被观测到
+ammonia_ox_eh_link	env_correlation	skipped	0.0	1.0	找不到 (Ammonia oxidation, Eh) 的相关性记录
+arsenate_total_as_link	env_correlation	skipped	0.0	0.8	找不到 (Arsenate reduction, Total_As) 的相关性记录

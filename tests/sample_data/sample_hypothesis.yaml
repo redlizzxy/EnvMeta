@@ -1,0 +1,37 @@
+name: "测试用最小假说"
+description: "单元测试用，覆盖 4 类 claim"
+version: "1.0"
+
+strong_threshold: 0.75
+suggestive_threshold: 0.40
+
+claims:
+  - id: arsenate_reduction_is_active
+    type: pathway_active
+    weight: 1.0
+    params:
+      pathway: "Arsenate reduction"
+      min_completeness: 30
+
+  - id: fe_as_coupling
+    type: coupling_possible
+    weight: 1.0
+    params:
+      species_a: "As(V)"
+      species_b: "Fe(III)"
+
+  - id: arsenate_red_total_as
+    type: env_correlation
+    weight: 1.0
+    params:
+      pathway: "Arsenate reduction"
+      env_factor: "Total_As"
+      expected_sign: positive
+      min_confidence: suggestive
+
+  - id: keystone_on_nitrate
+    type: keystone_in_pathway
+    weight: 0.5
+    params:
+      pathway: "Nitrate reduction"
+      min_keystones: 1

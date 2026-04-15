@@ -1,0 +1,9 @@
+claim_id	type	status	score	weight	explanation
+iron_transport_active	pathway_active	satisfied	1.0	1.0	Fe transport: 113 个 MAG 活跃，平均完整度 71%，总贡献 947.1
+keystone_on_iron	keystone_in_pathway	satisfied	1.0	0.8	Fe transport: 含 1 个 keystone (Sulfuricaulis sp. Mx_141)
+arsenate_reduction_active	pathway_active	satisfied	1.0	1.0	Arsenate reduction: 37 个 MAG 活跃，平均完整度 51%，总贡献 237.2
+as_transport_active	pathway_active	satisfied	1.0	0.8	As transport/detox: 7 个 MAG 活跃，平均完整度 50%，总贡献 81.8
+fe_as_adsorption_coupling	coupling_possible	satisfied	1.0	2.0	As(V) + Fe(III) → Fe-As_surface (adsorption)：两端物种都被观测到
+s_as_precipitation_coupling	coupling_possible	satisfied	1.0	1.0	As(III) + S-2 → As2S3 (precipitation)：两端物种都被观测到
+ammonia_ox_eh_link	env_correlation	unsatisfied	0.0	1.0	(Ammonia oxidation, Eh): ρ=+1.00 但 confidence=spurious?，未达 suggestive 要求
+arsenate_total_as_link	env_correlation	skipped	0.0	0.8	找不到 (Arsenate reduction, Total_As) 的相关性记录
