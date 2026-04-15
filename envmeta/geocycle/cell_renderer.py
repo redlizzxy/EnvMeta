@@ -168,27 +168,21 @@ def _gene(ax: Axes, x: float, y: float, name: str, color: str,
 
 
 def _bundle_label(steps: list[dict[str, Any]]) -> str:
-    """对多基因 bundle 生成短标签，如 'soxA/X/B/Y/Z' 或 'narG/H/I/napA/B/narB (6)'.
+    """对多基因 bundle 生成短标签，不截断。
 
     启发式：
-    - 若所有名字共享同一 4+ 字符前缀 → 前缀保留 + 每个的后缀 '/' 拼
+    - 所有名字共享同一 3+ 字符前缀 → 前缀保留 + 各自后缀拼 '/'
       narG/narH/narI → narG/H/I
-    - 否则用前 3 个名字 + '/...(N)'
+    - 否则全拼 'aprA/aprB/dsrA/dsrB'（无截断，靠 _draw_bundle_ellipse 自适应宽度）
     """
     names = [s.get("gene") or s.get("ko") or "?" for s in steps]
-    if len(names) <= 3:
-        # 短 bundle：若有共同前缀就缩，否则全拼
-        pref = _common_prefix(names)
-        if len(pref) >= 3:
-            tails = [n[len(pref):] or "-" for n in names]
-            return pref + "/".join(tails) if len(names) > 1 else names[0]
-        return "/".join(names)
-    # 长 bundle：前 1 个完整 + 后续仅字母后缀
-    pref = _common_prefix(names[:3])
-    if len(pref) >= 3:
-        tails = [n[len(pref):] or "-" for n in names]
-        return pref + "/".join(tails) + f" ({len(names)})"
-    return "/".join(names[:3]) + f"/... ({len(names)})"
+    if len(names) == 1:
+        return names[0]
+    pref = _common_prefix(names)
+    if len(pref) >= 3 and all(len(n) > len(pref) for n in names):
+        tails = [n[len(pref):] for n in names]
+        return pref + "/".join(tails)
+    return "/".join(names)
 
 
 def _common_prefix(names: list[str]) -> str:
@@ -205,20 +199,153 @@ def _common_prefix(names: list[str]) -> str:
 
 def _draw_bundle_ellipse(
     ax: Axes, x: float, y: float, label: str, color: str,
-    n_genes: int, w: float | None = None, h: float = 0.46,
+    n_genes: int, w: float | None = None, h: float | None = None,
 ) -> None:
-    """合并 bundle 椭圆：代替 N 个小椭圆的一个大椭圆。
+    """合并 bundle 椭圆：代替 N 个小椭圆的一个大椭圆。不截断文字，宽度自适应。
 
-    椭圆宽度按 label 长度自适应；字号随 label 长度递减。
+    超过一行负担时自动 wrap 成 2 行（椭圆高度加大）。
     """
     txt_len = len(label)
-    auto_w = max(1.3, min(2.4, 0.14 * txt_len + 0.2))
+    # 超长标签自动换行（>18 字符 或 > 3 个 / 分隔符时换 2 行）
+    if txt_len > 18 or label.count("/") > 3:
+        display_label = _wrap_bundle_label(label)
+        lines = display_label.count("\n") + 1
+    else:
+        display_label = label
+        lines = 1
+    # 椭圆宽度按每行实际显示长度
+    max_line_len = max((len(s) for s in display_label.split("\n")), default=txt_len)
+    auto_w = max(1.3, min(3.6, 0.13 * max_line_len + 0.25))
+    auto_h = 0.46 if lines == 1 else 0.72
     w = w if w is not None else auto_w
-    fs = 7 if txt_len <= 10 else 6 if txt_len <= 16 else 5
+    h = h if h is not None else auto_h
+    fs_table = {1: (7, 6, 5), 2: (6, 5, 5)}
+    fs_opts = fs_table.get(lines, (5, 5, 5))
+    fs = fs_opts[0] if max_line_len <= 10 else fs_opts[1] if max_line_len <= 16 else fs_opts[2]
     ax.add_patch(Ellipse((x, y), w, h, facecolor=color,
                          edgecolor="#222", linewidth=1.1, zorder=7))
-    ax.text(x, y, label, ha="center", va="center_baseline",
-            fontsize=fs, fontweight="bold", color="white", zorder=8)
+    ax.text(x, y, display_label, ha="center", va="center_baseline",
+            fontsize=fs, fontweight="bold", color="white", zorder=8,
+            linespacing=1.1)
+
+
+def _wrap_bundle_label(label: str) -> str:
+    """把长 bundle 标签沿 '/' 分隔平分成 2 行。"""
+    parts = label.split("/")
+    if len(parts) < 2:
+        return label
+    mid = len(parts) // 2
+    return "/".join(parts[:mid]) + "/\n" + "/".join(parts[mid:])
+
+
+def _draw_chain_row(
+    ax: Axes,
+    chain: list[list[int]],
+    steps: list[dict[str, Any]],
+    *,
+    inner_x0: float, inner_x1: float, row_y: float,
+    cell_h: float, element_color: str,
+    show_heatmap: bool = False,
+    inline_chems: bool = False,
+    inline_left_x: float | None = None,
+    inline_right_x: float | None = None,
+    gene_positions: list[tuple[float, float]] | None = None,
+) -> None:
+    """画一条"链"在指定 row_y 上。
+
+    chain: list of segments，段间化学物自然衔接
+    inline_chems=True 时：链的起始 substrate 画在 inline_left_x 处（细胞内），
+                          最终 product 画在 inline_right_x 处。
+    """
+    if gene_positions is None:
+        gene_positions = []
+
+    # 每段 1 slot；段间有 intermediate slot
+    n_seg = len(chain)
+    slots = 2 * n_seg - 1 if n_seg > 0 else 0
+    if slots == 0:
+        return
+    if slots == 1:
+        xs = [(inner_x0 + inner_x1) / 2]
+    else:
+        xs = list(np.linspace(inner_x0, inner_x1, slots))
+
+    for idx, x in enumerate(xs):
+        if idx % 2 == 0:
+            seg = chain[idx // 2]
+            if len(seg) == 1:
+                s = steps[seg[0]]
+                _gene(ax, x, row_y, name=s.get("gene", "?"),
+                      color=s.get("color") or element_color,
+                      corr=s.get("corr"), show_hm=show_heatmap)
+                gene_positions.append((x, row_y))
+            else:
+                seg_steps = [steps[i] for i in seg]
+                label = _bundle_label(seg_steps)
+                bundle_color = seg_steps[0].get("color") or element_color
+                _draw_bundle_ellipse(ax, x, row_y, label, bundle_color,
+                                      n_genes=len(seg))
+                gene_positions.append((x, row_y))
+                complex_id = seg_steps[0].get("complex") or ""
+                sub = (f"({complex_id} complex, {len(seg)} subunits)"
+                       if complex_id
+                       else f"({len(seg)} isozymes)")
+                ax.text(x, row_y - cell_h * 0.30, sub,
+                        ha="center", va="center",
+                        fontsize=6.5, fontstyle="italic",
+                        color="#666", zorder=7)
+        else:
+            # 段间中间产物（链内一定衔接）
+            left_seg = chain[(idx - 1) // 2]
+            left_prod = str(steps[left_seg[-1]].get("product") or "?")
+            _intermediate(ax, x, row_y, left_prod)
+
+    if slots > 1:
+        for i in range(slots - 1):
+            ax.add_patch(FancyArrowPatch(
+                (xs[i] + 0.38, row_y), (xs[i + 1] - 0.38, row_y),
+                arrowstyle="-|>", mutation_scale=10,
+                linewidth=0.9, color=ARROW_COLOR, zorder=3,
+            ))
+
+    # inline substrate / product（多链模式）
+    if inline_chems:
+        chain_sub = steps[chain[0][0]].get("substrate")
+        chain_prod = steps[chain[-1][-1]].get("product")
+        if chain_sub and inline_left_x is not None:
+            _intermediate(ax, inline_left_x, row_y, str(chain_sub))
+            ax.add_patch(FancyArrowPatch(
+                (inline_left_x + 0.3, row_y), (inner_x0 - 0.1, row_y),
+                arrowstyle="-|>", mutation_scale=10,
+                linewidth=1.0, color=ARROW_COLOR, zorder=3,
+            ))
+        if chain_prod and inline_right_x is not None:
+            _intermediate(ax, inline_right_x, row_y, str(chain_prod))
+            ax.add_patch(FancyArrowPatch(
+                (inner_x1 + 0.1, row_y), (inline_right_x - 0.3, row_y),
+                arrowstyle="-|>", mutation_scale=10,
+                linewidth=1.0, color=ARROW_COLOR, zorder=3,
+            ))
+
+
+def _split_into_chains(segments: list[list[int]],
+                       steps: list[dict[str, Any]]) -> list[list[list[int]]]:
+    """把段列表分成链（chain）：连续段之间若化学物衔接则同链，否则新链。
+
+    例：segments=[[0:sqr], [1..5:Sox]]，steps[0].product=S-0 vs
+        steps[1].substrate=S2O3-2 → 两段不连通 → 两条独立链。
+    """
+    if not segments:
+        return []
+    chains: list[list[list[int]]] = [[segments[0]]]
+    for i in range(1, len(segments)):
+        prev_prod = str(steps[segments[i - 1][-1]].get("product") or "")
+        cur_sub = str(steps[segments[i][0]].get("substrate") or "")
+        if prev_prod and cur_sub and prev_prod == cur_sub:
+            chains[-1].append(segments[i])
+        else:
+            chains.append([segments[i]])
+    return chains
 
 
 def _segment_by_complex(steps: list[dict[str, Any]]) -> list[list[int]]:
@@ -403,66 +530,50 @@ def draw_cascade_cell(
                 linewidth=0.8, color=ARROW_COLOR, zorder=3,
             ))
     else:
-        # S2.5-10d: 按 complex 分段；连续相同非空 complex 的步骤 = 一个段内并联簇
+        # S2.5-10d: 按 complex 分段；再按化学物衔接分"链"
         segments = _segment_by_complex(steps)
-        slots = 2 * len(segments) - 1
-        if slots == 1:
-            xs = [(inner_x0 + inner_x1) / 2]
+        chains = _split_into_chains(segments, steps)
+        if len(chains) == 1:
+            _draw_chain_row(
+                ax, chains[0], steps,
+                inner_x0=inner_x0, inner_x1=inner_x1, row_y=gy,
+                cell_h=cell_h, element_color=element_color,
+                show_heatmap=show_heatmap,
+                inline_chems=False,
+                gene_positions=gene_positions,
+            )
         else:
-            xs = list(np.linspace(inner_x0, inner_x1, slots))
-        for idx, x in enumerate(xs):
-            if idx % 2 == 0:
-                seg_idx = idx // 2
-                seg = segments[seg_idx]
-                if len(seg) == 1:
-                    s = steps[seg[0]]
-                    _gene(ax, x, gy, name=s.get("gene", "?"),
-                          color=s.get("color") or element_color,
-                          corr=s.get("corr"), show_hm=show_heatmap)
-                    gene_positions.append((x, gy))
-                else:
-                    # 段内并联簇（共享 complex）→ 合并成单大椭圆
-                    seg_steps = [steps[i] for i in seg]
-                    label = _bundle_label(seg_steps)
-                    bundle_color = seg_steps[0].get("color") or element_color
-                    _draw_bundle_ellipse(ax, x, gy, label, bundle_color,
-                                          n_genes=len(seg))
-                    gene_positions.append((x, gy))
-                    complex_id = seg_steps[0].get("complex") or ""
-                    sub = (f"({complex_id} complex, {len(seg)} subunits)"
-                           if complex_id
-                           else f"({len(seg)} isozymes)")
-                    ax.text(x, gy - cell_h * 0.30, sub,
-                            ha="center", va="center",
-                            fontsize=6.5, fontstyle="italic",
-                            color="#666", zorder=7)
-            else:
-                # 段间中间产物
-                left_seg = segments[(idx - 1) // 2]
-                right_seg = segments[(idx + 1) // 2]
-                left_prod = str(steps[left_seg[-1]].get("product") or "?")
-                right_sub = str(steps[right_seg[0]].get("substrate") or "?")
-                if left_prod == right_sub or right_sub == "?":
-                    _intermediate(ax, x, gy, left_prod)
-                else:
-                    # 化学链断开（如 sqr 产 S0 → Sox 要 S2O3-2）
-                    # 上下堆叠显示以避免水平拥挤；"|" 放中间
-                    _intermediate(ax, x, gy + 0.26, left_prod)
-                    ax.text(x, gy, "|", ha="center", va="center",
-                            fontsize=10, fontweight="bold",
-                            color="#999", zorder=6)
-                    _intermediate(ax, x, gy - 0.26, right_sub)
-        if slots > 1:
-            for i in range(slots - 1):
-                ax.add_patch(FancyArrowPatch(
-                    (xs[i] + 0.38, gy), (xs[i + 1] - 0.38, gy),
-                    arrowstyle="-|>", mutation_scale=10,
-                    linewidth=0.9, color=ARROW_COLOR, zorder=3,
-                ))
+            # 多链：每链一行；cell 内部显示各自 substrate/product；
+            # 外部 substrate_pos/product_pos 留给第一/最后一链边界
+            n_chains = len(chains)
+            row_h = (cell_h * 0.78) / n_chains
+            ys = [cy + (n_chains - 1) / 2 * row_h - i * row_h
+                   for i in range(n_chains)]
+            # 每行留左/右 inline substrate / product 的空间
+            row_inner_x0 = inner_x0 + 1.4
+            row_inner_x1 = inner_x1 - 1.4
+            for chain, row_y in zip(chains, ys):
+                _draw_chain_row(
+                    ax, chain, steps,
+                    inner_x0=row_inner_x0, inner_x1=row_inner_x1, row_y=row_y,
+                    cell_h=row_h * 1.0, element_color=element_color,
+                    show_heatmap=False,   # 多行时为紧凑关闭 heatmap
+                    inline_chems=True,
+                    inline_left_x=inner_x0 + 0.5,
+                    inline_right_x=inner_x1 - 0.5,
+                    gene_positions=gene_positions,
+                )
 
     substrate_pos = None
     product_pos = None
-    if show_outside_chems:
+    # 多链模式下，各链 inline 自己的 substrate/product，不在外部画
+    is_multi_chain = False
+    if not (parallel_complex or (all_same_intermediate and n_steps >= 2)):
+        _segs = _segment_by_complex(steps)
+        _chains = _split_into_chains(_segs, steps)
+        is_multi_chain = len(_chains) > 1
+
+    if show_outside_chems and not is_multi_chain:
         sub_txt = steps[0].get("substrate")
         if sub_txt:
             sub_x = cell_x0 - 1.1

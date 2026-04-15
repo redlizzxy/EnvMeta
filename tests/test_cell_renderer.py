@@ -299,14 +299,22 @@ def test_sulfide_oxidation_sqr_plus_sox_renders_without_crash():
 
 def test_bundle_label_common_prefix():
     from envmeta.geocycle.cell_renderer import _bundle_label
-    # narG/narH/narI → narG/H/I
+    # narG/narH/narI → narG/H/I（共同前缀缩写）
     steps = [{"gene": n} for n in ("narG", "narH", "narI")]
     label = _bundle_label(steps)
-    assert "narG" in label and "H" in label and "I" in label
-    # 长 bundle 加计数
+    assert label == "narG/H/I"
+
+
+def test_bundle_label_no_truncation_mixed():
+    from envmeta.geocycle.cell_renderer import _bundle_label
+    # narG/napA 等混合前缀不可缩 → 全拼
     steps = [{"gene": n} for n in ("narG", "narH", "narI", "napA", "napB", "narB")]
     label = _bundle_label(steps)
-    assert "(6)" in label
+    # 不得截断 ("..." 或 "/N)")
+    assert "..." not in label
+    # 全部 6 个基因名都出现
+    for g in ("narG", "narH", "narI", "napA", "napB", "narB"):
+        assert g in label
 
 
 def test_bundle_label_no_common_prefix():
