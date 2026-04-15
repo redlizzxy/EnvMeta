@@ -65,6 +65,25 @@ def _norm_species(s: str | None) -> str | None:
 # v2 — 级联细胞象限
 # =============================================================================
 
+def _group_picks_by_mag(
+    picked: list[tuple[PathwayActivity, object]],
+) -> list[tuple[str, list[tuple[PathwayActivity, object]]]]:
+    """按 contributor.mag 聚合 picks，保持首次出现顺序。
+
+    返回 [(mag_id, [(pw, contrib), ...]), ...]。同 MAG 的多条通路 → 同一 group →
+    同一个 cell 里用多行渲染。
+    """
+    groups: dict[str, list[tuple[PathwayActivity, object]]] = {}
+    order: list[str] = []
+    for pw, c in picked:
+        mag = c.mag
+        if mag not in groups:
+            groups[mag] = []
+            order.append(mag)
+        groups[mag].append((pw, c))
+    return [(m, groups[m]) for m in order]
+
+
 def _select_top_cells(
     ec: ElementCycle, max_cells: int,
 ) -> list[tuple[PathwayActivity, object]]:
@@ -124,25 +143,28 @@ def _draw_element_quadrant_cascade(
                 fontsize=11, color="#999")
         return []
 
-    n = len(picked)
+    # S2.5-11: 按 MAG 分组，把同物种的多条通路合并为一个 cell（多行渲染）
+    groups = _group_picks_by_mag(picked)
+    n = len(groups)
     top, bot = 8.4, 0.6
     available = top - bot
-    # 预计算每 cell 期望高度：多链 cell（如 sqr + Sox）给 1.6× 基础高
     base_cell_h = 1.4
+    # 每组权重：通路数 × 每条通路多链系数（严格>=2 链时 1.6×）
     weights: list[float] = []
-    for pw, contrib in picked:
-        steps_preview = genes_to_steps(contrib.genes, default_color=ec.color)
-        _segs = _segment_by_complex(steps_preview)
-        _chains = _split_into_chains(_segs, steps_preview)
-        weights.append(1.6 if len(_chains) >= 2 else 1.0)
-    total_weight = sum(weights) or 1.0
-    # 缩放到可用高度
+    for _mag, pws in groups:
+        w = 0.0
+        for pw, contrib in pws:
+            steps_preview = genes_to_steps(contrib.genes, default_color=ec.color)
+            chains = _split_into_chains(
+                _segment_by_complex(steps_preview), steps_preview,
+            )
+            w += 1.6 if len(chains) >= 2 else 1.0
+        weights.append(max(w, 1.0))
     cell_hs = [base_cell_h * w for w in weights]
     total_h = sum(cell_hs)
     if total_h > available * 0.95:
         scale = (available * 0.95) / total_h
         cell_hs = [h * scale for h in cell_hs]
-    # 每 cell 纵向中点 cy
     gap = max(0.05, (available - sum(cell_hs)) / max(n + 1, 1))
     ys: list[float] = []
     y_cur = top - gap
@@ -152,45 +174,53 @@ def _draw_element_quadrant_cascade(
 
     most_active = set(cfg.get("most_active_pathways") or ())
     anchors: list[dict] = []
-    for (pw, contrib), cy, this_cell_h in zip(picked, ys, cell_hs):
-        n_genes = len(contrib.genes)
-        # 细胞宽随基因数伸缩（2 基因≈5 宽；4 基因≈8.5 宽；上限 10）
-        cell_w = float(np.clip(3.5 + n_genes * 1.4, 4.5, 10.0))
+    for (mag_id, pws), cy, this_cell_h in zip(groups, ys, cell_hs):
+        # 合并 group 里所有 contrib.genes 成一个大 steps 列表
+        merged_genes: list[dict] = []
+        for pw, c in pws:
+            merged_genes.extend(c.genes)
+        n_genes = len(merged_genes)
+        cell_w = float(np.clip(3.5 + n_genes * 1.2, 4.5, 10.0))
         cell_x0 = (18 - cell_w) / 2
+        steps = genes_to_steps(merged_genes, default_color=ec.color)
 
-        steps = genes_to_steps(
-            contrib.genes,
-            default_color=ec.color,
-        )
-        # S2.5-8 通路 ★（跨组对比最活）：前缀红星
-        prefix = "★ " if pw.pathway_id in most_active else ""
-        title = prefix + pw.display_name
-        mag_label = contrib.label or contrib.mag
-        # S2.5-8 MAG 关键物种标记：label 尾部加 " ✦" sentinel（cell_renderer 识别后着金色）
-        if getattr(contrib, "is_keystone", False):
+        # Title: MAG 名 + 第一通路名 ★（如果任一通路最活）
+        first_contrib = pws[0][1]
+        mag_label = first_contrib.label or mag_id
+        if getattr(first_contrib, "is_keystone", False):
             mag_label = mag_label + " ✦"
+        path_names = [p.display_name for p, _ in pws]
+        any_most_active = any(p.pathway_id in most_active for p, _ in pws)
+        prefix = "★ " if any_most_active else ""
+        # 标题用 MAG 名 + 通路 bullet
+        title_str = (prefix + " + ".join(path_names) if len(path_names) <= 2
+                     else prefix + f"{path_names[0]} + {len(path_names)-1} more")
+
         r = draw_cascade_cell(
             ax,
             cy=cy, cell_x0=cell_x0, cell_w=cell_w, cell_h=this_cell_h,
-            title=title, mag_label=mag_label,
+            title=title_str, mag_label=mag_label,
             steps=steps,
             element_color=ec.color,
-            show_heatmap=False,   # 上方 mini 热图留待 S2.5-3（需 KO-env 相关性数据）
+            show_heatmap=False,
             show_outside_chems=True,
         )
-        # 小信息条：通路完整度 + 贡献度（右下）
+        # 贡献度（取首个通路的 top contributor）
         ax.text(
             17.7, cy - this_cell_h / 2 - 0.08,
-            f"c={contrib.completeness:.0f}%  ab̄={contrib.abundance_mean:.2f}",
+            f"c̄={first_contrib.completeness:.0f}%  ab̄={first_contrib.abundance_mean:.2f}"
+            + (f"  [{len(pws)} pathways]" if len(pws) > 1 else ""),
             fontsize=6.5, color="#555", ha="right", va="top",
         )
-        # 化学物种名（用于跨元素耦合匹配）
-        sub_species = _norm_species(contrib.genes[0].get("substrate")) if contrib.genes else None
-        prod_species = _norm_species(contrib.genes[-1].get("product")) if contrib.genes else None
+        sub_species = _norm_species(merged_genes[0].get("substrate")) if merged_genes else None
+        prod_species = _norm_species(merged_genes[-1].get("product")) if merged_genes else None
+        # 对多通路：pathway_id 用首条（供 coupling 匹配）
+        primary_pw = pws[0][0]
         r.update({
-            "pathway_id": pw.pathway_id,
-            "pathway_name": pw.display_name,
-            "mag": contrib.mag,
+            "pathway_id": primary_pw.pathway_id,
+            "pathway_name": primary_pw.display_name,
+            "pathway_ids": [p.pathway_id for p, _ in pws],
+            "mag": mag_id,
             "element": ec.element_id,
             "ax": ax,
             "substrate_species": sub_species,
