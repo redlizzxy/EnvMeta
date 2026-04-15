@@ -1108,6 +1108,56 @@ elif page == "生物地球化学循环图":
                                file_name="cycle_stats.tsv",
                                mime="text/tab-separated-values", key="cy_tsv")
         _vector_downloads(last.figure, "cycle", "cy")
+
+        # —— 跨组对比小工具（S2.5-7d）——————————————————
+        with st.expander("跨组对比表（回答『A/CK/B 差在哪里』）", expanded=False):
+            st.caption(
+                "同一通路在不同组的 `total_contribution` 反映丰度加权活性差异；"
+                "`top_mag_genus` 变化反映承载者身份差异；"
+                "`top_mag_is_keystone` 标出承载者是否为关键物种。"
+            )
+            if st.button("生成跨组对比表", key="cy_compare_go"):
+                from envmeta.analysis.cycle_compare import compare_groups as _cg
+                ko_df = st.session_state.files[ko_name]["df"]
+                t_df = _get(t_name)
+                if t_df is not None and t_df.shape[1] == 2:
+                    cols_lower = [c.lower() for c in t_df.columns]
+                    has_header = ("classification" in cols_lower
+                                  or "taxonomy" in cols_lower
+                                  or any("mag" in c for c in cols_lower))
+                    if not has_header:
+                        import pandas as _pd
+                        original_header = list(t_df.columns)
+                        t_df = _pd.concat(
+                            [_pd.DataFrame([original_header],
+                                           columns=["MAG", "Taxonomy"]),
+                             t_df.rename(columns={t_df.columns[0]: "MAG",
+                                                  t_df.columns[1]: "Taxonomy"})],
+                            ignore_index=True,
+                        )
+                try:
+                    compare_df = _cg(
+                        ko_df, t_df, _get(k_name), _get(a_name),
+                        _get(e_name), _get(m_name),
+                        params={"completeness_threshold": float(comp_thresh),
+                                "top_n_contributors": top_n,
+                                "env_rho_min": rho_min,
+                                "env_p_max": p_max},
+                    )
+                    st.session_state["_cy_compare_last"] = compare_df
+                except Exception as e:
+                    st.error(f"跨组对比失败：{e}")
+            cmp_last = st.session_state.get("_cy_compare_last")
+            if cmp_last is not None:
+                st.dataframe(cmp_last, use_container_width=True)
+                st.download_button(
+                    "⬇️ 跨组对比表（TSV）",
+                    data=cmp_last.to_csv(sep="\t", index=False).encode("utf-8"),
+                    file_name="cycle_compare.tsv",
+                    mime="text/tab-separated-values",
+                    key="cy_cmp_tsv",
+                )
+
         st.info(
             "⚠️ **输出是描述性的，不是因果性的。** "
             "Top-completeness contributor 只表示该 MAG 的 KO 覆盖该通路最多，"

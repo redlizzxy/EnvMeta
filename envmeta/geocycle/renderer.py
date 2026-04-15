@@ -296,18 +296,64 @@ def _find_best_pair(
     return None
 
 
+def _redox_label(cp: dict, species_a: str, species_b: str) -> str:
+    """redox 型耦合用"substrate→product"呈现；其他类型用 product 本身。"""
+    product = cp.get("product", "") or ""
+    ctype = (cp.get("type") or "").lower()
+    if ctype == "redox":
+        # 判断哪个是反应物（被氧化/还原）；约定 species_b 通常是被作用的
+        # 但 KB 里 NO3-+As(III)→As(V) 写法是 (NO3-, As(III))→As(V)，As(III) 被氧化
+        # 用启发式：被变化的物种（species_a/b 之一）包含在产物名里视作"终态"，
+        # 另一个 = 起态
+        reactant = species_b if species_b in product else species_a
+        return (_pretty_formula(reactant) + r"$\rightarrow$"
+                + _pretty_formula(product))
+    return _pretty_formula(product)
+
+
+def _deconflict_midpoints(raw_items: list[dict], threshold: float = 0.08,
+                          offset: float = 0.05) -> list[dict]:
+    """对 midpoint 距离 <threshold 的耦合做垂直错开。
+
+    raw_items: [{"p1", "p2", "mid", ...}, ...]
+    原地更新 mid；对重叠组按索引奇偶上/下偏移 offset。
+    """
+    n = len(raw_items)
+    # 简化的 N^2 扫描（耦合条数 ≤10 足够）
+    for i in range(n):
+        overlap_idxs: list[int] = []
+        mxi, myi = raw_items[i]["mid"]
+        for j in range(n):
+            if i == j:
+                continue
+            mxj, myj = raw_items[j]["mid"]
+            d = ((mxi - mxj) ** 2 + (myi - myj) ** 2) ** 0.5
+            if d < threshold:
+                overlap_idxs.append(j)
+        if overlap_idxs:
+            # 按 i 在全部重叠组里的位置决定偏移方向 / 幅度
+            group = sorted(set([i] + overlap_idxs))
+            rank = group.index(i)
+            # rank 0: -offset；1: +offset；2: -2*offset；...
+            sign = 1 if rank % 2 else -1
+            magnitude = ((rank + 1) // 2) * offset + offset * 0.5
+            mx, my = raw_items[i]["mid"]
+            raw_items[i]["mid"] = (mx, my + sign * magnitude)
+    return raw_items
+
+
 def _draw_couplings(fig, anchors: list[dict],
                     couplings_list: list[dict]) -> list[dict]:
     """跨象限画耦合线：化学物 A ─┐ (产物节点) ┌─ 化学物 B。
 
-    返回实际画出的耦合条目（含 from/to 坐标和 product 节点坐标）供后续检索。
+    S2.5-7c 改造：两阶段流程 —— 先计算所有 midpoints 并做去叠，再统一绘制；
+    redox 类型产物节点显示 "reactant→product"。
     """
-    drawn: list[dict] = []
+    # 阶段 1：收集 p1/p2/mid 不绘制
+    raw: list[dict] = []
     for cp in couplings_list:
         a = cp.get("species_a")
         b = cp.get("species_b")
-        product = cp.get("product", "")
-        color = cp.get("color", "#555")
         if not a or not b:
             continue
         pair = _find_best_pair(anchors, a, b)
@@ -320,23 +366,47 @@ def _draw_couplings(fig, anchors: list[dict],
             continue
         mx = (p1[0] + p2[0]) / 2
         my = (p1[1] + p2[1]) / 2
-        # 两段虚线（用 fig-level lines）
-        for (pa, pb) in [(p1, (mx, my)), ((mx, my), p2)]:
+        raw.append({
+            "coupling": cp,
+            "species_a": a, "species_b": b,
+            "p1": p1, "p2": p2, "mid": (mx, my),
+        })
+
+    _deconflict_midpoints(raw)
+
+    # 阶段 2：绘制
+    drawn: list[dict] = []
+    for item in raw:
+        cp = item["coupling"]
+        color = cp.get("color", "#555")
+        p1 = item["p1"]; p2 = item["p2"]; mid = item["mid"]
+        label = _redox_label(cp, item["species_a"], item["species_b"])
+        ctype = (cp.get("type") or "").lower()
+
+        # 两段折线经过偏移后的 midpoint
+        for (pa, pb) in [(p1, mid), (mid, p2)]:
             line = plt.Line2D([pa[0], pb[0]], [pa[1], pb[1]],
                               linestyle="--", linewidth=1.6,
                               color=color, alpha=0.75,
                               transform=fig.transFigure, zorder=1)
             fig.lines.append(line)
-        # 中间产物节点（化学式下标/上标正确渲染）
-        fig.text(mx, my, _pretty_formula(product), ha="center", va="center",
+        # 产物节点
+        fig.text(mid[0], mid[1], label, ha="center", va="center",
                  fontsize=7.5, fontweight="bold", color="white",
                  bbox=dict(facecolor=color, alpha=0.9, pad=4,
                            boxstyle="round,pad=0.3", edgecolor="black",
                            linewidth=0.8), zorder=12)
+        # redox 在下方加 (ox) 提示
+        if ctype == "redox":
+            fig.text(mid[0], mid[1] - 0.018, "(ox)",
+                     ha="center", va="top", fontsize=6.5,
+                     fontstyle="italic", color=color, zorder=12)
+
         drawn.append({
-            "species_a": a, "species_b": b, "product": product,
-            "type": cp.get("type"), "color": color,
-            "from": p1, "to": p2, "mid": (mx, my),
+            "species_a": item["species_a"], "species_b": item["species_b"],
+            "product": cp.get("product", ""), "type": cp.get("type"),
+            "color": color, "from": p1, "to": p2, "mid": mid,
+            "label": label,
         })
     return drawn
 

@@ -135,7 +135,7 @@ def test_pretty_formula_overrides():
     assert "N_2" in _pretty_formula("N2")
     assert "N_2O" in _pretty_formula("N2O")
     assert "As_2S_3" in _pretty_formula("As2S3")
-    assert _pretty_formula("As(III)").startswith("$\\mathrm{")
+    assert _pretty_formula("As(III)").startswith("$\\mathbf{")
     # 兜底：未知字符串保持原样
     assert _pretty_formula("cysteine") == "cysteine"
     # 空值
@@ -180,4 +180,61 @@ def test_mixed_intermediates_not_collapsed():
         title="denitrifier", mag_label="x", steps=steps,
     )
     assert len(r["gene_positions"]) == 3
+    plt.close(fig)
+
+
+# ── S2.5-7 排版 & parallel complex ──────────────────────
+
+def test_pretty_formula_is_bold():
+    """_pretty_formula 应输出 \\mathbf 而非 \\mathrm。"""
+    from envmeta.geocycle.cell_renderer import _pretty_formula
+    s = _pretty_formula("SO4-2")
+    assert "\\mathbf" in s
+    assert "\\mathrm" not in s
+
+
+def test_long_gene_name_autosize():
+    """TC.FEV.OM 这类长名应有更大椭圆 + 更小字号。"""
+    from envmeta.geocycle.cell_renderer import _gene_size
+    w_short, _, fs_short = _gene_size("narG")
+    w_long, _, fs_long = _gene_size("TC.FEV.OM")
+    assert w_long > w_short
+    assert fs_long <= fs_short
+
+
+def test_parallel_complex_no_internal_arrows():
+    """6 个 KO 全部 substrate=NO3- product=NO2- → parallel，无内部 FancyArrow。"""
+    from matplotlib.patches import FancyArrowPatch
+    fig, ax = _make_ax()
+    steps = [
+        {"gene": g, "substrate": "NO3-", "product": "NO2-"}
+        for g in ("narG", "narH", "narI", "napA", "napB", "narB")
+    ]
+    r = draw_cascade_cell(
+        ax, cy=3.0, cell_x0=3.0, cell_w=12.0, cell_h=1.3,
+        title="Nitrate reduction", mag_label="test", steps=steps,
+    )
+    assert len(r["gene_positions"]) == 6
+    # 计数 FancyArrowPatch：外部 substrate→cell 1 + cell→product 1 = 2（不超过 3）
+    n_arrows = sum(1 for p in ax.patches if isinstance(p, FancyArrowPatch))
+    assert n_arrows <= 3, f"parallel complex 应无内部箭头，实际 {n_arrows}"
+    plt.close(fig)
+
+
+def test_denitrification_has_internal_arrows():
+    """denitrification 3 基因串联应有内部箭头。"""
+    from matplotlib.patches import FancyArrowPatch
+    fig, ax = _make_ax()
+    steps = [
+        {"gene": "narG", "substrate": "NO3-", "product": "NO2-"},
+        {"gene": "nirK", "substrate": "NO2-", "product": "NO"},
+        {"gene": "norB", "substrate": "NO",   "product": "N2O"},
+    ]
+    draw_cascade_cell(
+        ax, cy=3.0, cell_x0=3.0, cell_w=10.0, cell_h=1.3,
+        title="denitrifier", mag_label="x", steps=steps,
+    )
+    # 2 内部箭头 + 2 外部箭头 = 4
+    n_arrows = sum(1 for p in ax.patches if isinstance(p, FancyArrowPatch))
+    assert n_arrows >= 4
     plt.close(fig)

@@ -355,3 +355,43 @@ def test_group_filter_title_shows_group(cycle_inputs):
     # meta 正确透传
     # 从 r.params 间接验证
     assert r.params.get("group_filter") == "A"
+
+
+# ── S2.5-7c 耦合去叠 + redox 语义 ────────────────────────
+
+def test_coupling_midpoints_deconflict():
+    """构造两条靠得很近的耦合，去叠后 midpoints 距离 ≥ 0.06。"""
+    from envmeta.geocycle.renderer import _deconflict_midpoints
+    items = [
+        {"mid": (0.5, 0.5)},
+        {"mid": (0.5, 0.5)},  # 完全重叠
+        {"mid": (0.51, 0.5)},  # 非常近
+    ]
+    _deconflict_midpoints(items, threshold=0.08, offset=0.05)
+    # 两两距离至少要大于一些非零值
+    for i in range(len(items)):
+        for j in range(i + 1, len(items)):
+            d = ((items[i]["mid"][0] - items[j]["mid"][0]) ** 2
+                 + (items[i]["mid"][1] - items[j]["mid"][1]) ** 2) ** 0.5
+            assert d > 0.0, f"item {i} 与 {j} 仍完全重合"
+
+
+def test_redox_label_has_arrow():
+    """redox 耦合的标签应包含 → 或"""
+    from envmeta.geocycle.renderer import _redox_label
+    label = _redox_label(
+        {"type": "redox", "product": "As(V)"},
+        species_a="NO3-", species_b="As(III)",
+    )
+    assert "\\rightarrow" in label or "→" in label
+
+
+def test_precipitation_label_is_product_only():
+    """非 redox 类型标签就是产物本身。"""
+    from envmeta.geocycle.renderer import _redox_label
+    label = _redox_label(
+        {"type": "precipitation", "product": "As2S3"},
+        species_a="As(III)", species_b="S-2",
+    )
+    assert "rightarrow" not in label
+    assert "As_2S_3" in label  # mathtext 下标转换

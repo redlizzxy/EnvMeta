@@ -38,38 +38,38 @@ OUTSIDE_ARROW_COLOR = "#444"
 # --- 化学式 → matplotlib mathtext ------------------------------------------
 
 _FORMULA_OVERRIDES: dict[str, str] = {
-    "SO4-2":         r"$\mathrm{SO_4^{2-}}$",
-    "SO4^2-":        r"$\mathrm{SO_4^{2-}}$",
-    "SO4":           r"$\mathrm{SO_4}$",
-    "SO3-2":         r"$\mathrm{SO_3^{2-}}$",
-    "S-2":           r"$\mathrm{S^{2-}}$",
-    "S2O3-2":        r"$\mathrm{S_2O_3^{2-}}$",
-    "NO3-":          r"$\mathrm{NO_3^{-}}$",
-    "NO2-":          r"$\mathrm{NO_2^{-}}$",
-    "N2O":           r"$\mathrm{N_2O}$",
-    "N2":            r"$\mathrm{N_2}$",
-    "NH3":           r"$\mathrm{NH_3}$",
-    "NH4+":          r"$\mathrm{NH_4^{+}}$",
-    "NH2OH":         r"$\mathrm{NH_2OH}$",
-    "H2S":           r"$\mathrm{H_2S}$",
-    "As(V)":         r"$\mathrm{As(V)}$",
-    "As(III)":       r"$\mathrm{As(III)}$",
-    "As(V)-adduct":  r"$\mathrm{As(V)}$-adduct",
-    "As(III)-organic": r"$\mathrm{As(III)}$-organic",
-    "As(III)_out":   r"$\mathrm{As(III)_{out}}$",
+    "SO4-2":         r"$\mathbf{SO_4^{2-}}$",
+    "SO4^2-":        r"$\mathbf{SO_4^{2-}}$",
+    "SO4":           r"$\mathbf{SO_4}$",
+    "SO3-2":         r"$\mathbf{SO_3^{2-}}$",
+    "S-2":           r"$\mathbf{S^{2-}}$",
+    "S2O3-2":        r"$\mathbf{S_2O_3^{2-}}$",
+    "NO3-":          r"$\mathbf{NO_3^{-}}$",
+    "NO2-":          r"$\mathbf{NO_2^{-}}$",
+    "N2O":           r"$\mathbf{N_2O}$",
+    "N2":            r"$\mathbf{N_2}$",
+    "NH3":           r"$\mathbf{NH_3}$",
+    "NH4+":          r"$\mathbf{NH_4^{+}}$",
+    "NH2OH":         r"$\mathbf{NH_2OH}$",
+    "H2S":           r"$\mathbf{H_2S}$",
+    "As(V)":         r"$\mathbf{As(V)}$",
+    "As(III)":       r"$\mathbf{As(III)}$",
+    "As(V)-adduct":  r"$\mathbf{As(V)}$-adduct",
+    "As(III)-organic": r"$\mathbf{As(III)}$-organic",
+    "As(III)_out":   r"$\mathbf{As(III)_{out}}$",
     "As-glutathione": r"As-glutathione",
-    "As-glutathione_out": r"As-glutathione$_{\mathrm{out}}$",
+    "As-glutathione_out": r"As-glutathione$_{\mathbf{out}}$",
     "MMA/DMA":       r"MMA/DMA",
-    "As2S3":         r"$\mathrm{As_2S_3}$",
-    "FeS":           r"$\mathrm{FeS}$",
-    "Fe(II)":        r"$\mathrm{Fe(II)}$",
-    "Fe(III)":       r"$\mathrm{Fe(III)}$",
-    "Fe_internal":   r"$\mathrm{Fe_{int}}$",
-    "Fe-As_surface": r"Fe–As$_{\mathrm{surf}}$",
+    "As2S3":         r"$\mathbf{As_2S_3}$",
+    "FeS":           r"$\mathbf{FeS}$",
+    "Fe(II)":        r"$\mathbf{Fe(II)}$",
+    "Fe(III)":       r"$\mathbf{Fe(III)}$",
+    "Fe_internal":   r"$\mathbf{Fe_{int}}$",
+    "Fe-As_surface": r"Fe–As$_{\mathbf{surf}}$",
     "APS":           r"APS",
     "cysteine":      "cysteine",
     "S-cys":         "S-cys",
-    "S0":            r"$\mathrm{S^{0}}$",
+    "S0":            r"$\mathbf{S^{0}}$",
 }
 
 
@@ -96,11 +96,11 @@ def _pretty_formula(raw: str | None) -> str:
             chg = chg[1:] + chg[0]
         # 数字转下标
         base_mm = _RE_SUBSCRIPT.sub(lambda mm: mm.group("elem") + "_{" + mm.group("sub") + "}", base)
-        return rf"$\mathrm{{{base_mm}^{{{chg}}}}}$"
+        return rf"$\mathbf{{{base_mm}^{{{chg}}}}}$"
     # 只有下标（H2O, N2）
     if _RE_SUBSCRIPT.search(s):
         mm = _RE_SUBSCRIPT.sub(lambda x: x.group("elem") + "_{" + x.group("sub") + "}", s)
-        return rf"$\mathrm{{{mm}}}$"
+        return rf"$\mathbf{{{mm}}}$"
     return s
 
 
@@ -122,26 +122,45 @@ def mini_heatmap(ax: Axes, x: float, y: float, vals: list[float],
 
 def _chem_outside(ax: Axes, x: float, y: float, txt: str) -> tuple[float, float]:
     """外部化学物节点（纯文字，无椭圆）。返回中心坐标。"""
-    ax.text(x, y, _pretty_formula(txt), ha="center", va="center",
+    ax.text(x, y, _pretty_formula(txt), ha="center", va="center_baseline",
             fontsize=10, fontweight="bold", color=EXTERNAL_COLOR, zorder=7)
     return (x, y)
 
 
 def _intermediate(ax: Axes, x: float, y: float, txt: str) -> tuple[float, float]:
     """细胞内部中间产物（纯文字，无黄底）。"""
-    ax.text(x, y, _pretty_formula(txt), ha="center", va="center",
-            fontsize=8, fontweight="bold", color=INTERMEDIATE_COLOR, zorder=7)
+    ax.text(x, y, _pretty_formula(txt), ha="center", va="center_baseline",
+            fontsize=9, fontweight="bold", color=INTERMEDIATE_COLOR, zorder=7)
     return (x, y)
+
+
+def _gene_size(name: str) -> tuple[float, float, int]:
+    """按基因名长度算椭圆宽 / 高 / 字号。"""
+    n = len(name or "")
+    # 椭圆宽度动态：短名 0.75，长名最多拓到 1.5 数据单位
+    w = max(0.75, min(1.55, 0.14 * n + 0.05))
+    h = 0.36
+    if n <= 6:
+        fs = 7
+    elif n <= 10:
+        fs = 6
+    else:
+        fs = 5
+    return w, h, fs
 
 
 def _gene(ax: Axes, x: float, y: float, name: str, color: str,
           corr: list[float] | None = None,
-          w: float = 0.75, h: float = 0.36, show_hm: bool = True) -> None:
-    """基因椭圆（酶）+ 可选上方 mini heatmap。"""
+          w: float | None = None, h: float | None = None,
+          show_hm: bool = True) -> None:
+    """基因椭圆（酶）+ 可选上方 mini heatmap。椭圆宽度按名长自适应。"""
+    auto_w, auto_h, fs = _gene_size(name)
+    w = w if w is not None else auto_w
+    h = h if h is not None else auto_h
     ax.add_patch(Ellipse((x, y), w, h, facecolor=color,
                          edgecolor="#222", linewidth=0.9, zorder=7))
-    ax.text(x, y, name, ha="center", va="center",
-            fontsize=7, fontweight="bold", color="white", zorder=8)
+    ax.text(x, y, name, ha="center", va="center_baseline",
+            fontsize=fs, fontweight="bold", color="white", zorder=8)
     if show_hm and corr is not None and len(corr) > 0:
         hm_size = 0.09
         mini_heatmap(ax, x - len(corr) * hm_size / 2.0,
@@ -218,12 +237,24 @@ def draw_cascade_cell(
         }
 
     n_steps = len(steps)
-    # 折叠连续相同的中间产物：若 steps[i].product == steps[i+1].substrate（常态）
-    # 并且该产物已作为上一 intermediate 呈现，则不再重复画。
-    # 检查最终产物链的 distinct 数（不含最后一步的最终产物）。
-    inner_products = [str(s.get("product") or "") for s in steps[:-1]]
+    # —— 布局判据（三分枝） ————————————————————————————————
+    # parallel_complex: 所有 substrate 相同 AND 所有 product 相同
+    #   → 多亚基 / 同工酶做同一反应；不画内部箭头
+    # all_same_intermediate: step[i].product 全一致但 substrate 不一致
+    #   → 退化的折叠显示
+    # else: 典型级联（denitrification 等）
+    subs = [str(s.get("substrate") or "") for s in steps]
+    prods = [str(s.get("product") or "") for s in steps]
+    parallel_complex = (
+        n_steps >= 2
+        and len(set(subs)) == 1 and subs[0] != ""
+        and len(set(prods)) == 1 and prods[0] != ""
+    )
+    inner_products = prods[:-1]   # 除最后一步外的中间产物
     all_same_intermediate = (
-        len(inner_products) >= 1 and len(set(inner_products)) == 1
+        not parallel_complex
+        and len(inner_products) >= 1
+        and len(set(inner_products)) == 1
         and inner_products[0] != ""
     )
 
@@ -233,7 +264,21 @@ def draw_cascade_cell(
     gy = cy - (cell_h * 0.15)
 
     gene_positions: list[tuple[float, float]] = []
-    if all_same_intermediate and n_steps >= 2:
+    if parallel_complex:
+        # 多亚基 / 同工酶紧排，无内部箭头；下方小字标注 (subunits / isozymes)
+        xs_genes = list(np.linspace(inner_x0, inner_x1, n_steps))
+        for x, s in zip(xs_genes, steps):
+            _gene(ax, x, gy, name=s.get("gene", "?"),
+                  color=s.get("color") or element_color,
+                  corr=s.get("corr"), show_hm=show_heatmap)
+            gene_positions.append((x, gy))
+        mid_x = (inner_x0 + inner_x1) / 2
+        ax.text(mid_x, gy - cell_h * 0.32,
+                "(subunits / isozymes)",
+                ha="center", va="center",
+                fontsize=6.5, fontstyle="italic",
+                color="#666", zorder=7)
+    elif all_same_intermediate and n_steps >= 2:
         # 酶紧挨排成一行；中间产物仅显示一次（在酶群中央上方稍小字）
         xs_genes = list(np.linspace(inner_x0, inner_x1, n_steps))
         for x, s in zip(xs_genes, steps):
@@ -241,14 +286,12 @@ def draw_cascade_cell(
                   color=s.get("color") or element_color,
                   corr=s.get("corr"), show_hm=show_heatmap)
             gene_positions.append((x, gy))
-        # 酶群上方提示中间产物（小字一次）
         mid_x = (inner_x0 + inner_x1) / 2
         ax.text(mid_x, gy + cell_h * 0.28,
                 "→ " + _pretty_formula(inner_products[0]) + " →",
                 ha="center", va="center",
                 fontsize=7, fontstyle="italic",
                 color=INTERMEDIATE_COLOR, zorder=7)
-        # 酶之间连接箭头（短）
         for i in range(len(xs_genes) - 1):
             ax.add_patch(FancyArrowPatch(
                 (xs_genes[i] + 0.38, gy), (xs_genes[i + 1] - 0.38, gy),
