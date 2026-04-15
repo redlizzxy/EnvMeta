@@ -282,6 +282,129 @@ S8 插件框架推迟到论文接收后再做。完整计划见 `C:\Users\REDLIZ
 
 > 每次 session 结束前更新此区块。新对话开始时 Claude Code 自动读取，了解当前进度。
 
+### 2026-04-18（**Session 总结 — S2.5 系列全部收口（13 个子 session）⭐ 循环图可发表级**）
+
+本阶段是 Phase 3 循环图从 v1 抽象柱图 → **Mockup 10 发表级合并细胞级联图**
+的完整落地，并把 KB 从手写升级为 **KEGG-driven**。累计 **18 个 commit**，
+全测试 **101 → 176 全绿（+75 新 case）**。
+
+#### 交付（按 commit 顺序）
+
+| # | commit | 内容 | +测试 |
+|---|---|---|---|
+| S2.5-1 | 5bb0438 | KB schema 扩展（substrate/product/schematic/couplings） | +3 |
+| 2a | 716df23 | MAGContribution.genes KO 级 cascade 字段 | +3 |
+| 2b | e8f70d9 | cell_renderer primitive（合并细胞绘制） | +7 |
+| 2c | 2afa9df | 主 renderer v2 级联改造 | +3 |
+| S2.5-3 | 151d104 | 化学物耦合连线（跨元素虚线 + 产物节点） | +4 |
+| S2.5-4 | 40e2771 | 组选择下拉（CK/A/B 单组模式） | +4 |
+| S2.5-5 | bd9011e | SVG + TIFF 导出（SCI / 毕业论文双预设） | +9 |
+| S2.5-6 | 24d3cbd | 文件识别扩展（ko_long/keystone/mag_taxonomy）+ 自动匹配 + 字符修复 v1 | +5 |
+| S2.5-7 | 59617ef | 字符排版 v2 + 多亚基并列 + 耦合线去叠 + 跨组对比 cycle_compare | +10 |
+| S2.5-8 | 5c5a4b2 | 跨组最活 ★ + keystone ✦ 标注 | +3 |
+| S2.5-9 | 8521f1f | MAG 选择判据 4 档可切换（abundance/completeness/keystone_only/keystone_priority） | +4 |
+| S2.5-10a | d05d0e6 | KEGG 快照构建器 + 种子 KO 表 + 57-KO snapshot JSON |  |
+| S2.5-10b/c | 58560e0 | `envmeta kb-build` CLI + KB v2.0 迁移（29 KO 获 complex 字段） | +7 |
+| S2.5-10d | 64ef2fe | renderer 段内复合体分段 + 缺失通路显示 | +4 |
+| post-10d | 895c598 | parallel_complex 标注 complex id + 断链 label 垂直堆叠 |  |
+| bundle | 0523fb4 | 同-complex 基因合并成单大椭圆（统一布局） | +2 |
+| chain | 00bab82 | 断链改多行垂直布局 + bundle label 不截断 | +2 |
+| ext-h | 4153a0a | 多链 cell_h 自动扩大 + 外置 substrate/product |  |
+| mag-merge | 4cf2c89 | 同 MAG 多通路合并为单 cell（多行渲染） |  |
+| S2.5-13 | ee5f307 | Genus+species 标签 + 可选隐藏调控型 cell（fur/tonB） | +2 |
+
+#### 架构里程碑
+
+**数据层（KEGG-driven KB, S2.5-10）**：
+- `scripts/build_kegg_snapshot.py` 联网抓 KEGG REST → `envmeta/geocycle/kegg_snapshot.json`
+- `envmeta/tools/kb_builder.py` + `envmeta kb-build` CLI 一键生成 elements.json
+- 手写 KB ⭐⭐⭐ → KEGG-driven ⭐⭐⭐⭐⭐ 权威性升级
+- `complex` 字段（KEGG MODULE id）解决 sqr+Sox 混淆、narG/H/I/napA/B 显式标注
+
+**视觉层（Mockup 10 落地）**：
+- `cell_renderer.py` 三分枝：parallel_complex / all_same_intermediate / segmented
+- 同-complex 多基因 → 单大 bundle 椭圆（含多行 wrap 不截断）
+- 断链场景 → 多行垂直布局，每行独立外置 substrate/product
+- 化学式全部 mathtext 粗体（SO₄²⁻、NO₃⁻ 正确下上标）
+- 跨元素化学耦合：紫/棕/绿虚线 + 产物节点 + 去叠
+- redox 类型产物节点：`As(III)→As(V) (ox)` 明示转化方向
+
+**分析层（多视角 / 跨组）**：
+- 4 档 MAG 排序（S2.5-9）：abundance / completeness / keystone_only / keystone_priority
+- 跨组对比表（S2.5-7d）`compare_groups()`：回答"A/CK/B 差别在哪"
+- 跨组最活 ★ + keystone ✦ 双标注（S2.5-8）
+- 标签 Genus + species 消除同属不同种视觉歧义（S2.5-13）
+- 可选 `hide_regulator_only_cells` 过滤 fur/tonB 纯调控（S2.5-13）
+
+**产出层**：
+- PNG / PDF / SVG（SCI 投稿） / TIFF 600dpi（毕业论文）4 格式
+- 每分析页下载 `.py` 复现脚本（既有）
+- 11 张 Mockup（01-10）+ 大量 validation PDF 归档到 paper/
+
+#### 真实数据科学发现（可直接写论文）
+
+1. **加钢渣（B 组）显著抬升砷代谢活性**：
+   - Arsenate reduction total_contribution: CK=189 / A=237 / B=361（1.9×）
+   - Ammonia oxidation：CK=0 / B=24.3（**22×**）
+2. **Keystone species 在处理组成为功能主力**：
+   - A 组 Nitrate reduction top MAG = Sulfuricaulis（keystone）
+   - B 组 Arsenate reduction top MAG = SPCO01（keystone）
+   - **CK 组 keystone 不承担任何 top 通路** —— 说明钢渣处理让关键物种从网络边缘走向功能中心
+3. **KEGG 打包 vs 生物学真相被正确呈现**：
+   - Sulfide oxidation 细胞现在清楚分成两行：sqr 路径 + Sox 复合体路径
+   - Nitrate reduction 6 基因显示为 `narG/narH/narI/napA/napB/narB (M00529 complex, 6 subunits)` 单椭圆
+
+#### 关键用户交互修正（反映在架构中）
+
+按用户反馈反复迭代的关键设计点：
+- **领域中立**：拒绝"自动检测研究主题"假命题（S1）
+- **用户自带 KB**：KEGG-driven 减少 50%+ 扩展成本（S2.5-10）
+- **MAG ID 而非 genus 分组**：同属不同菌株是**生物学上不同** MAG，显示加 `sp. Mx_XX` 消除视觉误解（S2.5-13）
+- **描述性不断言**：cycle diagram 不用"drives"因果词；置换零假设区分 strong/suggestive/spurious?（S2）
+- **发表级排版**：化学式粗体 + 下标上标；基因椭圆按名长自适应；长 bundle 双行不截断
+
+#### 测试进展
+
+- **101 → 176**（+75 case），全绿
+- 新增覆盖：KB loader、cell_renderer 分支、chain 拆分、bundle label、
+  KEGG snapshot、kb_builder、cycle_compare、figure_export 多格式、
+  cross-group 标注、4 档 ranking、label Species 格式、regulator 过滤
+
+#### CLI 新增
+
+- `python -m envmeta kb-build --elements ... --preserve-from ... --output ...`
+- `python scripts/build_kegg_snapshot.py --seed ... --output ...`
+
+#### 归档产物
+
+- `paper/benchmarks/validation/cycle_diagram/`：
+  v1.pdf (原 S1 柱图) / v2.pdf (Mockup 10 级联) / v2_kegg.pdf / v2_bundle_{A,B,CK}.pdf /
+  v2_chain_{A,B,CK}.pdf / v2_magmerge_{A,B,CK}.pdf / v2_extheight_{A,B,CK}.pdf /
+  v2_labeled_B.pdf + v2_labeled_B_noreg.pdf
+- `envmeta/geocycle/kegg_snapshot.json`（24 KB，57 KO + 12 module）
+- `envmeta/geocycle/knowledge_base/elements.json` v2.0（手工 + KEGG 合并）
+- `paper/benchmarks/validation/cycle_diagram/README.md` 扩展段：
+  MAG selection criteria / 跨组差异叙述 / MAG 标签格式 / Fe uptake 无 I/O 解释
+
+#### 下次 Session 起点
+
+**S2.5 循环图全部收口**。剩余 Phase 3 增强可选路径：
+1. **S3 机制 YAML 评分器**（5h，路线 B+ 核心）：用户自带假说 YAML
+   → CycleData 证据评分 → strong/suggestive/none 标签
+2. **S4 Fork Bundle 导出**（4h）：打包 elements.json + 用户自定义 +
+   paper-specific 配置为 zip（"论文-EnvMeta 绑定发布"协议）
+3. **S4.5 HTML 交互导出**（10-15h，路线 B+ 大卖点）：D3.js 独立 HTML
+   嵌入 cycle_data JSON + 拖拽/悬停/缩放/SVG 导出
+4. **S6 mag_heatmap**（3h）：补 Phase 2 最后 2 张图之一
+5. **S7 network Gephi-prep**（4h）：共现网络 Gephi 兼容导出
+6. **S9 论文 Methods 起草**（3h）：iMeta / Bioinformatics 方法学
+
+建议：**先 S3**（机制 YAML），它能回答用户"如何评估我的砷修复假说"这类
+具体问题，与已有 CycleData 推断直接对接；再 S4.5（HTML 导出）作为论文
+SI 杀手锏。S6 / S7 可并入 Phase 2 的尾声。
+
+---
+
 ### 2026-04-17（**Today's Session 总结 — 战略重构 + S1 + S2 完成**）
 
 今日是 **Phase 3 v1 完成后的战略反思 + 深度重构日**。重点不在代码量，在**方向校准**：
