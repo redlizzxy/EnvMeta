@@ -406,7 +406,10 @@ def render(data: CycleData, params: dict | None = None) -> plt.Figure:
     )
     fig.suptitle(cfg["title"],
                  fontsize=14, fontweight="bold", y=0.985)
+    gf = data.meta.get("group_filter")
+    group_tag = f"group={gf}  |  " if gf and str(gf).lower() not in ("all", "none") else ""
     subtitle = (
+        f"{group_tag}"
         f"{data.meta.get('n_mags', 0)} MAGs  |  "
         f"{data.meta.get('n_pathways_active', 0)} / "
         f"{data.meta.get('n_pathways_total', 0)} pathways active  |  "

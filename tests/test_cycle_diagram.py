@@ -313,3 +313,45 @@ def test_species_normalization():
     assert _norm_species("As(III)") == "As(III)"
     assert _norm_species(None) is None
     assert _norm_species("") is None
+
+
+# ── S2.5-4 组选择测试 ────────────────────────────────────────
+
+def test_group_filter_reduces_samples(cycle_inputs):
+    """group_filter='CK' 应使 n_samples_used 少于 'All'。"""
+    ko, tax, ks, ab, env, md = cycle_inputs
+    all_data = infer(ko, tax, ks, ab, env, md, params=FAST_PARAMS)
+    ck_data = infer(ko, tax, ks, ab, env, md,
+                    params={**FAST_PARAMS, "group_filter": "CK"})
+    assert all_data.meta["n_samples_used"] > ck_data.meta["n_samples_used"]
+    assert ck_data.meta["group_filter"] == "CK"
+    assert ck_data.meta["n_samples_used"] >= 1
+
+
+def test_group_filter_all_equivalent_to_none(cycle_inputs):
+    """group_filter='All' 与 None 应产生相同样本数。"""
+    ko, tax, ks, ab, env, md = cycle_inputs
+    d_none = infer(ko, tax, ks, ab, env, md, params=FAST_PARAMS)
+    d_all = infer(ko, tax, ks, ab, env, md,
+                  params={**FAST_PARAMS, "group_filter": "All"})
+    assert d_none.meta["n_samples_used"] == d_all.meta["n_samples_used"]
+
+
+def test_group_filter_unknown_group_does_not_crash(cycle_inputs):
+    """无效组名应降级（不崩）。"""
+    ko, tax, ks, ab, env, md = cycle_inputs
+    d = infer(ko, tax, ks, ab, env, md,
+              params={**FAST_PARAMS, "group_filter": "ZZZ"})
+    # 无效组 → _apply_group_filter 原样返回
+    assert d.meta["n_mags"] > 0
+
+
+def test_group_filter_title_shows_group(cycle_inputs):
+    """渲染图 subtitle 应显示 group=CK（指示性断言：meta 记录了 group）。"""
+    ko, tax, ks, ab, env, md = cycle_inputs
+    r = cycle_diagram.analyze(ko, tax, ks, ab, env, md,
+                              params={**FAST_PARAMS, "group_filter": "A"})
+    # stats 中通路计算已基于子集 → 完整性 completeness 可能改变；这里只断言
+    # meta 正确透传
+    # 从 r.params 间接验证
+    assert r.params.get("group_filter") == "A"

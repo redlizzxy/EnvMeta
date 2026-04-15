@@ -952,6 +952,20 @@ elif page == "生物地球化学循环图":
         key="cy_md",
     )
 
+    # 组选择下拉（S2.5-4）— 读取 metadata 的 Group 列可用值
+    group_options = ["All"]
+    if m_name != "（无）":
+        md_df = st.session_state.files[m_name]["df"]
+        if "Group" in md_df.columns:
+            group_options = ["All"] + sorted(
+                set(str(g) for g in md_df["Group"].dropna().unique()))
+    group_filter = st.selectbox(
+        "组选择（选单组将只用该组样本做通路贡献和 env 相关）",
+        group_options, key="cy_group",
+        help="选 'All' 用全部样本；选 'CK' / 'A' / 'B' 则仅用该组。"
+             "用于生成单组循环图，三张单组图可手动拼接做组对比。",
+    )
+
     with st.sidebar:
         st.subheader("循环图参数")
         comp_thresh = st.slider("通路完整度阈值（%）", 0, 100, 50, step=5,
@@ -961,8 +975,10 @@ elif page == "生物地球化学循环图":
                             key="cy_rho")
         p_max = st.slider("env-pathway p 阈值", 0.001, 0.2, 0.05, step=0.005,
                           key="cy_p")
+        max_cells = st.slider("每元素最多细胞数", 1, 6, 3, key="cy_cells")
         show_env = st.checkbox("显示环境耦合面板", True, key="cy_env_panel")
-        size = render_figure_size({"width_mm": 360, "height_mm": 260},
+        show_couplings = st.checkbox("显示化学物耦合线", True, key="cy_coup")
+        size = render_figure_size({"width_mm": 460, "height_mm": 320},
                                   prefix="cy")
 
     if st.button("生成循环图", type="primary", key="cy_go"):
@@ -980,6 +996,9 @@ elif page == "生物地球化学循环图":
             "env_rho_min": rho_min,
             "env_p_max": p_max,
             "show_env_panel": show_env,
+            "show_couplings": show_couplings,
+            "max_cells_per_element": max_cells,
+            "group_filter": None if group_filter == "All" else group_filter,
             **size,
         }
         try:

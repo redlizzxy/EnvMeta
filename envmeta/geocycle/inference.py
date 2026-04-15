@@ -42,7 +42,57 @@ DEFAULTS = {
     "sensitivity_thresholds": [30.0, 50.0, 70.0],  # S1：完整度敏感度扫描
     "perm_n": 999,                    # S2：置换检验次数
     "perm_seed": 123,                 # S2：置换随机种子
+    "group_filter": None,             # S2.5-4：None/All 或组名（"CK"/"A"/"B"）
 }
+
+
+def _apply_group_filter(
+    group: str | None,
+    metadata_df: pd.DataFrame | None,
+    abundance_df: pd.DataFrame | None,
+    env_df: pd.DataFrame | None,
+) -> tuple[pd.DataFrame | None, pd.DataFrame | None, pd.DataFrame | None]:
+    """按 Group 过滤 metadata/abundance/env。缺 metadata 或 Group 列则不过滤。"""
+    if group is None or str(group).lower() in ("all", "", "none"):
+        return metadata_df, abundance_df, env_df
+    if metadata_df is None or metadata_df.empty or "Group" not in metadata_df.columns:
+        return metadata_df, abundance_df, env_df
+
+    sample_col = ("SampleID" if "SampleID" in metadata_df.columns
+                  else metadata_df.columns[0])
+    keep_samples = set(
+        metadata_df.loc[metadata_df["Group"].astype(str) == str(group), sample_col]
+        .astype(str)
+    )
+    if not keep_samples:
+        return metadata_df, abundance_df, env_df  # 找不到组名就原样返回
+
+    md_f = metadata_df[metadata_df[sample_col].astype(str).isin(keep_samples)].copy()
+
+    ab_f = abundance_df
+    if abundance_df is not None and not abundance_df.empty:
+        mag_col = next(
+            (c for c in abundance_df.columns if c.lower() in ("mag", "bin_id", "bin")),
+            abundance_df.columns[0],
+        )
+        keep_cols = [mag_col] + [c for c in abundance_df.columns
+                                  if c != mag_col and c in keep_samples]
+        if len(keep_cols) > 1:
+            ab_f = abundance_df[keep_cols].copy()
+
+    env_f = env_df
+    if env_df is not None and not env_df.empty:
+        env_sc = ("SampleID" if "SampleID" in env_df.columns
+                  else env_df.columns[0])
+        mask = env_df[env_sc].astype(str).isin(keep_samples)
+        if mask.any():
+            env_f = env_df[mask].copy()
+        # 若 env 用组级别写法（SampleID=CK/A/B），按 Group 值过滤
+        elif "Group" in env_df.columns:
+            mask2 = env_df["Group"].astype(str) == str(group)
+            if mask2.any():
+                env_f = env_df[mask2].copy()
+    return md_f, ab_f, env_f
 
 
 def _permutation_rho_p(x: np.ndarray, y: np.ndarray,
@@ -387,6 +437,11 @@ def infer(
 ) -> CycleData:
     p = {**DEFAULTS, **(params or {})}
 
+    # S2.5-4：按组过滤样本级输入（metadata/abundance/env）
+    metadata_df, abundance_df, env_df = _apply_group_filter(
+        p.get("group_filter"), metadata_df, abundance_df, env_df,
+    )
+
     mag_kos = _parse_ko_annotation(ko_annotation_df)
     base = _classify_mags(ko_annotation_df, taxonomy_df, keystone_df, abundance_df)
     pw_kos = pathway_ko_sets()
@@ -438,6 +493,11 @@ def infer(
 
     meta = {
         "n_mags": len(base),
+        "group_filter": p.get("group_filter"),
+        "n_samples_used": (
+            abundance_df.shape[1] - 1 if abundance_df is not None and
+            not abundance_df.empty else 0
+        ),
         "n_pathways_total": len(pw_kos),
         "n_pathways_active": sum(
             1 for a in activities.values() if a.n_active_mags > 0),
