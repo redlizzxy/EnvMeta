@@ -151,7 +151,7 @@ def test_pretty_formula_regex_charge():
 
 
 def test_collapse_identical_intermediates():
-    """Fe transport 式级联（所有产物 = Fe_internal）应折叠中间产物。"""
+    """Fe transport 式级联（所有产物 = Fe_internal）触发 parallel_complex 合并为单 bundle。"""
     fig, ax = _make_ax()
     steps = [
         {"gene": f"G{i}", "substrate": "Fe(III)", "product": "Fe_internal"}
@@ -162,8 +162,8 @@ def test_collapse_identical_intermediates():
         title="Fe transport", mag_label="Foo",
         steps=steps, element_color="#E67E22",
     )
-    # 5 个酶都画出
-    assert len(r["gene_positions"]) == 5
+    # S2.5-10 post: parallel_complex → 1 bundle 椭圆（而非 5 个小椭圆）
+    assert len(r["gene_positions"]) == 1
     plt.close(fig)
 
 
@@ -203,7 +203,7 @@ def test_long_gene_name_autosize():
 
 
 def test_parallel_complex_no_internal_arrows():
-    """6 个 KO 全部 substrate=NO3- product=NO2- → parallel，无内部 FancyArrow。"""
+    """6 个 KO 全部 substrate=NO3- product=NO2- → 合并为单 bundle 椭圆，无内部箭头。"""
     from matplotlib.patches import FancyArrowPatch
     fig, ax = _make_ax()
     steps = [
@@ -214,8 +214,9 @@ def test_parallel_complex_no_internal_arrows():
         ax, cy=3.0, cell_x0=3.0, cell_w=12.0, cell_h=1.3,
         title="Nitrate reduction", mag_label="test", steps=steps,
     )
-    assert len(r["gene_positions"]) == 6
-    # 计数 FancyArrowPatch：外部 substrate→cell 1 + cell→product 1 = 2（不超过 3）
+    # S2.5-10 post: 6 个并联 gene 合并为 1 个 bundle ellipse
+    assert len(r["gene_positions"]) == 1
+    # 外部 substrate→cell 1 + cell→product 1 = 2
     n_arrows = sum(1 for p in ax.patches if isinstance(p, FancyArrowPatch))
     assert n_arrows <= 3, f"parallel complex 应无内部箭头，实际 {n_arrows}"
     plt.close(fig)
@@ -274,7 +275,9 @@ def test_segment_none_always_single():
 
 
 def test_sulfide_oxidation_sqr_plus_sox_renders_without_crash():
-    """真实场景：sqr (complex=None) + Sox 5 亚基 (complex=M00595)。"""
+    """真实场景：sqr (complex=None) + Sox 5 亚基 (complex=M00595)。
+    S2.5-10 post: 2 segments → 1 sqr gene + 1 Sox bundle = 2 gene_positions
+    """
     fig, ax = _make_ax()
     steps = [
         {"gene": "sqr", "substrate": "S-2", "product": "S0", "complex": None},
@@ -289,6 +292,25 @@ def test_sulfide_oxidation_sqr_plus_sox_renders_without_crash():
         title="Sulfide oxidation", mag_label="Thiobacillus",
         steps=steps,
     )
-    # 应有 6 个酶位置（1 sqr + 5 Sox）
-    assert len(r["gene_positions"]) == 6
+    # 2 段：单个 sqr + 5 Sox bundle
+    assert len(r["gene_positions"]) == 2
     plt.close(fig)
+
+
+def test_bundle_label_common_prefix():
+    from envmeta.geocycle.cell_renderer import _bundle_label
+    # narG/narH/narI → narG/H/I
+    steps = [{"gene": n} for n in ("narG", "narH", "narI")]
+    label = _bundle_label(steps)
+    assert "narG" in label and "H" in label and "I" in label
+    # 长 bundle 加计数
+    steps = [{"gene": n} for n in ("narG", "narH", "narI", "napA", "napB", "narB")]
+    label = _bundle_label(steps)
+    assert "(6)" in label
+
+
+def test_bundle_label_no_common_prefix():
+    from envmeta.geocycle.cell_renderer import _bundle_label
+    steps = [{"gene": n} for n in ("aoxA", "aoxB")]
+    label = _bundle_label(steps)
+    assert "aox" in label

@@ -167,6 +167,60 @@ def _gene(ax: Axes, x: float, y: float, name: str, color: str,
                      y + h / 2 + 0.06, corr, hm_size)
 
 
+def _bundle_label(steps: list[dict[str, Any]]) -> str:
+    """对多基因 bundle 生成短标签，如 'soxA/X/B/Y/Z' 或 'narG/H/I/napA/B/narB (6)'.
+
+    启发式：
+    - 若所有名字共享同一 4+ 字符前缀 → 前缀保留 + 每个的后缀 '/' 拼
+      narG/narH/narI → narG/H/I
+    - 否则用前 3 个名字 + '/...(N)'
+    """
+    names = [s.get("gene") or s.get("ko") or "?" for s in steps]
+    if len(names) <= 3:
+        # 短 bundle：若有共同前缀就缩，否则全拼
+        pref = _common_prefix(names)
+        if len(pref) >= 3:
+            tails = [n[len(pref):] or "-" for n in names]
+            return pref + "/".join(tails) if len(names) > 1 else names[0]
+        return "/".join(names)
+    # 长 bundle：前 1 个完整 + 后续仅字母后缀
+    pref = _common_prefix(names[:3])
+    if len(pref) >= 3:
+        tails = [n[len(pref):] or "-" for n in names]
+        return pref + "/".join(tails) + f" ({len(names)})"
+    return "/".join(names[:3]) + f"/... ({len(names)})"
+
+
+def _common_prefix(names: list[str]) -> str:
+    if not names:
+        return ""
+    pref = names[0]
+    for n in names[1:]:
+        while not n.startswith(pref):
+            pref = pref[:-1]
+            if not pref:
+                return ""
+    return pref
+
+
+def _draw_bundle_ellipse(
+    ax: Axes, x: float, y: float, label: str, color: str,
+    n_genes: int, w: float | None = None, h: float = 0.46,
+) -> None:
+    """合并 bundle 椭圆：代替 N 个小椭圆的一个大椭圆。
+
+    椭圆宽度按 label 长度自适应；字号随 label 长度递减。
+    """
+    txt_len = len(label)
+    auto_w = max(1.3, min(2.4, 0.14 * txt_len + 0.2))
+    w = w if w is not None else auto_w
+    fs = 7 if txt_len <= 10 else 6 if txt_len <= 16 else 5
+    ax.add_patch(Ellipse((x, y), w, h, facecolor=color,
+                         edgecolor="#222", linewidth=1.1, zorder=7))
+    ax.text(x, y, label, ha="center", va="center_baseline",
+            fontsize=fs, fontweight="bold", color="white", zorder=8)
+
+
 def _segment_by_complex(steps: list[dict[str, Any]]) -> list[list[int]]:
     """把 steps 按连续相同非空 complex 分段。
 
@@ -311,22 +365,20 @@ def draw_cascade_cell(
 
     gene_positions: list[tuple[float, float]] = []
     if parallel_complex:
-        # 多亚基 / 同工酶紧排，无内部箭头
-        xs_genes = list(np.linspace(inner_x0, inner_x1, n_steps))
-        for x, s in zip(xs_genes, steps):
-            _gene(ax, x, gy, name=s.get("gene", "?"),
-                  color=s.get("color") or element_color,
-                  corr=s.get("corr"), show_hm=show_heatmap)
-            gene_positions.append((x, gy))
-        # S2.5-10d: 下方标签优先显示 KEGG complex id
+        # 整条通路是一个并联簇（多亚基 or 同工酶）→ 合并成单大椭圆
+        mid_x = (inner_x0 + inner_x1) / 2
+        label = _bundle_label(steps)
+        bundle_color = steps[0].get("color") or element_color
+        _draw_bundle_ellipse(ax, mid_x, gy, label, bundle_color, n_genes=n_steps)
+        gene_positions.append((mid_x, gy))
+        # subtitle：有共同 complex → "(M00530 complex)"；无 → "(N isozymes)"
         complexes = {s.get("complex") for s in steps if s.get("complex")}
         if len(complexes) == 1:
-            label = f"({next(iter(complexes))} complex)"
+            subtitle = f"({next(iter(complexes))} complex, {n_steps} subunits)"
         else:
-            label = "(subunits / isozymes)"
-        mid_x = (inner_x0 + inner_x1) / 2
-        ax.text(mid_x, gy - cell_h * 0.32,
-                label,
+            subtitle = f"({n_steps} isozymes)"
+        ax.text(mid_x, gy - cell_h * 0.30,
+                subtitle,
                 ha="center", va="center",
                 fontsize=6.5, fontstyle="italic",
                 color="#666", zorder=7)
@@ -369,23 +421,18 @@ def draw_cascade_cell(
                           corr=s.get("corr"), show_hm=show_heatmap)
                     gene_positions.append((x, gy))
                 else:
-                    # 并联簇：共享一个 complex
-                    k = len(seg)
-                    bundle_w = min(1.8, max(1.0, 0.32 * k))
-                    left = x - bundle_w / 2
-                    for i, step_idx in enumerate(seg):
-                        s = steps[step_idx]
-                        gx = left + (i + 0.5) * (bundle_w / k)
-                        _gene(ax, gx, gy, name=s.get("gene", "?"),
-                              color=s.get("color") or element_color,
-                              corr=s.get("corr"),
-                              w=0.55, h=0.32,     # 小椭圆以容纳多个
-                              show_hm=show_heatmap)
-                        gene_positions.append((gx, gy))
-                    complex_id = steps[seg[0]].get("complex") or ""
-                    ax.text(x, gy - cell_h * 0.32,
-                            f"({complex_id} complex)" if complex_id
-                            else "(subunits)",
+                    # 段内并联簇（共享 complex）→ 合并成单大椭圆
+                    seg_steps = [steps[i] for i in seg]
+                    label = _bundle_label(seg_steps)
+                    bundle_color = seg_steps[0].get("color") or element_color
+                    _draw_bundle_ellipse(ax, x, gy, label, bundle_color,
+                                          n_genes=len(seg))
+                    gene_positions.append((x, gy))
+                    complex_id = seg_steps[0].get("complex") or ""
+                    sub = (f"({complex_id} complex, {len(seg)} subunits)"
+                           if complex_id
+                           else f"({len(seg)} isozymes)")
+                    ax.text(x, gy - cell_h * 0.30, sub,
                             ha="center", va="center",
                             fontsize=6.5, fontstyle="italic",
                             color="#666", zorder=7)
