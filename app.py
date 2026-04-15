@@ -1053,6 +1053,18 @@ elif page == "生物地球化学循环图":
             False, key="cy_annot_cg",
             help="选 CK/A/B 单组后勾选；会额外跑 3 次推断，耗时稍增。",
         )
+        ranking = st.radio(
+            "MAG 选择判据",
+            options=["abundance", "completeness",
+                     "keystone_only", "keystone_priority"],
+            index=0, key="cy_ranking",
+            help=(
+                "• abundance（默认）: 完整度 × log(丰度)，偏重占主导者\n"
+                "• completeness: 纯通路覆盖深度，忽略丰度\n"
+                "• keystone_only: 只看关键物种；某通路无 keystone 则省略 cell\n"
+                "• keystone_priority: keystone 10× 加权软优先，非 keystone 仍可竞争"
+            ),
+        )
         size = render_figure_size({"width_mm": 460, "height_mm": 320},
                                   prefix="cy")
 
@@ -1086,6 +1098,7 @@ elif page == "生物地球化学循环图":
             "max_cells_per_element": max_cells,
             "group_filter": None if group_filter == "All" else group_filter,
             "annotate_cross_group": annotate_cg,
+            "contributor_ranking": ranking,
             **size,
         }
         try:

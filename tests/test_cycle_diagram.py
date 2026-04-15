@@ -442,3 +442,53 @@ def test_annotate_cross_group_skipped_without_group(cycle_inputs):
                 "group_filter": None},
     )
     assert r.figure is not None
+
+
+# ── S2.5-9 MAG 选择判据可切换 ─────────────────────────────
+
+def test_ranking_abundance_is_default(cycle_inputs):
+    """默认 ranking=abundance，meta 记录。"""
+    ko, tax, ks, ab, env, md = cycle_inputs
+    data = infer(ko, tax, ks, ab, env, md, params=FAST_PARAMS)
+    assert data.meta["contributor_ranking"] == "abundance"
+
+
+def test_ranking_keystone_only_filters_all_contributors(cycle_inputs):
+    """keystone_only 下所有 contributor 必须为 keystone。"""
+    ko, tax, ks, ab, env, md = cycle_inputs
+    data = infer(ko, tax, ks, ab, env, md,
+                 params={**FAST_PARAMS,
+                         "contributor_ranking": "keystone_only"})
+    for ec in data.elements:
+        for pw in ec.pathways:
+            for c in pw.contributors:
+                assert c.is_keystone, (
+                    f"{pw.pathway_id}: 非 keystone {c.label} 出现在 "
+                    f"keystone_only 模式"
+                )
+
+
+def test_ranking_completeness_differs_from_abundance(cycle_inputs):
+    """completeness 模式的 top contributor 不一定同 abundance 模式。"""
+    ko, tax, ks, ab, env, md = cycle_inputs
+    d_ab = infer(ko, tax, ks, ab, env, md, params=FAST_PARAMS)
+    d_comp = infer(ko, tax, ks, ab, env, md,
+                   params={**FAST_PARAMS,
+                           "contributor_ranking": "completeness"})
+    # 至少一条 pathway 的 top-1 应有差别（现实数据里一定成立）
+    ab_tops = {pw.pathway_id: (pw.contributors[0].mag
+                               if pw.contributors else None)
+               for ec in d_ab.elements for pw in ec.pathways}
+    comp_tops = {pw.pathway_id: (pw.contributors[0].mag
+                                  if pw.contributors else None)
+                 for ec in d_comp.elements for pw in ec.pathways}
+    diffs = [k for k in ab_tops if ab_tops[k] != comp_tops.get(k)]
+    assert diffs, "abundance vs completeness 模式下 top-1 应至少有 1 条不同"
+
+
+def test_ranking_invalid_value_raises(cycle_inputs):
+    """未知 ranking 应报错。"""
+    ko, tax, ks, ab, env, md = cycle_inputs
+    with pytest.raises(ValueError):
+        infer(ko, tax, ks, ab, env, md,
+              params={**FAST_PARAMS, "contributor_ranking": "bogus"})

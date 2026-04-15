@@ -43,7 +43,22 @@ DEFAULTS = {
     "perm_n": 999,                    # S2：置换检验次数
     "perm_seed": 123,                 # S2：置换随机种子
     "group_filter": None,             # S2.5-4：None/All 或组名（"CK"/"A"/"B"）
+    "contributor_ranking": "abundance",  # S2.5-9：MAG 选择判据
+    # 可选："abundance" / "completeness" / "keystone_only" / "keystone_priority"
 }
+
+
+_VALID_RANKINGS = {"abundance", "completeness", "keystone_only", "keystone_priority"}
+
+
+def _contributor_sort_key(c, ranking: str):
+    """按 ranking 给 MAGContribution 打分（越大越排前）。"""
+    base = c.completeness * np.log1p(c.abundance_mean)
+    if ranking == "completeness":
+        return c.completeness
+    if ranking == "keystone_priority":
+        return base * (10.0 if c.is_keystone else 1.0)
+    return base   # abundance / keystone_only 用同一个 base
 
 
 def _apply_group_filter(
@@ -210,6 +225,7 @@ def _pathway_activity(
     pw_kos: dict[str, list[str]],
     threshold: float,
     top_n: int,
+    ranking: str = "abundance",
 ) -> dict[str, PathwayActivity]:
     pw_display = pathway_display(lang="en")
     pw_elem = pathway_element_map()
@@ -254,11 +270,15 @@ def _pathway_activity(
                 genes=genes_list,
                 is_keystone=is_keystone,
             ))
-        # 按 "completeness × (log1p abundance)" 排序
+        # S2.5-9: keystone_only 过滤（只保留 is_keystone 承载者）
+        if ranking == "keystone_only":
+            contributors = [c for c in contributors if c.is_keystone]
+        # 按所选 ranking 排序
         contributors.sort(
-            key=lambda c: c.completeness * np.log1p(c.abundance_mean),
+            key=lambda c: _contributor_sort_key(c, ranking),
             reverse=True,
         )
+        # total_contribution / mean_completeness 始终基于过滤后的 contributors
         total = sum(c.completeness * c.abundance_mean for c in contributors)
         mean_comp = float(np.mean([c.completeness for c in contributors])) if contributors else 0.0
         activities[pw_id] = PathwayActivity(
@@ -449,10 +469,16 @@ def infer(
     base = _classify_mags(ko_annotation_df, taxonomy_df, keystone_df, abundance_df)
     pw_kos = pathway_ko_sets()
 
+    ranking = p.get("contributor_ranking", "abundance")
+    if ranking not in _VALID_RANKINGS:
+        raise ValueError(
+            f"contributor_ranking={ranking!r} invalid；可选 {sorted(_VALID_RANKINGS)}"
+        )
     activities = _pathway_activity(
         mag_kos, base, pw_kos,
         threshold=p["completeness_threshold"],
         top_n=p["top_n_contributors"],
+        ranking=ranking,
     )
 
     # 按元素组织
@@ -496,6 +522,7 @@ def infer(
 
     meta = {
         "n_mags": len(base),
+        "contributor_ranking": ranking,
         "group_filter": p.get("group_filter"),
         "n_samples_used": (
             abundance_df.shape[1] - 1 if abundance_df is not None and
