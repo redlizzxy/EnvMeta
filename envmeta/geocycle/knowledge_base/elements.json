@@ -1,60 +1,74 @@
 {
-  "version": "1.0",
-  "source": "砷渣-钢渣修复宏基因组研究；抽取自 scripts/python/05_gene_heatmap_log2fc.py",
+  "version": "1.1",
+  "source": "砷渣-钢渣修复宏基因组研究；抽取自 scripts/python/05_gene_heatmap_log2fc.py。v1.1 新增 substrate/product/schematic/couplings 字段，支持循环图 Mockup 10 级联渲染（Phase 3 S2.5）。",
   "ko_count": 57,
+  "schema_notes": {
+    "per_gene_fields": "每个 KO 在 info 中除 name 外可选 substrate / product（化学物标签，用于细胞内级联渲染）。null 表示不适用（如调控因子）。",
+    "element_schematic": "每元素可选 schematic 字段声明化学物节点 + 在细胞外的布局位置（left/right/top/bottom/center），用于 renderer 统一布局参考。",
+    "couplings": "顶级 couplings 数组声明跨元素化学耦合，每条 {species_a, species_b, product, type, color, description?}。type ∈ {precipitation, adsorption, redox, complexation}。"
+  },
   "elements": {
     "arsenic": {
       "display_name": {"en": "Arsenic", "cn": "砷代谢"},
       "color": "#E74C3C",
+      "schematic": {
+        "species": ["As(V)", "As(III)", "MMA/DMA", "As-glutathione"],
+        "positions": {
+          "As(V)": "left",
+          "As(III)": "right",
+          "MMA/DMA": "top",
+          "As-glutathione": "bottom"
+        }
+      },
       "pathways": {
         "Arsenate reduction": {
           "display_name": {"en": "Arsenate reduction", "cn": "砷酸盐还原"},
           "reaction": "As(V) -> As(III)",
           "genes": {
-            "K00537": {"name": "arsC-grx"},
-            "K03741": {"name": "arsC-trx"},
-            "K22547": {"name": "HAC1"},
-            "K18701": {"name": "arsC-myc"}
+            "K00537": {"name": "arsC-grx", "substrate": "As(V)", "product": "As(III)"},
+            "K03741": {"name": "arsC-trx", "substrate": "As(V)", "product": "As(III)"},
+            "K22547": {"name": "HAC1",     "substrate": "As(V)", "product": "As(III)"},
+            "K18701": {"name": "arsC-myc", "substrate": "As(V)", "product": "As(III)"}
           }
         },
         "Arsenite oxidation": {
           "display_name": {"en": "Arsenite oxidation", "cn": "亚砷酸盐氧化"},
           "reaction": "As(III) -> As(V)",
           "genes": {
-            "K08355": {"name": "aoxA"},
-            "K08356": {"name": "aoxB"}
+            "K08355": {"name": "aoxA", "substrate": "As(III)", "product": "As(V)"},
+            "K08356": {"name": "aoxB", "substrate": "As(III)", "product": "As(V)"}
           }
         },
         "Resp. arsenate red.": {
           "display_name": {"en": "Resp. arsenate red.", "cn": "呼吸型砷酸盐还原"},
           "reaction": "As(V) -> As(III) (energy-coupled)",
           "genes": {
-            "K28466": {"name": "arrA"},
-            "K28467": {"name": "arrB"}
+            "K28466": {"name": "arrA", "substrate": "As(V)", "product": "As(III)"},
+            "K28467": {"name": "arrB", "substrate": "As(V)", "product": "As(III)"}
           }
         },
         "As transport/detox": {
           "display_name": {"en": "As transport/detox", "cn": "砷转运与解毒"},
           "genes": {
-            "K03893": {"name": "arsB"},
-            "K03325": {"name": "ACR3"},
-            "K18064": {"name": "ACR2"},
-            "K01551": {"name": "arsA"},
-            "K25223": {"name": "arsJ"},
-            "K11811": {"name": "arsH"}
+            "K03893": {"name": "arsB",  "substrate": "As(III)",         "product": "As(III)_out"},
+            "K03325": {"name": "ACR3",  "substrate": "As(III)",         "product": "As(III)_out"},
+            "K18064": {"name": "ACR2",  "substrate": "As(V)",           "product": "As(III)"},
+            "K01551": {"name": "arsA",  "substrate": "As(III)",         "product": "As(III)_out"},
+            "K25223": {"name": "arsJ",  "substrate": "As-glutathione",  "product": "As-glutathione_out"},
+            "K11811": {"name": "arsH",  "substrate": "As(III)-organic", "product": "As(V)"}
           }
         },
         "As methylation": {
           "display_name": {"en": "As methylation", "cn": "砷甲基化"},
           "genes": {
-            "K07755": {"name": "AS3MT"},
-            "K25224": {"name": "gapdh"}
+            "K07755": {"name": "AS3MT", "substrate": "As(III)",      "product": "MMA/DMA"},
+            "K25224": {"name": "gapdh", "substrate": "As(V)-adduct", "product": "As(III)"}
           }
         },
         "As regulation": {
           "display_name": {"en": "As regulation", "cn": "砷调控"},
           "genes": {
-            "K03892": {"name": "arsR"}
+            "K03892": {"name": "arsR", "substrate": null, "product": null}
           }
         }
       },
@@ -67,58 +81,70 @@
     "nitrogen": {
       "display_name": {"en": "Nitrogen", "cn": "氮代谢"},
       "color": "#3498DB",
+      "schematic": {
+        "species": ["N2", "NO3-", "NO2-", "NO", "N2O", "NH3", "NH2OH"],
+        "positions": {
+          "N2": "top",
+          "NO3-": "left",
+          "NO2-": "center",
+          "NO": "center",
+          "N2O": "right",
+          "NH3": "bottom",
+          "NH2OH": "bottom"
+        }
+      },
       "pathways": {
         "Nitrate reduction": {
           "display_name": {"en": "Nitrate reduction", "cn": "硝酸盐还原"},
           "reaction": "NO3- -> NO2-",
           "genes": {
-            "K00370": {"name": "narG"},
-            "K00371": {"name": "narH"},
-            "K00374": {"name": "narI"},
-            "K02567": {"name": "napA"},
-            "K02568": {"name": "napB"},
-            "K00367": {"name": "narB"}
+            "K00370": {"name": "narG", "substrate": "NO3-", "product": "NO2-"},
+            "K00371": {"name": "narH", "substrate": "NO3-", "product": "NO2-"},
+            "K00374": {"name": "narI", "substrate": "NO3-", "product": "NO2-"},
+            "K02567": {"name": "napA", "substrate": "NO3-", "product": "NO2-"},
+            "K02568": {"name": "napB", "substrate": "NO3-", "product": "NO2-"},
+            "K00367": {"name": "narB", "substrate": "NO3-", "product": "NO2-"}
           }
         },
         "Nitrite reduction": {
           "display_name": {"en": "Nitrite reduction", "cn": "亚硝酸盐还原"},
           "reaction": "NO2- -> NO / NH4+",
           "genes": {
-            "K00368": {"name": "nirK"},
-            "K15864": {"name": "nirS"},
-            "K00366": {"name": "nirA"},
-            "K15877": {"name": "CYP55"}
+            "K00368": {"name": "nirK",  "substrate": "NO2-", "product": "NO"},
+            "K15864": {"name": "nirS",  "substrate": "NO2-", "product": "NO"},
+            "K00366": {"name": "nirA",  "substrate": "NO2-", "product": "NH3"},
+            "K15877": {"name": "CYP55", "substrate": "NO2-", "product": "NO"}
           }
         },
         "NO reduction": {
           "display_name": {"en": "NO reduction", "cn": "NO还原"},
           "reaction": "NO -> N2O",
           "genes": {
-            "K04561": {"name": "norB"}
+            "K04561": {"name": "norB", "substrate": "NO", "product": "N2O"}
           }
         },
         "N2O reduction": {
           "display_name": {"en": "N2O reduction", "cn": "N2O还原"},
           "reaction": "N2O -> N2",
           "genes": {
-            "K00376": {"name": "nosZ"}
+            "K00376": {"name": "nosZ", "substrate": "N2O", "product": "N2"}
           }
         },
         "Ammonia oxidation": {
           "display_name": {"en": "Ammonia oxidation", "cn": "氨氧化"},
           "reaction": "NH3 -> NH2OH",
           "genes": {
-            "K10944": {"name": "pmoA-amoA"},
-            "K10945": {"name": "pmoB-amoB"},
-            "K10946": {"name": "pmoC-amoC"}
+            "K10944": {"name": "pmoA-amoA", "substrate": "NH3", "product": "NH2OH"},
+            "K10945": {"name": "pmoB-amoB", "substrate": "NH3", "product": "NH2OH"},
+            "K10946": {"name": "pmoC-amoC", "substrate": "NH3", "product": "NH2OH"}
           }
         },
         "N fixation": {
           "display_name": {"en": "N fixation", "cn": "固氮"},
           "reaction": "N2 -> NH3",
           "genes": {
-            "K02586": {"name": "nifD"},
-            "K02591": {"name": "nifK"}
+            "K02586": {"name": "nifD", "substrate": "N2", "product": "NH3"},
+            "K02591": {"name": "nifK", "substrate": "N2", "product": "NH3"}
           }
         }
       },
@@ -130,43 +156,55 @@
     "sulfur": {
       "display_name": {"en": "Sulfur", "cn": "硫代谢"},
       "color": "#F1C40F",
+      "schematic": {
+        "species": ["SO4-2", "APS", "SO3-2", "S-2", "S0", "S2O3-2", "cysteine"],
+        "positions": {
+          "SO4-2": "left",
+          "APS": "center",
+          "SO3-2": "center",
+          "S-2": "right",
+          "S0": "bottom",
+          "S2O3-2": "bottom",
+          "cysteine": "top"
+        }
+      },
       "pathways": {
         "Assim. sulfate red.": {
           "display_name": {"en": "Assim. sulfate red.", "cn": "硫酸盐同化还原"},
           "reaction": "SO4^2- -> S^2- (assimilatory)",
           "genes": {
-            "K00380": {"name": "cysJ"},
-            "K00381": {"name": "cysI"},
-            "K00390": {"name": "cysH"},
-            "K00392": {"name": "sir"}
+            "K00380": {"name": "cysJ", "substrate": "SO3-2", "product": "S-2"},
+            "K00381": {"name": "cysI", "substrate": "SO3-2", "product": "S-2"},
+            "K00390": {"name": "cysH", "substrate": "APS",   "product": "SO3-2"},
+            "K00392": {"name": "sir",  "substrate": "SO3-2", "product": "S-2"}
           }
         },
         "Dissim. sulfate red.": {
           "display_name": {"en": "Dissim. sulfate red.", "cn": "硫酸盐异化还原"},
           "reaction": "SO4^2- -> S^2- (dissimilatory, energy-coupled)",
           "genes": {
-            "K00394": {"name": "aprA"},
-            "K00395": {"name": "aprB"},
-            "K11180": {"name": "dsrA"},
-            "K11181": {"name": "dsrB"}
+            "K00394": {"name": "aprA", "substrate": "APS",   "product": "SO3-2"},
+            "K00395": {"name": "aprB", "substrate": "APS",   "product": "SO3-2"},
+            "K11180": {"name": "dsrA", "substrate": "SO3-2", "product": "S-2"},
+            "K11181": {"name": "dsrB", "substrate": "SO3-2", "product": "S-2"}
           }
         },
         "Sulfide oxidation": {
           "display_name": {"en": "Sulfide oxidation", "cn": "硫化物氧化"},
           "reaction": "S^2- -> SO4^2-",
           "genes": {
-            "K17218": {"name": "sqr"},
-            "K17222": {"name": "soxA"},
-            "K17223": {"name": "soxX"},
-            "K17224": {"name": "soxB"},
-            "K17226": {"name": "soxY"},
-            "K17227": {"name": "soxZ"}
+            "K17218": {"name": "sqr",  "substrate": "S-2",    "product": "S0"},
+            "K17222": {"name": "soxA", "substrate": "S2O3-2", "product": "SO4-2"},
+            "K17223": {"name": "soxX", "substrate": "S2O3-2", "product": "SO4-2"},
+            "K17224": {"name": "soxB", "substrate": "S2O3-2", "product": "SO4-2"},
+            "K17226": {"name": "soxY", "substrate": "S2O3-2", "product": "SO4-2"},
+            "K17227": {"name": "soxZ", "substrate": "S2O3-2", "product": "SO4-2"}
           }
         },
         "Thiosulfate metab.": {
           "display_name": {"en": "Thiosulfate metab.", "cn": "硫代硫酸盐代谢"},
           "genes": {
-            "K01011": {"name": "TST"}
+            "K01011": {"name": "TST", "substrate": "S2O3-2", "product": "SO3-2"}
           }
         }
       },
@@ -179,23 +217,31 @@
     "iron": {
       "display_name": {"en": "Iron", "cn": "铁代谢"},
       "color": "#E67E22",
+      "schematic": {
+        "species": ["Fe(III)", "Fe(II)", "Fe_internal"],
+        "positions": {
+          "Fe(III)": "left",
+          "Fe(II)": "right",
+          "Fe_internal": "center"
+        }
+      },
       "pathways": {
         "Fe transport": {
           "display_name": {"en": "Fe transport", "cn": "铁转运系统"},
           "genes": {
-            "K02013": {"name": "ABC.FEV.A"},
-            "K02014": {"name": "TC.FEV.OM"},
-            "K02015": {"name": "ABC.FEV.P"},
-            "K02016": {"name": "ABC.FEV.S"},
-            "K02012": {"name": "afuA"},
-            "K07243": {"name": "FTR"}
+            "K02013": {"name": "ABC.FEV.A",  "substrate": "Fe(III)", "product": "Fe_internal"},
+            "K02014": {"name": "TC.FEV.OM",  "substrate": "Fe(III)", "product": "Fe_internal"},
+            "K02015": {"name": "ABC.FEV.P",  "substrate": "Fe(III)", "product": "Fe_internal"},
+            "K02016": {"name": "ABC.FEV.S",  "substrate": "Fe(III)", "product": "Fe_internal"},
+            "K02012": {"name": "afuA",       "substrate": "Fe(III)", "product": "Fe_internal"},
+            "K07243": {"name": "FTR",        "substrate": "Fe(II)",  "product": "Fe_internal"}
           }
         },
         "Fe uptake regulation": {
           "display_name": {"en": "Fe uptake regulation", "cn": "铁摄取调控"},
           "genes": {
-            "K03711": {"name": "fur"},
-            "K03832": {"name": "tonB"}
+            "K03711": {"name": "fur",  "substrate": null, "product": null},
+            "K03832": {"name": "tonB", "substrate": null, "product": null}
           }
         }
       },
@@ -204,5 +250,39 @@
         "sulfur": "FeS/FeS2 矿化是固砷关键路径"
       }
     }
-  }
+  },
+  "couplings": [
+    {
+      "species_a": "As(III)",
+      "species_b": "S-2",
+      "product": "As2S3",
+      "type": "precipitation",
+      "color": "#8E44AD",
+      "description": "雌黄沉淀：还原态硫与三价砷共沉淀固定砷"
+    },
+    {
+      "species_a": "As(V)",
+      "species_b": "Fe(III)",
+      "product": "Fe-As_surface",
+      "type": "adsorption",
+      "color": "#D35400",
+      "description": "铁氧化物吸附砷酸盐（内圈 / 外圈络合）"
+    },
+    {
+      "species_a": "Fe(II)",
+      "species_b": "S-2",
+      "product": "FeS",
+      "type": "precipitation",
+      "color": "#2C3E50",
+      "description": "黄铁矿前驱体，驱动铁硫耦合"
+    },
+    {
+      "species_a": "NO3-",
+      "species_b": "As(III)",
+      "product": "As(V)",
+      "type": "redox",
+      "color": "#27AE60",
+      "description": "硝酸盐作为电子受体化学能厌氧氧化 As(III)"
+    }
+  ]
 }

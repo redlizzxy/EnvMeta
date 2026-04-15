@@ -79,3 +79,45 @@ def element_pathway_ko_order(kb: dict | None = None) -> list[tuple[str, str, str
             for ko in pw["genes"].keys():
                 out.append((eid, pw_id, ko))
     return out
+
+
+def ko_substrate_product_map(kb: dict | None = None) -> dict[str, dict[str, str | None]]:
+    """{ko: {"substrate": str|None, "product": str|None}}。
+
+    v1.1 新增，支持细胞内级联渲染。若 KO 未声明字段则返回 {"substrate": None, "product": None}。
+    """
+    kb = kb or load_kb()
+    out: dict[str, dict[str, str | None]] = {}
+    for el in kb["elements"].values():
+        for pw in el["pathways"].values():
+            for ko, info in pw["genes"].items():
+                out[ko] = {
+                    "substrate": info.get("substrate"),
+                    "product": info.get("product"),
+                }
+    return out
+
+
+def element_schematic(element_id: str, kb: dict | None = None) -> dict:
+    """返回指定元素的 schematic 字段 {"species": [...], "positions": {...}}。
+
+    若元素未声明 schematic 则返回 {"species": [], "positions": {}}。
+    """
+    kb = kb or load_kb()
+    if element_id not in kb["elements"]:
+        raise KeyError(f"unknown element_id: {element_id}")
+    el = kb["elements"][element_id]
+    sch = el.get("schematic") or {}
+    return {
+        "species": list(sch.get("species", [])),
+        "positions": dict(sch.get("positions", {})),
+    }
+
+
+def couplings(kb: dict | None = None) -> list[dict]:
+    """返回顶级 couplings 列表；缺失时返回 []。
+
+    每条结构：{species_a, species_b, product, type, color, description?}。
+    """
+    kb = kb or load_kb()
+    return list(kb.get("couplings", []))
