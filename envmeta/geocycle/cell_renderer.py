@@ -555,6 +555,8 @@ def draw_cascade_cell(
                    for i in range(n_chains)]
             multichain_sub = None
             multichain_prod = None
+            multichain_sub_map: dict[str, tuple[float, float]] = {}
+            multichain_prod_map: dict[str, tuple[float, float]] = {}
             for ci, (chain, row_y) in enumerate(zip(chains, ys)):
                 sub_pos, prod_pos = _draw_chain_row(
                     ax, chain, steps,
@@ -565,13 +567,22 @@ def draw_cascade_cell(
                     cell_x0=cell_x0, cell_x1=cell_x1,
                     gene_positions=gene_positions,
                 )
-                if ci == 0:
+                chain_sub_sp = steps[chain[0][0]].get("substrate")
+                chain_prod_sp = steps[chain[-1][-1]].get("product")
+                if sub_pos and chain_sub_sp:
+                    multichain_sub_map.setdefault(str(chain_sub_sp), sub_pos)
+                if prod_pos and chain_prod_sp:
+                    multichain_prod_map.setdefault(str(chain_prod_sp), prod_pos)
+                # fallback：优先记录首个带底物 / 末个带产物 chain 的位置
+                if sub_pos and multichain_sub is None:
                     multichain_sub = sub_pos
-                if ci == len(chains) - 1:
+                if prod_pos:
                     multichain_prod = prod_pos
 
     substrate_pos = None
     product_pos = None
+    substrate_pos_map: dict[str, tuple[float, float]] = {}
+    product_pos_map: dict[str, tuple[float, float]] = {}
     # 多链：已在 _draw_chain_row(external_chems=True) 中画了外部 substrate/product
     is_multi_chain = False
     if not (parallel_complex or (all_same_intermediate and n_steps >= 2)):
@@ -581,21 +592,27 @@ def draw_cascade_cell(
         if is_multi_chain:
             substrate_pos = locals().get("multichain_sub")
             product_pos = locals().get("multichain_prod")
+            substrate_pos_map = dict(locals().get("multichain_sub_map") or {})
+            product_pos_map = dict(locals().get("multichain_prod_map") or {})
 
     if show_outside_chems and not is_multi_chain:
-        sub_txt = steps[0].get("substrate")
+        # 取首个非空 substrate（跳过纯调控基因 fur/tonB 的 None substrate）
+        sub_txt = next((s.get("substrate") for s in steps if s.get("substrate")), None)
         if sub_txt:
             sub_x = cell_x0 - 1.1
             substrate_pos = _chem_outside(ax, sub_x, cy, str(sub_txt))
+            substrate_pos_map[str(sub_txt)] = substrate_pos
             ax.add_patch(FancyArrowPatch(
                 (sub_x + 0.5, cy), (cell_x0 - 0.05, cy),
                 arrowstyle="-|>", mutation_scale=14,
                 linewidth=1.4, color=OUTSIDE_ARROW_COLOR, zorder=4,
             ))
-        final = steps[-1].get("product")
+        # 取末个非空 product
+        final = next((s.get("product") for s in reversed(steps) if s.get("product")), None)
         if final:
             prod_x = cell_x1 + 1.1
             product_pos = _chem_outside(ax, prod_x, cy, str(final))
+            product_pos_map[str(final)] = product_pos
             ax.add_patch(FancyArrowPatch(
                 (cell_x1 + 0.05, cy), (prod_x - 0.5, cy),
                 arrowstyle="-|>", mutation_scale=14,
@@ -605,6 +622,8 @@ def draw_cascade_cell(
     return {
         "substrate_pos": substrate_pos,
         "product_pos": product_pos,
+        "substrate_pos_map": substrate_pos_map,
+        "product_pos_map": product_pos_map,
         "cell_box": (cell_x0, cell_x1, cy),
         "gene_positions": gene_positions,
     }

@@ -222,8 +222,17 @@ def _draw_element_quadrant_cascade(
             + (f"  [{len(pws)} pathways]" if len(pws) > 1 else ""),
             fontsize=6.5, color="#555", ha="right", va="top",
         )
-        sub_species = _norm_species(merged_genes[0].get("substrate")) if merged_genes else None
-        prod_species = _norm_species(merged_genes[-1].get("product")) if merged_genes else None
+        # 收集所有 merged_genes 涉及的底物 / 产物 species（跨通路 / 跨链），
+        # 供 _find_best_pair 的 coupling 匹配使用。
+        sub_list: list[str] = []
+        prod_list: list[str] = []
+        for g in merged_genes:
+            s = _norm_species(g.get("substrate"))
+            p = _norm_species(g.get("product"))
+            if s and s not in sub_list:
+                sub_list.append(s)
+            if p and p not in prod_list:
+                prod_list.append(p)
         # 对多通路：pathway_id 用首条（供 coupling 匹配）
         primary_pw = pws[0][0]
         r.update({
@@ -233,8 +242,8 @@ def _draw_element_quadrant_cascade(
             "mag": mag_id,
             "element": ec.element_id,
             "ax": ax,
-            "substrate_species": sub_species,
-            "product_species": prod_species,
+            "substrate_species": sub_list,
+            "product_species": prod_list,
         })
         anchors.append(r)
 
@@ -315,15 +324,25 @@ def _draw_element_quadrant_bars(ax, ec: ElementCycle, cfg: dict) -> None:
 # 化学物耦合连线（S2.5-3）
 # =============================================================================
 
-def _anchor_fig_point(fig, anchor: dict, which: str) -> tuple[float, float] | None:
+def _anchor_fig_point(fig, anchor: dict, which: str,
+                      species: str | None = None) -> tuple[float, float] | None:
     """把 anchor 的 substrate/product 数据坐标转 fig 坐标。
 
     which ∈ {"substrate_pos", "product_pos"}
+    species: 若提供且 anchor 有 substrate_pos_map / product_pos_map，
+             优先返回该 species 对应的位置（多链细胞精确定位）。
     """
-    key = which
-    pos = anchor.get(key)
     ax = anchor.get("ax")
-    if pos is None or ax is None:
+    if ax is None:
+        return None
+    pos = None
+    if species:
+        map_key = "substrate_pos_map" if which == "substrate_pos" else "product_pos_map"
+        pos_map = anchor.get(map_key) or {}
+        pos = pos_map.get(species)
+    if pos is None:
+        pos = anchor.get(which)
+    if pos is None:
         return None
     x, y = pos
     try:
@@ -346,14 +365,35 @@ def _find_best_pair(
     a_norm = _norm_species(species_a)
     b_norm = _norm_species(species_b)
 
+    def _as_list(v) -> list[str]:
+        if v is None:
+            return []
+        if isinstance(v, str):
+            return [v]
+        return list(v)
+
+    def _has_product_pos(a: dict, species: str) -> bool:
+        pos_map = a.get("product_pos_map") or {}
+        if species in pos_map:
+            return True
+        # 回退：species 在 product_species 且有单值 product_pos
+        return (species in _as_list(a.get("product_species"))
+                and a.get("product_pos") is not None)
+
+    def _has_substrate_pos(a: dict, species: str) -> bool:
+        pos_map = a.get("substrate_pos_map") or {}
+        if species in pos_map:
+            return True
+        return (species in _as_list(a.get("substrate_species"))
+                and a.get("substrate_pos") is not None)
+
     def _candidates(species_norm: str) -> list[tuple[dict, str]]:
         out: list[tuple[dict, str]] = []
         for a in anchors:
-            if a.get("product_species") == species_norm and a.get("product_pos"):
+            if species_norm in _as_list(a.get("product_species")) and _has_product_pos(a, species_norm):
                 out.append((a, "product_pos"))
         for a in anchors:
-            if a.get("substrate_species") == species_norm and a.get("substrate_pos"):
-                # 产物优先（已加在前），这里做 substrate 兜底，但避免重复
+            if species_norm in _as_list(a.get("substrate_species")) and _has_substrate_pos(a, species_norm):
                 if not any(x[0] is a and x[1] == "product_pos" for x in out):
                     out.append((a, "substrate_pos"))
         return out
@@ -443,8 +483,8 @@ def _draw_couplings(fig, anchors: list[dict],
         if pair is None:
             continue
         anchor_a, key_a, anchor_b, key_b = pair
-        p1 = _anchor_fig_point(fig, anchor_a, key_a)
-        p2 = _anchor_fig_point(fig, anchor_b, key_b)
+        p1 = _anchor_fig_point(fig, anchor_a, key_a, species=_norm_species(a))
+        p2 = _anchor_fig_point(fig, anchor_b, key_b, species=_norm_species(b))
         if p1 is None or p2 is None:
             continue
         mx = (p1[0] + p2[0]) / 2

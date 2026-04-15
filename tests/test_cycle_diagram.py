@@ -296,6 +296,33 @@ def test_couplings_drawn_when_chemistry_matches(cycle_inputs):
         assert cp["color"].startswith("#")
 
 
+def test_multichain_cell_exposes_fe_iii_for_coupling(cycle_inputs):
+    """铁细胞（多链布局，含 fur/tonB 调控 + Fe transport）应把 Fe(III)
+    暴露在 substrate_species / substrate_pos_map 里，让 As(V)↔Fe(III)
+    耦合能成对匹配。
+    """
+    ko, tax, ks, ab, env, md = cycle_inputs
+    r = cycle_diagram.analyze(
+        ko, tax, ks, ab, env, md,
+        params={**FAST_PARAMS, "group_filter": "B",
+                "max_cells_per_element": 4},
+    )
+    anchors = r.figure._envmeta_cycle_anchors
+    iron_cells = [a for a in anchors if a.get("element") == "iron"]
+    has_fe_iii = any(
+        "Fe(III)" in (a.get("substrate_species") or [])
+        and (a.get("substrate_pos_map", {}).get("Fe(III)")
+             or a.get("substrate_pos"))
+        for a in iron_cells
+    )
+    assert has_fe_iii, "铁象限应有 cell 提供 Fe(III) 的 substrate 位置"
+    drawn = r.figure._envmeta_cycle_couplings
+    pairs = {(c["species_a"], c["species_b"]) for c in drawn}
+    assert ("As(V)", "Fe(III)") in pairs, (
+        f"应画出 As(V)↔Fe(III) 的棕色耦合线，实际 {pairs}"
+    )
+
+
 def test_show_couplings_false_disables(cycle_inputs):
     """show_couplings=False 时不画任何耦合。"""
     ko, tax, ks, ab, env, md = cycle_inputs
