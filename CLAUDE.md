@@ -282,6 +282,27 @@ S8 插件框架推迟到论文接收后再做。完整计划见 `C:\Users\REDLIZ
 
 > 每次 session 结束前更新此区块。新对话开始时 Claude Code 自动读取，了解当前进度。
 
+### 2026-04-19（S2.5-14 — 回归修复：multi-chain 细胞丢失化学物耦合锚点）
+
+- **症状**：用户发现 B 组图中 `As(V)↔Fe(III)` 的棕色耦合线（v29 之前有）在
+  S2.5-11 合并同-MAG 多通路后消失。另外 `Fe(II)↔S-2`（FeS 前驱）也未画出
+- **根因**：MAG-merge（commit 4cf2c89）后 Fe 细胞合并 `fur/tonB`（substrate/product
+  都是 None）+ `Fe transport`（Fe(III)→Fe_internal）。单值 `substrate_species`
+  锚点取 `merged_genes[0].substrate` → None（fur 排在最前）。KB 的 `As(V)↔Fe(III)`
+  耦合永远找不到 Fe 侧锚点 → 静默 drop
+- **修复**（commit `27c32d6`，3 文件 / +103 / −17 行）：
+  - `substrate_species` / `product_species` 改列表（收集所有 merged_genes 的物种）
+  - 多链 cell 额外导出 `substrate_pos_map` / `product_pos_map`，按化学物名精确定位
+  - 单链外部 substrate/product 跳过 None（调控基因前置场景）
+  - `_anchor_fig_point` 加 `species` 参数；`_find_best_pair` 支持列表成员匹配
+  - +1 回归测试 `test_multichain_cell_exposes_fe_iii_for_coupling`
+- **验证**：CK/A/B × 2 ranking 6 组合，**4/4 KB 耦合线全部回归**；
+  `hide_regulator_only_cells` 仍正常过滤；**176/176 全绿**
+- **自检结论**：S2.5-1 ~ S2.5-13 全部 13 项功能在线；唯一漏网的就是这条
+  耦合回归，本次修复锁死。可以进入 S3
+
+---
+
 ### 2026-04-18（**Session 总结 — S2.5 系列全部收口（13 个子 session）⭐ 循环图可发表级**）
 
 本阶段是 Phase 3 循环图从 v1 抽象柱图 → **Mockup 10 发表级合并细胞级联图**
