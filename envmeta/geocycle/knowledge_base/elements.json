@@ -1,18 +1,20 @@
 {
   "version": "1.1",
   "source": "砷渣-钢渣修复宏基因组研究；抽取自 scripts/python/05_gene_heatmap_log2fc.py。v1.1 新增 substrate/product/schematic/couplings 字段，支持循环图 Mockup 10 级联渲染（Phase 3 S2.5）。",
-  "ko_count": 57,
-  "schema_notes": {
-    "per_gene_fields": "每个 KO 在 info 中除 name 外可选 substrate / product（化学物标签，用于细胞内级联渲染）。null 表示不适用（如调控因子）。",
-    "element_schematic": "每元素可选 schematic 字段声明化学物节点 + 在细胞外的布局位置（left/right/top/bottom/center），用于 renderer 统一布局参考。",
-    "couplings": "顶级 couplings 数组声明跨元素化学耦合，每条 {species_a, species_b, product, type, color, description?}。type ∈ {precipitation, adsorption, redox, complexation}。"
-  },
   "elements": {
     "arsenic": {
-      "display_name": {"en": "Arsenic", "cn": "砷代谢"},
+      "display_name": {
+        "en": "Arsenic",
+        "cn": "砷代谢"
+      },
       "color": "#E74C3C",
       "schematic": {
-        "species": ["As(V)", "As(III)", "MMA/DMA", "As-glutathione"],
+        "species": [
+          "As(V)",
+          "As(III)",
+          "MMA/DMA",
+          "As-glutathione"
+        ],
         "positions": {
           "As(V)": "left",
           "As(III)": "right",
@@ -22,53 +24,156 @@
       },
       "pathways": {
         "Arsenate reduction": {
-          "display_name": {"en": "Arsenate reduction", "cn": "砷酸盐还原"},
+          "display_name": {
+            "en": "Arsenate reduction",
+            "cn": "砷酸盐还原"
+          },
           "reaction": "As(V) -> As(III)",
           "genes": {
-            "K00537": {"name": "arsC-grx", "substrate": "As(V)", "product": "As(III)"},
-            "K03741": {"name": "arsC-trx", "substrate": "As(V)", "product": "As(III)"},
-            "K22547": {"name": "HAC1",     "substrate": "As(V)", "product": "As(III)"},
-            "K18701": {"name": "arsC-myc", "substrate": "As(V)", "product": "As(III)"}
+            "K00537": {
+              "name": "arsC-grx",
+              "substrate": "As(V)",
+              "product": "As(III)",
+              "kegg_name": "arsenate reductase (glutaredoxin) [EC:1.20.4.1]"
+            },
+            "K03741": {
+              "name": "arsC-trx",
+              "substrate": "As(V)",
+              "product": "As(III)",
+              "kegg_name": "arsenate reductase (thioredoxin) [EC:1.20.4.4]"
+            },
+            "K22547": {
+              "name": "HAC1",
+              "substrate": "As(V)",
+              "product": "As(III)",
+              "kegg_name": "arsenate reductase [EC:1.20.4.1]"
+            },
+            "K18701": {
+              "name": "arsC-myc",
+              "substrate": "As(V)",
+              "product": "As(III)",
+              "kegg_name": "arsenate-mycothiol transferase [EC:2.8.4.2]"
+            }
           }
         },
         "Arsenite oxidation": {
-          "display_name": {"en": "Arsenite oxidation", "cn": "亚砷酸盐氧化"},
+          "display_name": {
+            "en": "Arsenite oxidation",
+            "cn": "亚砷酸盐氧化"
+          },
           "reaction": "As(III) -> As(V)",
           "genes": {
-            "K08355": {"name": "aoxA", "substrate": "As(III)", "product": "As(V)"},
-            "K08356": {"name": "aoxB", "substrate": "As(III)", "product": "As(V)"}
+            "K08355": {
+              "name": "aoxA",
+              "substrate": "As(III)",
+              "product": "As(V)",
+              "kegg_name": "arsenite oxidase small subunit [EC:1.20.2.1 1.20.9.1]"
+            },
+            "K08356": {
+              "name": "aoxB",
+              "substrate": "As(III)",
+              "product": "As(V)",
+              "kegg_name": "arsenite oxidase large subunit [EC:1.20.2.1 1.20.9.1]"
+            }
           }
         },
         "Resp. arsenate red.": {
-          "display_name": {"en": "Resp. arsenate red.", "cn": "呼吸型砷酸盐还原"},
+          "display_name": {
+            "en": "Resp. arsenate red.",
+            "cn": "呼吸型砷酸盐还原"
+          },
           "reaction": "As(V) -> As(III) (energy-coupled)",
           "genes": {
-            "K28466": {"name": "arrA", "substrate": "As(V)", "product": "As(III)"},
-            "K28467": {"name": "arrB", "substrate": "As(V)", "product": "As(III)"}
+            "K28466": {
+              "name": "arrA",
+              "substrate": "As(V)",
+              "product": "As(III)",
+              "kegg_name": "arsenate reductase (donor) subunit ArrA [EC:1.20.99.1]"
+            },
+            "K28467": {
+              "name": "arrB",
+              "substrate": "As(V)",
+              "product": "As(III)",
+              "kegg_name": "arsenate reductase (donor) iron-sulfur subunit ArrB"
+            }
           }
         },
         "As transport/detox": {
-          "display_name": {"en": "As transport/detox", "cn": "砷转运与解毒"},
+          "display_name": {
+            "en": "As transport/detox",
+            "cn": "砷转运与解毒"
+          },
           "genes": {
-            "K03893": {"name": "arsB",  "substrate": "As(III)",         "product": "As(III)_out"},
-            "K03325": {"name": "ACR3",  "substrate": "As(III)",         "product": "As(III)_out"},
-            "K18064": {"name": "ACR2",  "substrate": "As(V)",           "product": "As(III)"},
-            "K01551": {"name": "arsA",  "substrate": "As(III)",         "product": "As(III)_out"},
-            "K25223": {"name": "arsJ",  "substrate": "As-glutathione",  "product": "As-glutathione_out"},
-            "K11811": {"name": "arsH",  "substrate": "As(III)-organic", "product": "As(V)"}
+            "K03893": {
+              "name": "arsB",
+              "substrate": "As(III)",
+              "product": "As(III)_out",
+              "kegg_name": "arsenical pump membrane protein"
+            },
+            "K03325": {
+              "name": "ACR3",
+              "substrate": "As(III)",
+              "product": "As(III)_out",
+              "kegg_name": "arsenite transporter"
+            },
+            "K18064": {
+              "name": "ACR2",
+              "substrate": "As(V)",
+              "product": "As(III)",
+              "kegg_name": "arsenical-resistance protein 2"
+            },
+            "K01551": {
+              "name": "arsA",
+              "substrate": "As(III)",
+              "product": "As(III)_out",
+              "kegg_name": "arsenite/tail-anchored protein-transporting ATPase [EC:7.3.2.7 7.3.-.-]"
+            },
+            "K25223": {
+              "name": "arsJ",
+              "substrate": "As-glutathione",
+              "product": "As-glutathione_out",
+              "kegg_name": "MFS transporter, APGE family, 1-arseno-3-phosphoglycerate exporter"
+            },
+            "K11811": {
+              "name": "arsH",
+              "substrate": "As(III)-organic",
+              "product": "As(V)",
+              "kegg_name": "arsenical resistance protein ArsH"
+            }
           }
         },
         "As methylation": {
-          "display_name": {"en": "As methylation", "cn": "砷甲基化"},
+          "display_name": {
+            "en": "As methylation",
+            "cn": "砷甲基化"
+          },
           "genes": {
-            "K07755": {"name": "AS3MT", "substrate": "As(III)",      "product": "MMA/DMA"},
-            "K25224": {"name": "gapdh", "substrate": "As(V)-adduct", "product": "As(III)"}
+            "K07755": {
+              "name": "AS3MT",
+              "substrate": "As(III)",
+              "product": "MMA/DMA",
+              "kegg_name": "arsenite methyltransferase [EC:2.1.1.137]"
+            },
+            "K25224": {
+              "name": "gapdh",
+              "substrate": "As(V)-adduct",
+              "product": "As(III)",
+              "kegg_name": "glyceraldehyde-3-phosphate dehydrogenase (arsenate-transferring) [EC:1.2.1.107]"
+            }
           }
         },
         "As regulation": {
-          "display_name": {"en": "As regulation", "cn": "砷调控"},
+          "display_name": {
+            "en": "As regulation",
+            "cn": "砷调控"
+          },
           "genes": {
-            "K03892": {"name": "arsR", "substrate": null, "product": null}
+            "K03892": {
+              "name": "arsR",
+              "substrate": null,
+              "product": null,
+              "kegg_name": "ArsR family transcriptional regulator, arsenate/arsenite/antimonite-responsive transcriptional repressor"
+            }
           }
         }
       },
@@ -79,10 +184,21 @@
       }
     },
     "nitrogen": {
-      "display_name": {"en": "Nitrogen", "cn": "氮代谢"},
+      "display_name": {
+        "en": "Nitrogen",
+        "cn": "氮代谢"
+      },
       "color": "#3498DB",
       "schematic": {
-        "species": ["N2", "NO3-", "NO2-", "NO", "N2O", "NH3", "NH2OH"],
+        "species": [
+          "N2",
+          "NO3-",
+          "NO2-",
+          "NO",
+          "N2O",
+          "NH3",
+          "NH2OH"
+        ],
         "positions": {
           "N2": "top",
           "NO3-": "left",
@@ -95,56 +211,192 @@
       },
       "pathways": {
         "Nitrate reduction": {
-          "display_name": {"en": "Nitrate reduction", "cn": "硝酸盐还原"},
+          "display_name": {
+            "en": "Nitrate reduction",
+            "cn": "硝酸盐还原"
+          },
           "reaction": "NO3- -> NO2-",
           "genes": {
-            "K00370": {"name": "narG", "substrate": "NO3-", "product": "NO2-"},
-            "K00371": {"name": "narH", "substrate": "NO3-", "product": "NO2-"},
-            "K00374": {"name": "narI", "substrate": "NO3-", "product": "NO2-"},
-            "K02567": {"name": "napA", "substrate": "NO3-", "product": "NO2-"},
-            "K02568": {"name": "napB", "substrate": "NO3-", "product": "NO2-"},
-            "K00367": {"name": "narB", "substrate": "NO3-", "product": "NO2-"}
+            "K00370": {
+              "name": "narG",
+              "substrate": "NO3-",
+              "product": "NO2-",
+              "kegg_name": "nitrate reductase / nitrite oxidoreductase, alpha subunit [EC:1.7.5.1 1.7.99.-]",
+              "complex": "M00529",
+              "kegg_reaction": "R00798"
+            },
+            "K00371": {
+              "name": "narH",
+              "substrate": "NO3-",
+              "product": "NO2-",
+              "kegg_name": "nitrate reductase / nitrite oxidoreductase, beta subunit [EC:1.7.5.1 1.7.99.-]",
+              "complex": "M00529",
+              "kegg_reaction": "R00798"
+            },
+            "K00374": {
+              "name": "narI",
+              "substrate": "NO3-",
+              "product": "NO2-",
+              "kegg_name": "nitrate reductase gamma subunit [EC:1.7.5.1 1.7.99.-]",
+              "complex": "M00529",
+              "kegg_reaction": "R00798"
+            },
+            "K02567": {
+              "name": "napA",
+              "substrate": "NO3-",
+              "product": "NO2-",
+              "kegg_name": "nitrate reductase (cytochrome) [EC:1.9.6.1]",
+              "complex": "M00529",
+              "kegg_reaction": "R00798"
+            },
+            "K02568": {
+              "name": "napB",
+              "substrate": "NO3-",
+              "product": "NO2-",
+              "kegg_name": "nitrate reductase (cytochrome), electron transfer subunit",
+              "complex": "M00529",
+              "kegg_reaction": "R00798"
+            },
+            "K00367": {
+              "name": "narB",
+              "substrate": "NO3-",
+              "product": "NO2-",
+              "kegg_name": "ferredoxin-nitrate reductase [EC:1.7.7.2]",
+              "complex": "M00531",
+              "kegg_reaction": "R00791"
+            }
           }
         },
         "Nitrite reduction": {
-          "display_name": {"en": "Nitrite reduction", "cn": "亚硝酸盐还原"},
+          "display_name": {
+            "en": "Nitrite reduction",
+            "cn": "亚硝酸盐还原"
+          },
           "reaction": "NO2- -> NO / NH4+",
           "genes": {
-            "K00368": {"name": "nirK",  "substrate": "NO2-", "product": "NO"},
-            "K15864": {"name": "nirS",  "substrate": "NO2-", "product": "NO"},
-            "K00366": {"name": "nirA",  "substrate": "NO2-", "product": "NH3"},
-            "K15877": {"name": "CYP55", "substrate": "NO2-", "product": "NO"}
+            "K00368": {
+              "name": "nirK",
+              "substrate": "NO2-",
+              "product": "NO",
+              "kegg_name": "nitrite reductase (NO-forming) [EC:1.7.2.1]",
+              "complex": "M00529",
+              "kegg_reaction": "R00783"
+            },
+            "K15864": {
+              "name": "nirS",
+              "substrate": "NO2-",
+              "product": "NO",
+              "kegg_name": "nitrite reductase (NO-forming) / hydroxylamine reductase [EC:1.7.2.1 1.7.99.1]",
+              "complex": "M00529",
+              "kegg_reaction": "R00143"
+            },
+            "K00366": {
+              "name": "nirA",
+              "substrate": "NO2-",
+              "product": "NH3",
+              "kegg_name": "ferredoxin-nitrite reductase [EC:1.7.7.1]",
+              "complex": "M00531",
+              "kegg_reaction": "R00790"
+            },
+            "K15877": {
+              "name": "CYP55",
+              "substrate": "NO2-",
+              "product": "NO",
+              "kegg_name": "fungal nitric oxide reductase [EC:1.7.1.14]",
+              "kegg_reaction": "R02492"
+            }
           }
         },
         "NO reduction": {
-          "display_name": {"en": "NO reduction", "cn": "NO还原"},
+          "display_name": {
+            "en": "NO reduction",
+            "cn": "NO还原"
+          },
           "reaction": "NO -> N2O",
           "genes": {
-            "K04561": {"name": "norB", "substrate": "NO", "product": "N2O"}
+            "K04561": {
+              "name": "norB",
+              "substrate": "NO",
+              "product": "N2O",
+              "kegg_name": "nitric oxide reductase subunit B [EC:1.7.2.5]",
+              "complex": "M00529",
+              "kegg_reaction": "R00294"
+            }
           }
         },
         "N2O reduction": {
-          "display_name": {"en": "N2O reduction", "cn": "N2O还原"},
+          "display_name": {
+            "en": "N2O reduction",
+            "cn": "N2O还原"
+          },
           "reaction": "N2O -> N2",
           "genes": {
-            "K00376": {"name": "nosZ", "substrate": "N2O", "product": "N2"}
+            "K00376": {
+              "name": "nosZ",
+              "substrate": "N2O",
+              "product": "N2",
+              "kegg_name": "nitrous-oxide reductase [EC:1.7.2.4]",
+              "complex": "M00529",
+              "kegg_reaction": "R02804"
+            }
           }
         },
         "Ammonia oxidation": {
-          "display_name": {"en": "Ammonia oxidation", "cn": "氨氧化"},
+          "display_name": {
+            "en": "Ammonia oxidation",
+            "cn": "氨氧化"
+          },
           "reaction": "NH3 -> NH2OH",
           "genes": {
-            "K10944": {"name": "pmoA-amoA", "substrate": "NH3", "product": "NH2OH"},
-            "K10945": {"name": "pmoB-amoB", "substrate": "NH3", "product": "NH2OH"},
-            "K10946": {"name": "pmoC-amoC", "substrate": "NH3", "product": "NH2OH"}
+            "K10944": {
+              "name": "pmoA-amoA",
+              "substrate": "NH3",
+              "product": "NH2OH",
+              "kegg_name": "methane monooxygenase subunit A [EC:1.14.18.3]",
+              "complex": "M00174",
+              "kegg_reaction": "R09518"
+            },
+            "K10945": {
+              "name": "pmoB-amoB",
+              "substrate": "NH3",
+              "product": "NH2OH",
+              "kegg_name": "methane/ammonia monooxygenase subunit B",
+              "complex": "M00174",
+              "kegg_reaction": "R00148"
+            },
+            "K10946": {
+              "name": "pmoC-amoC",
+              "substrate": "NH3",
+              "product": "NH2OH",
+              "kegg_name": "methane/ammonia monooxygenase subunit C",
+              "complex": "M00174",
+              "kegg_reaction": "R00148"
+            }
           }
         },
         "N fixation": {
-          "display_name": {"en": "N fixation", "cn": "固氮"},
+          "display_name": {
+            "en": "N fixation",
+            "cn": "固氮"
+          },
           "reaction": "N2 -> NH3",
           "genes": {
-            "K02586": {"name": "nifD", "substrate": "N2", "product": "NH3"},
-            "K02591": {"name": "nifK", "substrate": "N2", "product": "NH3"}
+            "K02586": {
+              "name": "nifD",
+              "substrate": "N2",
+              "product": "NH3",
+              "kegg_name": "nitrogenase molybdenum-iron protein alpha chain [EC:1.18.6.1]",
+              "complex": "M00175",
+              "kegg_reaction": "R05185"
+            },
+            "K02591": {
+              "name": "nifK",
+              "substrate": "N2",
+              "product": "NH3",
+              "kegg_name": "nitrogenase molybdenum-iron protein beta chain [EC:1.18.6.1]",
+              "complex": "M00175",
+              "kegg_reaction": "R05185"
+            }
           }
         }
       },
@@ -154,10 +406,21 @@
       }
     },
     "sulfur": {
-      "display_name": {"en": "Sulfur", "cn": "硫代谢"},
+      "display_name": {
+        "en": "Sulfur",
+        "cn": "硫代谢"
+      },
       "color": "#F1C40F",
       "schematic": {
-        "species": ["SO4-2", "APS", "SO3-2", "S-2", "S0", "S2O3-2", "cysteine"],
+        "species": [
+          "SO4-2",
+          "APS",
+          "SO3-2",
+          "S-2",
+          "S0",
+          "S2O3-2",
+          "cysteine"
+        ],
         "positions": {
           "SO4-2": "left",
           "APS": "center",
@@ -170,41 +433,156 @@
       },
       "pathways": {
         "Assim. sulfate red.": {
-          "display_name": {"en": "Assim. sulfate red.", "cn": "硫酸盐同化还原"},
+          "display_name": {
+            "en": "Assim. sulfate red.",
+            "cn": "硫酸盐同化还原"
+          },
           "reaction": "SO4^2- -> S^2- (assimilatory)",
           "genes": {
-            "K00380": {"name": "cysJ", "substrate": "SO3-2", "product": "S-2"},
-            "K00381": {"name": "cysI", "substrate": "SO3-2", "product": "S-2"},
-            "K00390": {"name": "cysH", "substrate": "APS",   "product": "SO3-2"},
-            "K00392": {"name": "sir",  "substrate": "SO3-2", "product": "S-2"}
+            "K00380": {
+              "name": "cysJ",
+              "substrate": "SO3-2",
+              "product": "S-2",
+              "kegg_name": "sulfite reductase (NADPH) flavoprotein alpha-component [EC:1.8.1.2]",
+              "complex": "M00176",
+              "kegg_reaction": "R00858"
+            },
+            "K00381": {
+              "name": "cysI",
+              "substrate": "SO3-2",
+              "product": "S-2",
+              "kegg_name": "sulfite reductase (NADPH) hemoprotein beta-component [EC:1.8.1.2]",
+              "complex": "M00176",
+              "kegg_reaction": "R00858"
+            },
+            "K00390": {
+              "name": "cysH",
+              "substrate": "APS",
+              "product": "SO3-2",
+              "kegg_name": "phosphoadenosine phosphosulfate reductase [EC:1.8.4.8 1.8.4.10]",
+              "complex": "M00176",
+              "kegg_reaction": "R02021"
+            },
+            "K00392": {
+              "name": "sir",
+              "substrate": "SO3-2",
+              "product": "S-2",
+              "kegg_name": "sulfite reductase (ferredoxin) [EC:1.8.7.1]",
+              "complex": "M00176",
+              "kegg_reaction": "R00859"
+            }
           }
         },
         "Dissim. sulfate red.": {
-          "display_name": {"en": "Dissim. sulfate red.", "cn": "硫酸盐异化还原"},
+          "display_name": {
+            "en": "Dissim. sulfate red.",
+            "cn": "硫酸盐异化还原"
+          },
           "reaction": "SO4^2- -> S^2- (dissimilatory, energy-coupled)",
           "genes": {
-            "K00394": {"name": "aprA", "substrate": "APS",   "product": "SO3-2"},
-            "K00395": {"name": "aprB", "substrate": "APS",   "product": "SO3-2"},
-            "K11180": {"name": "dsrA", "substrate": "SO3-2", "product": "S-2"},
-            "K11181": {"name": "dsrB", "substrate": "SO3-2", "product": "S-2"}
+            "K00394": {
+              "name": "aprA",
+              "substrate": "APS",
+              "product": "SO3-2",
+              "kegg_name": "adenylylsulfate reductase, subunit A [EC:1.8.99.2]",
+              "complex": "M00596",
+              "kegg_reaction": "R00860"
+            },
+            "K00395": {
+              "name": "aprB",
+              "substrate": "APS",
+              "product": "SO3-2",
+              "kegg_name": "adenylylsulfate reductase, subunit B [EC:1.8.99.2]",
+              "complex": "M00596",
+              "kegg_reaction": "R00860"
+            },
+            "K11180": {
+              "name": "dsrA",
+              "substrate": "SO3-2",
+              "product": "S-2",
+              "kegg_name": "dissimilatory sulfite reductase alpha subunit [EC:1.8.1.22]",
+              "complex": "M00596",
+              "kegg_reaction": "R00295"
+            },
+            "K11181": {
+              "name": "dsrB",
+              "substrate": "SO3-2",
+              "product": "S-2",
+              "kegg_name": "dissimilatory sulfite reductase beta subunit [EC:1.8.1.22]",
+              "complex": "M00596",
+              "kegg_reaction": "R00295"
+            }
           }
         },
         "Sulfide oxidation": {
-          "display_name": {"en": "Sulfide oxidation", "cn": "硫化物氧化"},
+          "display_name": {
+            "en": "Sulfide oxidation",
+            "cn": "硫化物氧化"
+          },
           "reaction": "S^2- -> SO4^2-",
           "genes": {
-            "K17218": {"name": "sqr",  "substrate": "S-2",    "product": "S0"},
-            "K17222": {"name": "soxA", "substrate": "S2O3-2", "product": "SO4-2"},
-            "K17223": {"name": "soxX", "substrate": "S2O3-2", "product": "SO4-2"},
-            "K17224": {"name": "soxB", "substrate": "S2O3-2", "product": "SO4-2"},
-            "K17226": {"name": "soxY", "substrate": "S2O3-2", "product": "SO4-2"},
-            "K17227": {"name": "soxZ", "substrate": "S2O3-2", "product": "SO4-2"}
+            "K17218": {
+              "name": "sqr",
+              "substrate": "S-2",
+              "product": "S0",
+              "kegg_name": "sulfide:quinone oxidoreductase [EC:1.8.5.4]",
+              "kegg_reaction": "R10152"
+            },
+            "K17222": {
+              "name": "soxA",
+              "substrate": "S2O3-2",
+              "product": "SO4-2",
+              "kegg_name": "L-cysteine S-thiosulfotransferase [EC:2.8.5.2]",
+              "complex": "M00595",
+              "kegg_reaction": "R10151"
+            },
+            "K17223": {
+              "name": "soxX",
+              "substrate": "S2O3-2",
+              "product": "SO4-2",
+              "kegg_name": "L-cysteine S-thiosulfotransferase [EC:2.8.5.2]",
+              "complex": "M00595",
+              "kegg_reaction": "R10151"
+            },
+            "K17224": {
+              "name": "soxB",
+              "substrate": "S2O3-2",
+              "product": "SO4-2",
+              "kegg_name": "S-sulfosulfanyl-L-cysteine sulfohydrolase [EC:3.1.6.20]",
+              "complex": "M00595",
+              "kegg_reaction": "R10151"
+            },
+            "K17226": {
+              "name": "soxY",
+              "substrate": "S2O3-2",
+              "product": "SO4-2",
+              "kegg_name": "sulfur-oxidizing protein SoxY",
+              "complex": "M00595",
+              "kegg_reaction": "R10151"
+            },
+            "K17227": {
+              "name": "soxZ",
+              "substrate": "S2O3-2",
+              "product": "SO4-2",
+              "kegg_name": "sulfur-oxidizing protein SoxZ",
+              "complex": "M00595",
+              "kegg_reaction": "R10151"
+            }
           }
         },
         "Thiosulfate metab.": {
-          "display_name": {"en": "Thiosulfate metab.", "cn": "硫代硫酸盐代谢"},
+          "display_name": {
+            "en": "Thiosulfate metab.",
+            "cn": "硫代硫酸盐代谢"
+          },
           "genes": {
-            "K01011": {"name": "TST", "substrate": "S2O3-2", "product": "SO3-2"}
+            "K01011": {
+              "name": "TST",
+              "substrate": "S2O3-2",
+              "product": "SO3-2",
+              "kegg_name": "thiosulfate/3-mercaptopyruvate sulfurtransferase [EC:2.8.1.1 2.8.1.2]",
+              "kegg_reaction": "R01931"
+            }
           }
         }
       },
@@ -215,10 +593,17 @@
       }
     },
     "iron": {
-      "display_name": {"en": "Iron", "cn": "铁代谢"},
+      "display_name": {
+        "en": "Iron",
+        "cn": "铁代谢"
+      },
       "color": "#E67E22",
       "schematic": {
-        "species": ["Fe(III)", "Fe(II)", "Fe_internal"],
+        "species": [
+          "Fe(III)",
+          "Fe(II)",
+          "Fe_internal"
+        ],
         "positions": {
           "Fe(III)": "left",
           "Fe(II)": "right",
@@ -227,21 +612,67 @@
       },
       "pathways": {
         "Fe transport": {
-          "display_name": {"en": "Fe transport", "cn": "铁转运系统"},
+          "display_name": {
+            "en": "Fe transport",
+            "cn": "铁转运系统"
+          },
           "genes": {
-            "K02013": {"name": "ABC.FEV.A",  "substrate": "Fe(III)", "product": "Fe_internal"},
-            "K02014": {"name": "TC.FEV.OM",  "substrate": "Fe(III)", "product": "Fe_internal"},
-            "K02015": {"name": "ABC.FEV.P",  "substrate": "Fe(III)", "product": "Fe_internal"},
-            "K02016": {"name": "ABC.FEV.S",  "substrate": "Fe(III)", "product": "Fe_internal"},
-            "K02012": {"name": "afuA",       "substrate": "Fe(III)", "product": "Fe_internal"},
-            "K07243": {"name": "FTR",        "substrate": "Fe(II)",  "product": "Fe_internal"}
+            "K02013": {
+              "name": "ABC.FEV.A",
+              "substrate": "Fe(III)",
+              "product": "Fe_internal",
+              "kegg_name": "iron complex transport system ATP-binding protein [EC:7.2.2.-]"
+            },
+            "K02014": {
+              "name": "TC.FEV.OM",
+              "substrate": "Fe(III)",
+              "product": "Fe_internal",
+              "kegg_name": "iron complex outermembrane recepter protein"
+            },
+            "K02015": {
+              "name": "ABC.FEV.P",
+              "substrate": "Fe(III)",
+              "product": "Fe_internal",
+              "kegg_name": "iron complex transport system permease protein"
+            },
+            "K02016": {
+              "name": "ABC.FEV.S",
+              "substrate": "Fe(III)",
+              "product": "Fe_internal",
+              "kegg_name": "iron complex transport system substrate-binding protein"
+            },
+            "K02012": {
+              "name": "afuA",
+              "substrate": "Fe(III)",
+              "product": "Fe_internal",
+              "kegg_name": "iron(III) transport system substrate-binding protein"
+            },
+            "K07243": {
+              "name": "FTR",
+              "substrate": "Fe(II)",
+              "product": "Fe_internal",
+              "kegg_name": "high-affinity iron transporter"
+            }
           }
         },
         "Fe uptake regulation": {
-          "display_name": {"en": "Fe uptake regulation", "cn": "铁摄取调控"},
+          "display_name": {
+            "en": "Fe uptake regulation",
+            "cn": "铁摄取调控"
+          },
           "genes": {
-            "K03711": {"name": "fur",  "substrate": null, "product": null},
-            "K03832": {"name": "tonB", "substrate": null, "product": null}
+            "K03711": {
+              "name": "fur",
+              "substrate": null,
+              "product": null,
+              "kegg_name": "Fur family transcriptional regulator, ferric uptake regulator"
+            },
+            "K03832": {
+              "name": "tonB",
+              "substrate": null,
+              "product": null,
+              "kegg_name": "periplasmic protein TonB"
+            }
           }
         }
       },
@@ -284,5 +715,12 @@
       "color": "#27AE60",
       "description": "硝酸盐作为电子受体化学能厌氧氧化 As(III)"
     }
-  ]
+  ],
+  "kegg_source": {
+    "version": "kegg_2026-04-15",
+    "fetched_at": "2026-04-15",
+    "license": "academic",
+    "citation": "Kanehisa M, Goto S. (2000) Nucleic Acids Res. 28:27-30."
+  },
+  "ko_count": 57
 }
