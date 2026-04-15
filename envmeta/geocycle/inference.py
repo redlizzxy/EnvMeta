@@ -25,7 +25,7 @@ from envmeta.analysis.pathway import (
 )
 from envmeta.geocycle.knowledge_base import (
     element_colors, element_display,
-    flat_ko_map, ko_substrate_product_map, load_kb,
+    flat_ko_map, ko_complex_map, ko_substrate_product_map, load_kb,
     pathway_display, pathway_element_map,
     pathway_ko_sets,
 )
@@ -235,6 +235,7 @@ def _pathway_activity(
                  for pw_id, pw in el["pathways"].items()}
     ko_flat = flat_ko_map(kb)                     # {ko: (gene_name, pw_id, elem)}
     ko_sub_prod = ko_substrate_product_map(kb)    # {ko: {substrate, product}}
+    ko_complex = ko_complex_map(kb)               # {ko: complex_id|None}
 
     mag_meta = base.set_index("MAG")
     activities: dict[str, PathwayActivity] = {}
@@ -263,6 +264,7 @@ def _pathway_activity(
                         "name": name,
                         "substrate": sp.get("substrate"),
                         "product": sp.get("product"),
+                        "complex": ko_complex.get(ko),
                     })
             contributors.append(MAGContribution(
                 mag=mag, phylum=phy, completeness=comp,

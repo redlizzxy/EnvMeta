@@ -33,6 +33,7 @@ DEFAULTS = {
     "cell_mode": "cascade",               # "cascade"（v2，默认）/ "bars"（v1 回退）
     "show_couplings": True,               # 画跨元素化学物耦合线（S2.5-3）
     "most_active_pathways": set(),        # S2.5-8：当前组里跨组对比最活的 pathway_id
+    "show_inactive_pathways": True,       # S2.5-10d：象限底部列 KB 有但数据里 n=0 的通路名
     "title": "Biogeochemical Cycle Diagram (v2)",
     "cell_height_ratio": 0.22,            # 单细胞占象限高的比例
 }
@@ -177,6 +178,18 @@ def _draw_element_quadrant_cascade(
             "product_species": prod_species,
         })
         anchors.append(r)
+
+    # S2.5-10d.3：象限底部列出 KB 里有但数据里完全没承载者的通路
+    if cfg.get("show_inactive_pathways", True):
+        inactive = [pw for pw in ec.pathways if pw.n_active_mags == 0]
+        if inactive:
+            names = ", ".join(p.display_name for p in inactive)
+            ax.text(
+                0.3, 0.18,
+                f"[inactive: {names}]",
+                fontsize=7, color="#999", fontstyle="italic",
+                va="top", ha="left",
+            )
     return anchors
 
 

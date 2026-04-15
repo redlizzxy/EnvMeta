@@ -167,6 +167,33 @@ def _gene(ax: Axes, x: float, y: float, name: str, color: str,
                      y + h / 2 + 0.06, corr, hm_size)
 
 
+def _segment_by_complex(steps: list[dict[str, Any]]) -> list[list[int]]:
+    """把 steps 按连续相同非空 complex 分段。
+
+    返回 [[step_idx, ...], ...]。每个子列表是一个段：
+    - 单元素段：该 step 的 complex 为 None 或与前后不同
+    - 多元素段：连续 step 共享相同 complex（多亚基酶复合体）
+
+    例：steps = [(sqr,None), (soxA,M595), (soxB,M595), (dummy,None), (foo,M999)]
+        → [[0], [1, 2], [3], [4]]
+    """
+    out: list[list[int]] = []
+    cur: list[int] = []
+    cur_cx: str | None = None
+    for i, s in enumerate(steps):
+        cx = s.get("complex")
+        if cx is not None and cx == cur_cx:
+            cur.append(i)
+        else:
+            if cur:
+                out.append(cur)
+            cur = [i]
+            cur_cx = cx
+    if cur:
+        out.append(cur)
+    return out
+
+
 def draw_cascade_cell(
     ax: Axes,
     *,
@@ -318,23 +345,59 @@ def draw_cascade_cell(
                 linewidth=0.8, color=ARROW_COLOR, zorder=3,
             ))
     else:
-        slots = 2 * n_steps - 1
+        # S2.5-10d: 按 complex 分段；连续相同非空 complex 的步骤 = 一个段内并联簇
+        segments = _segment_by_complex(steps)
+        slots = 2 * len(segments) - 1
         if slots == 1:
             xs = [(inner_x0 + inner_x1) / 2]
         else:
             xs = list(np.linspace(inner_x0, inner_x1, slots))
         for idx, x in enumerate(xs):
             if idx % 2 == 0:
-                si = idx // 2
-                s = steps[si]
-                _gene(ax, x, gy, name=s.get("gene", "?"),
-                      color=s.get("color") or element_color,
-                      corr=s.get("corr"), show_hm=show_heatmap)
-                gene_positions.append((x, gy))
+                seg_idx = idx // 2
+                seg = segments[seg_idx]
+                if len(seg) == 1:
+                    s = steps[seg[0]]
+                    _gene(ax, x, gy, name=s.get("gene", "?"),
+                          color=s.get("color") or element_color,
+                          corr=s.get("corr"), show_hm=show_heatmap)
+                    gene_positions.append((x, gy))
+                else:
+                    # 并联簇：共享一个 complex
+                    k = len(seg)
+                    bundle_w = min(1.8, max(1.0, 0.32 * k))
+                    left = x - bundle_w / 2
+                    for i, step_idx in enumerate(seg):
+                        s = steps[step_idx]
+                        gx = left + (i + 0.5) * (bundle_w / k)
+                        _gene(ax, gx, gy, name=s.get("gene", "?"),
+                              color=s.get("color") or element_color,
+                              corr=s.get("corr"),
+                              w=0.55, h=0.32,     # 小椭圆以容纳多个
+                              show_hm=show_heatmap)
+                        gene_positions.append((gx, gy))
+                    complex_id = steps[seg[0]].get("complex") or ""
+                    ax.text(x, gy - cell_h * 0.32,
+                            f"({complex_id} complex)" if complex_id
+                            else "(subunits)",
+                            ha="center", va="center",
+                            fontsize=6.5, fontstyle="italic",
+                            color="#666", zorder=7)
             else:
-                si = (idx - 1) // 2
-                inter = steps[si].get("product") or "?"
-                _intermediate(ax, x, gy, str(inter))
+                # 段间中间产物
+                left_seg = segments[(idx - 1) // 2]
+                right_seg = segments[(idx + 1) // 2]
+                left_prod = str(steps[left_seg[-1]].get("product") or "?")
+                right_sub = str(steps[right_seg[0]].get("substrate") or "?")
+                if left_prod == right_sub or right_sub == "?":
+                    _intermediate(ax, x, gy, left_prod)
+                else:
+                    # 化学链断开（如 sqr 产 S0 → Sox 要 S2O3-2）两端分别显示
+                    _intermediate(ax, x - 0.35, gy, left_prod)
+                    ax.text(x, gy, "|", ha="center", va="center",
+                            fontsize=10, fontweight="bold",
+                            color="#999", zorder=6)
+                    _intermediate(ax, x + 0.35, gy, right_sub)
         if slots > 1:
             for i in range(slots - 1):
                 ax.add_patch(FancyArrowPatch(
@@ -392,6 +455,7 @@ def genes_to_steps(
             "product": g.get("product"),
             "color": default_color,
             "corr": env_corr.get(g["ko"]) if env_corr else None,
+            "complex": g.get("complex"),   # S2.5-10 KEGG MODULE
         }
         out.append(step)
     return out

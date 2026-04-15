@@ -238,3 +238,57 @@ def test_denitrification_has_internal_arrows():
     n_arrows = sum(1 for p in ax.patches if isinstance(p, FancyArrowPatch))
     assert n_arrows >= 4
     plt.close(fig)
+
+
+# ── S2.5-10d 段内复合体分段 ───────────────────────────────
+
+def test_segment_by_complex_basic():
+    from envmeta.geocycle.cell_renderer import _segment_by_complex
+    steps = [
+        {"gene": "sqr", "complex": None},
+        {"gene": "soxA", "complex": "M00595"},
+        {"gene": "soxB", "complex": "M00595"},
+        {"gene": "foo", "complex": None},
+        {"gene": "bar", "complex": "M99999"},
+    ]
+    segs = _segment_by_complex(steps)
+    assert segs == [[0], [1, 2], [3], [4]]
+
+
+def test_segment_two_different_complexes_not_merged():
+    from envmeta.geocycle.cell_renderer import _segment_by_complex
+    steps = [
+        {"gene": "a", "complex": "M001"},
+        {"gene": "b", "complex": "M001"},
+        {"gene": "c", "complex": "M002"},
+        {"gene": "d", "complex": "M002"},
+    ]
+    assert _segment_by_complex(steps) == [[0, 1], [2, 3]]
+
+
+def test_segment_none_always_single():
+    from envmeta.geocycle.cell_renderer import _segment_by_complex
+    steps = [{"complex": None}, {"complex": None}]
+    # 两个连续 None 不合并
+    assert _segment_by_complex(steps) == [[0], [1]]
+
+
+def test_sulfide_oxidation_sqr_plus_sox_renders_without_crash():
+    """真实场景：sqr (complex=None) + Sox 5 亚基 (complex=M00595)。"""
+    fig, ax = _make_ax()
+    steps = [
+        {"gene": "sqr", "substrate": "S-2", "product": "S0", "complex": None},
+        {"gene": "soxA", "substrate": "S2O3-2", "product": "SO4-2", "complex": "M00595"},
+        {"gene": "soxX", "substrate": "S2O3-2", "product": "SO4-2", "complex": "M00595"},
+        {"gene": "soxB", "substrate": "S2O3-2", "product": "SO4-2", "complex": "M00595"},
+        {"gene": "soxY", "substrate": "S2O3-2", "product": "SO4-2", "complex": "M00595"},
+        {"gene": "soxZ", "substrate": "S2O3-2", "product": "SO4-2", "complex": "M00595"},
+    ]
+    r = draw_cascade_cell(
+        ax, cy=5, cell_x0=1, cell_w=15, cell_h=2,
+        title="Sulfide oxidation", mag_label="Thiobacillus",
+        steps=steps,
+    )
+    # 应有 6 个酶位置（1 sqr + 5 Sox）
+    assert len(r["gene_positions"]) == 6
+    plt.close(fig)

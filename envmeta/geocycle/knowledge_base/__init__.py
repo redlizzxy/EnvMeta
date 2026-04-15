@@ -98,6 +98,21 @@ def ko_substrate_product_map(kb: dict | None = None) -> dict[str, dict[str, str 
     return out
 
 
+def ko_complex_map(kb: dict | None = None) -> dict[str, str | None]:
+    """{ko: complex_id or None}。v2.0 (S2.5-10) 新增。
+
+    complex_id 是 KEGG MODULE id（如 "M00595"），标记该 KO 所属的多亚基
+    酶复合体。同一 complex 的连续 KO 在 renderer 里应并联显示、无内部箭头。
+    """
+    kb = kb or load_kb()
+    out: dict[str, str | None] = {}
+    for el in kb["elements"].values():
+        for pw in el["pathways"].values():
+            for ko, info in pw["genes"].items():
+                out[ko] = info.get("complex")
+    return out
+
+
 def element_schematic(element_id: str, kb: dict | None = None) -> dict:
     """返回指定元素的 schematic 字段 {"species": [...], "positions": {...}}。
 
