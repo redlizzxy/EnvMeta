@@ -1361,6 +1361,39 @@ elif page == "生物地球化学循环图":
                 bundle_doi = st.text_input(
                     "论文 DOI（可选）", value="", key="bundle_doi",
                 )
+                # 可选内容
+                _kegg_default_path = Path(
+                    "envmeta/geocycle/kegg_snapshot.json"
+                )
+                bundle_include_kegg = st.checkbox(
+                    "包含 KEGG 快照（溯源，推荐）",
+                    value=_kegg_default_path.exists(),
+                    key="bundle_include_kegg",
+                    help="把 envmeta/geocycle/kegg_snapshot.json "
+                         "打进 kb/kegg_snapshot.json，"
+                         "让读者能追溯 KB 的 KEGG 数据来源时间点。",
+                    disabled=not _kegg_default_path.exists(),
+                )
+                bundle_include_readme = st.checkbox(
+                    "自动生成 README.md",
+                    value=True,
+                    key="bundle_include_readme",
+                    help="基于名字/作者/DOI 生成一份简短加载指引，"
+                         "读者拿到 bundle 就知道怎么用。",
+                )
+                # 上传的假说预览
+                _hyp_up_preview = st.session_state.get("hyp_upload")
+                if _hyp_up_preview is not None:
+                    st.caption(
+                        f"📎 将包含假说 YAML: **{_hyp_up_preview.name}** "
+                        "（在上方「🧪 假说评分」区已上传）"
+                    )
+                else:
+                    st.caption(
+                        "⚠️ 尚未在「🧪 假说评分」区上传 YAML — "
+                        "当前 bundle 不会包含假说。"
+                        "请先上传再点创建。"
+                    )
                 if st.button("创建 Bundle", key="bundle_create_go"):
                     from envmeta.tools.bundle import create_bundle as _create_bundle
                     import tempfile
@@ -1385,6 +1418,34 @@ elif page == "生物地球化学循环图":
                         "max_cells_per_element": max_cells,
                         "hide_regulator_only_cells": hide_regulator,
                     }
+                    # 自动 README（若勾选）
+                    readme_text = None
+                    if bundle_include_readme:
+                        _hyp_list = ", ".join(p.name for p in hyp_paths) or "（无）"
+                        readme_text = (
+                            f"# {bundle_name}\n\n"
+                            + (f"**作者**: {bundle_author}\n\n" if bundle_author else "")
+                            + (f"**DOI**: {bundle_doi}\n\n" if bundle_doi else "")
+                            + "## 如何使用本 Bundle\n\n"
+                            "1. 启动 EnvMeta：`streamlit run app.py`\n"
+                            "2. 循环图页 → 展开「📦 Fork Bundle」→ 上传本 zip\n"
+                            "3. 准备原始数据（见论文 Data Availability）\n"
+                            "4. 生成循环图 + 假说评分\n\n"
+                            "## 内容\n\n"
+                            "- `kb/elements.json`: 元素循环知识库\n"
+                            + ("- `kb/kegg_snapshot.json`: KEGG 来源快照\n"
+                               if bundle_include_kegg and _kegg_default_path.exists() else "")
+                            + f"- `hypotheses/`: 机制假说 YAML（{_hyp_list}）\n"
+                            "- `config/cycle_params.yaml`: 分析参数\n\n"
+                            "## 更多信息\n\n"
+                            "见 [EnvMeta 主仓库](https://github.com/redlizzxy/EnvMeta)"
+                            " 的 `paper/bundles/README.md`。\n"
+                        )
+                    kegg_path = (
+                        _kegg_default_path
+                        if bundle_include_kegg and _kegg_default_path.exists()
+                        else None
+                    )
                     out_tmp = Path(tempfile.gettempdir()) / f"{bundle_name}.zip"
                     try:
                         _create_bundle(
@@ -1392,6 +1453,8 @@ elif page == "生物地球化学循环图":
                             kb_path=kb_default,
                             hypothesis_paths=hyp_paths,
                             config=current_cfg,
+                            kegg_snapshot_path=kegg_path,
+                            readme_text=readme_text,
                             name=bundle_name,
                             author=bundle_author,
                             paper_doi=bundle_doi,
@@ -1399,8 +1462,24 @@ elif page == "生物地球化学循环图":
                         )
                         st.session_state["_bundle_out_bytes"] = out_tmp.read_bytes()
                         st.session_state["_bundle_out_name"] = f"{bundle_name}.zip"
+                        # 构造文件清单告知用户
+                        manifest_items = [
+                            "✅ manifest.yaml",
+                            "✅ kb/elements.json",
+                        ]
+                        if kegg_path:
+                            manifest_items.append("✅ kb/kegg_snapshot.json")
+                        if hyp_paths:
+                            for p in hyp_paths:
+                                manifest_items.append(f"✅ hypotheses/{p.name}")
+                        else:
+                            manifest_items.append("⚠️ hypotheses/ (空)")
+                        manifest_items.append("✅ config/cycle_params.yaml")
+                        if readme_text:
+                            manifest_items.append("✅ README.md")
                         st.success(
                             f"Bundle 创建成功（{out_tmp.stat().st_size} bytes）"
+                            + "\n\n" + "\n".join(manifest_items)
                         )
                     except Exception as e:  # noqa: BLE001
                         st.error(f"创建失败：{e}")

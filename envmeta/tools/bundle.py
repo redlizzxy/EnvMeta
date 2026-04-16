@@ -85,14 +85,17 @@ def _make_manifest(
     kb_files: list[str] | None = None,
     extra: dict | None = None,
 ) -> dict:
-    """按约定格式组装 manifest 字典。"""
-    m = {
-        "name": name,
+    """按约定格式组装 manifest 字典。空字符串字段会被省略，保持 YAML 整洁。"""
+    optional_fields = {
         "author": author,
         "paper_doi": paper_doi,
         "description": description,
-        "envmeta_version": _ENVMETA_VERSION,
         "kegg_snapshot_date": kegg_snapshot_date,
+    }
+    m = {
+        "name": name,
+        **{k: v for k, v in optional_fields.items() if v},
+        "envmeta_version": _ENVMETA_VERSION,
         "created": _dt.datetime.now().isoformat(timespec="seconds"),
         "files": {
             "kb": kb_files or ["kb/elements.json"],

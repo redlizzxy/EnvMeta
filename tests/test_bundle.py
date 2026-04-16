@@ -144,6 +144,30 @@ def test_load_missing_file(tmp_path):
         load_bundle(tmp_path / "nope.zip")
 
 
+def test_empty_manifest_fields_are_omitted(tmp_path):
+    """空字符串字段（paper_doi / kegg_snapshot_date / author / description）
+    不应写入 manifest（保持 YAML 整洁）。"""
+    out = tmp_path / "clean.zip"
+    create_bundle(
+        out,
+        kb_path=SAMPLE_KB,
+        hypothesis_paths=[],
+        name="Clean",
+        # author / paper_doi / description / kegg_snapshot_date 全为空
+    )
+    b = load_bundle(out)
+    m = b.manifest
+    # 必填字段仍在
+    assert m["name"] == "Clean"
+    assert "envmeta_version" in m
+    assert "created" in m
+    # 空字段应被省略
+    assert "author" not in m
+    assert "paper_doi" not in m
+    assert "description" not in m
+    assert "kegg_snapshot_date" not in m
+
+
 def test_load_bundle_missing_kb(tmp_path):
     import zipfile
     bad = tmp_path / "bad.zip"
