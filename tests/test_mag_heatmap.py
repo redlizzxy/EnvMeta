@@ -38,17 +38,19 @@ def test_mag_heatmap_smoke(mh_inputs):
 
 def test_top_n_filter_correct(mh_inputs):
     ab, tax, ks, md = mh_inputs
-    r = mag_heatmap.analyze(ab, tax, ks, md, params={"top_n": 20})
+    # filter_mode="top_n" → 精确 Top-N（不与 keystone 取并集）
+    r = mag_heatmap.analyze(ab, tax, ks, md,
+                            params={"filter_mode": "top_n", "top_n_count": 20})
     assert len(r.stats) == 20
 
 
 def test_selection_by_mean_is_descending(mh_inputs):
-    """selection_score 按选择标准降序（top_n 截断前）。"""
+    """metric_desc 行排序下 selection_score 应降序。"""
     ab, tax, ks, md = mh_inputs
     r = mag_heatmap.analyze(ab, tax, ks, md,
-                            params={"top_n": 30, "selection_by": "mean",
-                                    "cluster_rows": False})
-    # 关闭聚类时，row_order == 选择顺序 == score 降序
+                            params={"filter_mode": "top_n", "top_n_count": 30,
+                                    "top_n_by": "mean",
+                                    "row_order": "metric_desc"})
     s = r.stats["selection_score"].to_numpy()
     assert (s[:-1] >= s[1:] - 1e-9).all(), "selection_score 必须降序"
 
@@ -56,8 +58,10 @@ def test_selection_by_mean_is_descending(mh_inputs):
 def test_cluster_order_deterministic(mh_inputs):
     """同输入 → 相同聚类顺序（凸显可重现性）。"""
     ab, tax, ks, md = mh_inputs
-    r1 = mag_heatmap.analyze(ab, tax, ks, md, params={"top_n": 30})
-    r2 = mag_heatmap.analyze(ab, tax, ks, md, params={"top_n": 30})
+    r1 = mag_heatmap.analyze(ab, tax, ks, md,
+                             params={"filter_mode": "top_n", "top_n_count": 30})
+    r2 = mag_heatmap.analyze(ab, tax, ks, md,
+                             params={"filter_mode": "top_n", "top_n_count": 30})
     assert r1.stats["MAG"].tolist() == r2.stats["MAG"].tolist()
 
 
@@ -65,14 +69,16 @@ def test_cluster_order_deterministic(mh_inputs):
 
 def test_works_without_taxonomy(mh_inputs):
     ab, _, _, _ = mh_inputs
-    r = mag_heatmap.analyze(ab, params={"top_n": 15})
+    r = mag_heatmap.analyze(ab, params={"filter_mode": "top_n",
+                                         "top_n_count": 15})
     assert (r.stats["Phylum"] == "Unknown").all()
     assert not r.stats["is_keystone"].any()
 
 
 def test_works_without_metadata(mh_inputs):
     ab, tax, ks, _ = mh_inputs
-    r = mag_heatmap.analyze(ab, tax, ks, params={"top_n": 15})
+    r = mag_heatmap.analyze(ab, tax, ks,
+                            params={"filter_mode": "top_n", "top_n_count": 15})
     assert r.figure is not None
     assert len(r.stats) == 15
 
@@ -80,7 +86,8 @@ def test_works_without_metadata(mh_inputs):
 def test_phylum_bar_toggle_does_not_crash(mh_inputs):
     ab, tax, ks, md = mh_inputs
     r = mag_heatmap.analyze(ab, tax, ks, md,
-                            params={"top_n": 12, "show_phylum_bar": False,
+                            params={"filter_mode": "top_n", "top_n_count": 12,
+                                    "show_phylum_bar": False,
                                     "show_group_bar": False})
     assert r.figure is not None
 
@@ -88,18 +95,18 @@ def test_phylum_bar_toggle_does_not_crash(mh_inputs):
 # ── 配色 ────────────────────────────────────────────────────
 
 def test_three_stage_colormap_breakpoints_valid(mh_inputs):
-    """自定义 breakpoints 不崩。"""
     ab, tax, _, md = mh_inputs
-    r = mag_heatmap.analyze(ab, tax, params={"top_n": 10,
-                                             "color_breakpoints": (0.1, 0.4)})
+    r = mag_heatmap.analyze(ab, tax,
+                            params={"filter_mode": "top_n", "top_n_count": 10,
+                                    "color_breakpoints": (0.1, 0.4)})
     assert r.figure is not None
 
 
 def test_invalid_breakpoints_still_runs(mh_inputs):
-    """极端 breakpoints（两值相等）应 fallback 正常运行。"""
     ab, _, _, _ = mh_inputs
-    r = mag_heatmap.analyze(ab, params={"top_n": 5,
-                                         "color_breakpoints": (0.0, 0.5)})
+    r = mag_heatmap.analyze(ab,
+                            params={"filter_mode": "top_n", "top_n_count": 5,
+                                    "color_breakpoints": (0.0, 0.5)})
     assert r.figure is not None
 
 
@@ -121,7 +128,8 @@ def test_missing_sample_cols_raises():
 
 def test_export_png_pdf(mh_inputs):
     ab, tax, ks, md = mh_inputs
-    r = mag_heatmap.analyze(ab, tax, ks, md, params={"top_n": 10})
+    r = mag_heatmap.analyze(ab, tax, ks, md,
+                            params={"filter_mode": "top_n", "top_n_count": 10})
     png = export_to_bytes(r.figure, "png")
     pdf = export_to_bytes(r.figure, "pdf")
     assert png.startswith(b"\x89PNG")
@@ -133,9 +141,9 @@ def test_export_png_pdf(mh_inputs):
 def test_mag_label_uses_genus_when_tax_provided(mh_inputs):
     """上传 taxonomy 后 stats 里 label 列应包含 Genus（不是纯 Mx_All_XX）。"""
     ab, tax, ks, md = mh_inputs
-    r = mag_heatmap.analyze(ab, tax, ks, md, params={"top_n": 30})
+    r = mag_heatmap.analyze(ab, tax, ks, md,
+                            params={"filter_mode": "top_n", "top_n_count": 30})
     assert "label" in r.stats.columns
-    # 至少有一条 label 不等于 MAG id（即取到了 Genus）
     not_equal = (r.stats["label"] != r.stats["MAG"]).sum()
     assert not_equal >= 1, "上传 taxonomy 后应至少有一条 MAG 拿到 Genus 标签"
 
@@ -143,14 +151,16 @@ def test_mag_label_uses_genus_when_tax_provided(mh_inputs):
 def test_mag_label_falls_back_without_tax(mh_inputs):
     """没 taxonomy 时 label == MAG id。"""
     ab, _, _, _ = mh_inputs
-    r = mag_heatmap.analyze(ab, params={"top_n": 10})
+    r = mag_heatmap.analyze(ab,
+                            params={"filter_mode": "top_n", "top_n_count": 10})
     assert (r.stats["label"] == r.stats["MAG"]).all()
 
 
 def test_phylum_legend_rendered(mh_inputs):
     """右侧图例区应至少包含一个 'Phylum' 标题的 legend。"""
     ab, tax, ks, md = mh_inputs
-    r = mag_heatmap.analyze(ab, tax, ks, md, params={"top_n": 30})
+    r = mag_heatmap.analyze(ab, tax, ks, md,
+                            params={"filter_mode": "top_n", "top_n_count": 30})
     axes = r.figure.axes
     # 第三个 Axes 是图例区，查找其 legend
     legends = []

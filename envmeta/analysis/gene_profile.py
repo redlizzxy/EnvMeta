@@ -1,17 +1,21 @@
 """MAG 元素循环基因谱热图。
 
-对标 `scripts/python/06_MAG_gene_profile.py`。核心：MAG × KO 拷贝数热图，按
+对标 scripts/python/06_MAG_gene_profile.py。核心：MAG × KO 拷贝数热图，按
 元素分块（As / N / S / Fe），色深 = log1p(copies)。
 
+S6-fix2 统一化：与 mag_heatmap / pathway / mag_quality 共享 4 层参数；行标签
+改用 Genus species / Genus sp. Mx_XX / MAG_id；左侧门彩条 + 右侧门图例；
+配色默认 **viridis**（感知均匀、色域宽）替换原单色 YlOrBr。
+
 输入：
-    ko_annotation_df: MAG × KO 长表（MAG + KEGG_ko），可含重复 → 拷贝数
+    ko_annotation_df: MAG × KO 长表（MAG + KEGG_ko）
     taxonomy_df:      可选 MAG + classification
-    keystone_df:      可选 MAG + Genus
-    abundance_df:     可选 MAG × sample（排序 / keystone 丰度筛选）
+    keystone_df:      可选 MAG
+    abundance_df:     可选 MAG × sample（排序 / Top-N 筛选）
 
 输出：
     figure — 主热图（MAG 行 × KO 列，按元素排序，log1p 拷贝数）
-    stats  — MAG × KO 拷贝数长表 + 元数据 + 基因总数
+    stats  — MAG × KO 拷贝数长表 + 元数据 + gene_count
 """
 from __future__ import annotations
 
@@ -20,36 +24,66 @@ import numpy as np
 import pandas as pd
 from matplotlib.patches import Rectangle
 
+from envmeta.analysis import _mag_common as _mc
+from envmeta.analysis._mag_common import PHYLUM_COLORS  # re-export
 from envmeta.analysis.base import AnalysisResult
 from envmeta.geocycle.knowledge_base import (
     element_colors, element_pathway_ko_order, flat_ko_map,
 )
-from envmeta.analysis.pathway import (
-    PHYLUM_COLORS, _extract_phylum, _mag_col, _parse_ko_annotation,
-)
+
+# BC helpers
+_parse_ko_annotation = None  # 不再导出；pathway 里仍有同名函数可用
+
 
 DEFAULTS = {
+    # Layer 1 — MAG 子集过滤
+    "filter_mode": "top_plus_keystone",
+    "top_n_by": "mean",
+    "top_n_count": 30,
+    "max_mags": 60,
+    # Layer 2 — 视觉
+    "highlight_keystones": True,
+    "show_phylum_bar": True,
+    "show_phylum_legend": True,
     "width_mm": 340,
     "height_mm": 220,
-    "max_mags": None,                     # None → 全部
-    "sort_by": "phylum_then_count",       # | "count" | "abundance"
+    # Layer 3 — 行排序
+    "row_order": "phylum_cluster",
+    "linkage_method": "average",
+    # Layer 4 — 基因谱特有
     "element_filter": None,
-    "annotate_keystone": True,
-    "cmap_name": "YlOrBr",
-    "drop_zero_kos": True,                # True → 过滤全 0 KO 列
-    "show_gene_names": True,              # KO 列标签是否显示基因名
+    "cmap_name": "viridis",               # ← 改默认（原 YlOrBr）
+    "show_gene_names": True,
+    "drop_zero_kos": True,
     "show_element_bar": True,
-    "show_phylum_bar": True,
-    # S6-fix: MAG 子集过滤（按 abundance / keystone 双标准）
-    "filter_mode": "top_plus_keystone",   # "all" | "top_abundance" |
-                                          # "keystone_only" | "top_plus_keystone"
-    "top_abundance_n": 30,                # filter_mode != "all" 时生效
+    # 向后兼容旧 key
+    "sort_by": None,
+    "annotate_keystone": None,
+    "top_abundance_n": None,              # 旧 S6-fix name
 }
 
 
+def _normalize_deprecated_params(p: dict) -> dict:
+    if p.get("sort_by") is not None:
+        mapping = {
+            "phylum_then_count": "phylum_cluster",
+            "phylum_cluster": "phylum_cluster",
+            "count": "metric_desc",
+            "metric_desc": "metric_desc",
+            "abundance": "abundance",
+        }
+        p["row_order"] = mapping.get(p["sort_by"],
+                                     p.get("row_order", "phylum_cluster"))
+    if p.get("annotate_keystone") is not None:
+        p["highlight_keystones"] = bool(p["annotate_keystone"])
+    if p.get("top_abundance_n") is not None:
+        p["top_n_count"] = int(p["top_abundance_n"])
+    return p
+
+
 def _parse_ko_copies(df: pd.DataFrame) -> dict[str, dict[str, int]]:
-    """把 MAG+KEGG_ko 长表解析为 {MAG: {KO: copies}}（同一 MAG 多次出现 = 拷贝 > 1）。"""
-    mag_c = _mag_col(df)
+    """把 MAG+KEGG_ko 长表解析为 {MAG: {KO: copies}}。"""
+    mag_c = _mc.mag_col(df)
     ko_c = next((c for c in df.columns
                  if c.lower() in ("kegg_ko", "kegg ko", "ko", "ko_id")),
                 df.columns[1] if len(df.columns) > 1 else None)
@@ -75,15 +109,13 @@ def analyze(
     abundance_df: pd.DataFrame | None = None,
     params: dict | None = None,
 ) -> AnalysisResult:
-    p = {**DEFAULTS, **(params or {})}
+    p = _normalize_deprecated_params({**DEFAULTS, **(params or {})})
 
-    # 拷贝数
+    # KO × 元素 × 通路 顺序
     mag_copies = _parse_ko_copies(ko_annotation_df)
-    # 知识库：按 element → pathway → KO 的自然顺序
     ko_order_triples = element_pathway_ko_order()
-    ko_map = flat_ko_map()  # {ko: (gene_name, pathway, element)}
+    ko_map = flat_ko_map()
     elem_color = element_colors()
-
     if p["element_filter"]:
         keep = set(p["element_filter"])
         ko_order_triples = [(e, pw, ko) for (e, pw, ko) in ko_order_triples
@@ -94,19 +126,13 @@ def analyze(
     # MAG 全集
     if taxonomy_df is not None and not taxonomy_df.empty:
         tax = taxonomy_df.copy()
-        tax = tax.rename(columns={_mag_col(tax): "MAG"})
-        cls_col = next((c for c in tax.columns
-                        if "classif" in c.lower() or "taxonomy" in c.lower()),
-                       tax.columns[1] if len(tax.columns) > 1 else None)
-        tax["Phylum"] = tax[cls_col].apply(_extract_phylum) if cls_col else "Unknown"
+        tax = tax.rename(columns={_mc.mag_col(tax): "MAG"})
         all_mags = sorted(tax["MAG"].astype(str).unique().tolist())
     else:
-        tax = None
         all_mags = sorted(mag_copies.keys())
     if not all_mags:
         raise ValueError("无 MAG 可分析")
 
-    # 拷贝数矩阵
     mat = np.zeros((len(all_mags), len(kb_ko_list)), dtype=float)
     for i, mag in enumerate(all_mags):
         owned = mag_copies.get(mag, {})
@@ -122,23 +148,17 @@ def analyze(
     active_kos = [kb_ko_list[j] for j in ko_indices_keep]
     active_elements = [kb_ko_element[k] for k in active_kos]
 
-    # DataFrame
     df = pd.DataFrame(mat, index=all_mags, columns=active_kos).reset_index()
     df = df.rename(columns={"index": "MAG"})
-    if tax is not None:
-        df = df.merge(tax[["MAG", "Phylum"]], on="MAG", how="left")
-    df["Phylum"] = df.get("Phylum", pd.Series(["Unknown"] * len(df))).fillna("Unknown")
 
-    if keystone_df is not None and not keystone_df.empty:
-        ks = keystone_df.copy()
-        ks = ks.rename(columns={_mag_col(ks): "MAG"})
-        df["is_keystone"] = df["MAG"].isin(set(ks["MAG"].astype(str)))
-    else:
-        df["is_keystone"] = False
+    # Phylum / Genus / Species / label
+    df = _mc.annotate_taxonomy(df, taxonomy_df)
+    df = _mc.annotate_keystone(df, keystone_df)
 
+    # 丰度均值
     if abundance_df is not None and not abundance_df.empty:
         ab = abundance_df.copy()
-        ab = ab.rename(columns={_mag_col(ab): "MAG"})
+        ab = ab.rename(columns={_mc.mag_col(ab): "MAG"})
         scols = [c for c in ab.columns if c != "MAG"]
         ab["abundance_mean"] = ab[scols].apply(
             pd.to_numeric, errors="coerce").fillna(0).mean(axis=1)
@@ -149,59 +169,59 @@ def analyze(
 
     df["gene_count"] = df[active_kos].sum(axis=1)
 
-    # S6-fix: 子集过滤（在排序之前，针对 MAG 集合做筛选）
-    mode = p.get("filter_mode", "all")
-    n_top = int(p.get("top_abundance_n", 30))
-    if mode == "top_abundance":
-        df = df.sort_values("abundance_mean", ascending=False).head(n_top)
-    elif mode == "keystone_only":
-        df = df[df["is_keystone"]]
-    elif mode == "top_plus_keystone":
-        top_mags = set(df.sort_values("abundance_mean", ascending=False)
-                         .head(n_top)["MAG"].tolist())
-        ks_mags = set(df[df["is_keystone"]]["MAG"].tolist())
-        df = df[df["MAG"].isin(top_mags | ks_mags)]
-    # "all" → 不过滤
-    df = df.reset_index(drop=True)
-    if df.empty:
-        raise ValueError(
-            f"filter_mode={mode!r} 过滤后无 MAG 可显示"
-            f"（keystone 数 / top_abundance_n 过小）")
+    # Layer 1 — filter_mode
+    df = _mc.apply_filter_mode(
+        df,
+        mode=p["filter_mode"],
+        top_n_count=int(p["top_n_count"]),
+        top_n_by=p["top_n_by"],
+        score_col="abundance_mean" if p["top_n_by"] != "variance" else "gene_count",
+    )
 
-    # 排序
-    if p["sort_by"] == "count":
-        df = df.sort_values("gene_count", ascending=False)
-    elif p["sort_by"] == "abundance":
-        df = df.sort_values("abundance_mean", ascending=False)
-    else:  # phylum_then_count
-        phy_rank = {ph: i for i, ph in
-                    enumerate(df["Phylum"].value_counts().index.tolist())}
-        df["_phy_rank"] = df["Phylum"].map(phy_rank)
-        df = df.sort_values(["_phy_rank", "gene_count"],
-                            ascending=[True, False]).drop(columns=["_phy_rank"])
-    df = df.reset_index(drop=True)
+    # Layer 3 — 行排序
+    df = _mc.order_rows(
+        df,
+        mode=p["row_order"],
+        metric_col="gene_count",
+        abundance_col="abundance_mean",
+        cluster_matrix=df[active_kos].to_numpy(dtype=float),
+        linkage_method=p["linkage_method"],
+        log_transform_cluster=True,
+    )
 
-    if p["max_mags"] and len(df) > p["max_mags"]:
-        df = df.head(p["max_mags"]).reset_index(drop=True)
+    # max_mags 硬截断
+    if p.get("max_mags"):
+        df = df.head(int(p["max_mags"])).reset_index(drop=True)
 
-    # 绘图用矩阵（按排序后的 MAG 顺序）
     mat_sorted = df[active_kos].to_numpy()
     mat_log = np.log1p(mat_sorted)
 
     fig = _draw(df, active_kos, active_elements, mat_log, elem_color,
                 ko_map, p)
 
-    stats_df = df[["MAG", "Phylum", "is_keystone", "abundance_mean",
+    stats_df = df[["MAG", "label", "Phylum", "Genus", "Species",
+                   "is_keystone", "abundance_mean",
                    "gene_count"] + active_kos].copy()
     return AnalysisResult(figure=fig, stats=stats_df, params=p)
 
 
 def _draw(df, active_kos, active_elements, mat_log, elem_color, ko_map, p) -> plt.Figure:
     n_mag, n_ko = mat_log.shape
-    fig, ax = plt.subplots(
+    # gridspec 三列布局（同 pathway）
+    fig = plt.figure(
         figsize=(p["width_mm"] / 25.4, p["height_mm"] / 25.4),
         constrained_layout=True,
     )
+    show_phy = p["show_phylum_bar"]
+    show_leg = p["show_phylum_legend"]
+    wr_phy = 0.04 if show_phy else 0.0001
+    wr_leg = 0.25 if show_leg else 0.0001
+    gs = fig.add_gridspec(1, 3, width_ratios=[wr_phy, 1.0, wr_leg], wspace=0.02)
+    ax_phy = fig.add_subplot(gs[0, 0])
+    ax = fig.add_subplot(gs[0, 1])
+    ax_leg = fig.add_subplot(gs[0, 2])
+    ax_leg.axis("off")
+
     cmap = plt.get_cmap(p["cmap_name"])
     vmax = mat_log.max() if mat_log.max() > 0 else 1.0
     im = ax.imshow(mat_log, aspect="auto", cmap=cmap, vmin=0, vmax=vmax,
@@ -214,33 +234,31 @@ def _draw(df, active_kos, active_elements, mat_log, elem_color, ko_map, p) -> pl
                 (j - 0.5, -0.9), 1.0, 0.35,
                 color=elem_color.get(el, "#888"), clip_on=False, zorder=3))
 
-    # 门色带（左侧）
-    if p["show_phylum_bar"]:
-        for i, (_, r) in enumerate(df.iterrows()):
-            ax.add_patch(Rectangle(
-                (-0.6, i - 0.5), 0.4, 1.0,
-                color=PHYLUM_COLORS.get(r["Phylum"], "#888"),
-                clip_on=False, zorder=3))
+    # 左侧门彩条（独立 Axes）
+    if show_phy:
+        _mc.draw_phylum_bar(ax_phy, df["Phylum"].tolist())
+    else:
+        ax_phy.axis("off")
 
-    # 列标签：gene_name (ko) 或 ko
+    # 列标签
     if p["show_gene_names"]:
-        col_labels = []
-        for ko in active_kos:
-            gene = ko_map.get(ko, (ko,))[0]
-            col_labels.append(f"{gene}")
+        col_labels = [ko_map.get(ko, (ko,))[0] for ko in active_kos]
     else:
         col_labels = active_kos
     ax.set_xticks(range(n_ko))
     ax.set_xticklabels(col_labels, rotation=75, ha="right",
                        fontsize=max(4, min(8, 400 // max(n_ko, 1))))
 
-    # 行标签（MAG + ★）
+    # 行标签（Genus / Genus sp. / MAG_id）
     y_labels = [
-        ("★ " if (p["annotate_keystone"] and r["is_keystone"]) else "") + r["MAG"]
+        ("★ " if (p["highlight_keystones"] and r["is_keystone"]) else "")
+        + str(r.get("label", r["MAG"]))
         for _, r in df.iterrows()
     ]
     ax.set_yticks(range(n_mag))
-    ax.set_yticklabels(y_labels, fontsize=max(3, min(8, 380 // max(n_mag, 1))))
+    ax.set_yticklabels(y_labels,
+                       fontsize=max(3, min(8, 380 // max(n_mag, 1))),
+                       fontstyle="italic")
 
     # 元素分组竖线
     if p["show_element_bar"] and n_ko > 1:
@@ -255,8 +273,16 @@ def _draw(df, active_kos, active_elements, mat_log, elem_color, ko_map, p) -> pl
         f" color = log1p(copies))",
         fontsize=11, fontweight="bold", pad=12,
     )
-    cbar = fig.colorbar(im, ax=ax, shrink=0.6, label="log1p(copies)")
-    cbar.ax.tick_params(labelsize=8)
     for spine in ("top", "right"):
         ax.spines[spine].set_visible(False)
+
+    # 右侧图例区：Phylum + keystone 说明 + colorbar
+    if show_leg:
+        _mc.draw_phylum_legend(ax_leg, df["Phylum"].tolist())
+        if p["highlight_keystones"] and df["is_keystone"].any():
+            _mc.draw_keystone_note(ax_leg)
+    cax = ax_leg.inset_axes([0.12, 0.0, 0.25, 0.18])
+    cbar = fig.colorbar(im, cax=cax, orientation="vertical")
+    cbar.ax.tick_params(labelsize=6)
+    cbar.set_label("log1p(copies)", fontsize=6.5)
     return fig

@@ -1,108 +1,73 @@
 """Top-N MAG 丰度热图（对标 scripts/python/07_MAG_abundance_heatmap.py）。
 
-核心：在长尾分布的 MAG × sample 丰度矩阵中突出 Top-N，提供门分组 + 关键物种
-标注 + 组顶彩条 + 三段非线性配色（适配少数极高 + 多数低值的场景）。
+S6-fix2 统一化：4 张 MAG 图共享 Layer 1-3 参数（filter_mode / top_n_by /
+top_n_count / max_mags / row_order）+ 共享 Phylum 彩条 + 门图例 + Genus 标签。
 
-布局（gridspec，从左到右）：
-    [门彩条 | 主热图 | 右侧图例区]
-    - 门彩条独立 Axes，不与 y-tick-label 重叠
-    - 右侧图例：Phylum + Group（可选）+ Keystone 说明
-
-输入：
-    abundance_df: MAG × sample 宽表（首列 MAG / Genome / Name；其余为样本丰度，%）
-    taxonomy_df:  可选 MAG + GTDB classification（用于门彩条、门内聚类、Genus 标签）
-    keystone_df:  可选 MAG 列表（MAG + 可选 Genus），打 ★ 高亮
-    metadata_df:  可选 SampleID + Group（用于组彩条 + 样本按组排序）
-
-输出：
-    figure — 主热图 + 门色带 + 组色带 + 关键物种 ★ + 色标 + 图例
-    stats  — 合并表：MAG × sample 百分比 + Phylum + is_keystone +
-             row_order（聚类后行序）+ selection_score + label（显示标签）
+保留 mag_heatmap 特有视觉：
+- 三段非线性配色（Blues→YlGn→YlOrRd，适配少数极高 + 多数低值的长尾分布）
+- 顶部组彩条（SampleID × Group）+ 组间竖线
+- 可选行/列聚类 + 聚类前 log1p 变换
 """
 from __future__ import annotations
 
-import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from matplotlib.colors import BoundaryNorm, LinearSegmentedColormap
 from matplotlib.patches import Rectangle
-from scipy.cluster.hierarchy import leaves_list, linkage
-from scipy.spatial.distance import pdist
 
+from envmeta.analysis import _mag_common as _mc
+from envmeta.analysis._mag_common import (GROUP_COLORS, PHYLUM_COLORS)
 from envmeta.analysis.base import AnalysisResult
-from envmeta.analysis.pathway import PHYLUM_COLORS, _extract_phylum, _mag_col
 
-GROUP_COLORS = {"CK": "#4DAF4A", "A": "#377EB8", "B": "#E41A1C"}
 
 DEFAULTS = {
-    "top_n": 30,
-    "selection_by": "mean",               # "mean" | "sum" | "variance"
-    "log_transform": True,                # 仅用于聚类距离，不改变色板映射
-    "cluster_rows": True,
-    "cluster_cols": False,
-    "cluster_within_phylum": True,        # True → 先按门分组，门内聚类
-    "linkage_method": "average",          # "average" | "ward" | "complete"
-    "color_breakpoints": (0.2, 0.5),      # 三段非线性配色边界（%）
-    "show_phylum_bar": True,
-    "show_group_bar": True,
+    # Layer 1 — MAG 子集过滤（共享）
+    "filter_mode": "top_plus_keystone",
+    "top_n_by": "mean",                   # mean|sum|variance
+    "top_n_count": 30,
+    "max_mags": 0,                        # 0 → 不截（Top-N 已经是子集）
+    # Layer 2 — 视觉（共享）
     "highlight_keystones": True,
-    "width_mm": 240,                      # 加宽给右侧图例让位
+    "show_phylum_bar": True,
+    "show_phylum_legend": True,
+    "width_mm": 240,
     "height_mm": 220,
+    # Layer 3 — 行排序（共享）
+    "row_order": "phylum_cluster",        # phylum_cluster|metric_desc|abundance
+    "linkage_method": "average",
+    # Layer 4 — mag_heatmap 特有
+    "color_breakpoints": (0.2, 0.5),
+    "log_transform": True,
+    "cluster_cols": False,
+    "show_group_bar": True,
+    # 向后兼容旧 key
+    "top_n": None,                        # 老 API: top_n_count 别名
+    "selection_by": None,                 # 老 API: top_n_by 别名
+    "cluster_rows": None,                 # 已由 row_order 覆盖
+    "cluster_within_phylum": None,        # 已由 row_order=phylum_cluster 覆盖
 }
 
 
-def _extract_rank(cls: str, prefix: str) -> str:
-    """从 GTDB classification 字符串里取出某级分类（g__ / s__ / f__）。"""
-    if not isinstance(cls, str):
-        return ""
-    for part in cls.split(";"):
-        part = part.strip()
-        if part.startswith(prefix):
-            return part[len(prefix):].strip()
-    return ""
-
-
-def _mag_display_label(mag: str, genus: str, species: str) -> str:
-    """复用 inference.py:259 的 S2.5-13 规则：
-
-    - Genus + species 都有 → "Genus species"
-    - 只有 Genus        → "Genus sp. Mx_XX"（XX 是 MAG id 尾缀）
-    - 都没有            → 纯 MAG_id
-    """
-    g = (genus or "").strip()
-    s = (species or "").strip()
-    if g and s:
-        # 若 species 已经包含 genus 前缀（GTDB 的 "s__Gallionella rugosa" 风格），去重
-        if s.startswith(g + " "):
-            s = s[len(g) + 1:]
-        return f"{g} {s}".strip()
-    if g:
-        tail = str(mag).split("_")[-1] if "_" in str(mag) else str(mag)
-        return f"{g} sp. Mx_{tail}"
-    return str(mag)
-
-
-def _select_top_n(mat: np.ndarray, top_n: int, by: str) -> tuple[np.ndarray, np.ndarray]:
-    """返回按 mean/sum/variance 排序的行索引（降序，截取 Top-N）+ 全行分数。"""
-    if by == "sum":
-        score = mat.sum(axis=1)
-    elif by == "variance":
-        score = mat.var(axis=1)
-    else:
-        score = mat.mean(axis=1)
-    n = min(top_n, len(score))
-    order = np.argsort(-score, kind="stable")[:n]
-    return order, score
+def _normalize_deprecated_params(p: dict) -> dict:
+    if p.get("top_n") is not None:
+        p["top_n_count"] = int(p["top_n"])
+    if p.get("selection_by") is not None:
+        p["top_n_by"] = p["selection_by"]
+    # cluster_rows=False 表示不想聚类 → row_order=metric_desc（按 selection_score）
+    if p.get("cluster_rows") is False and p.get("row_order") == "phylum_cluster":
+        p["row_order"] = "metric_desc"
+    # cluster_within_phylum=False 且 cluster_rows=True 表示用全局聚类（不再支持；
+    # 映射为 phylum_cluster 仍可，本次不单独支持）
+    return p
 
 
 def _build_tricolor_cmap(mat: np.ndarray, breakpoints: tuple[float, float]):
-    """三段非线性配色：低段 Blues（频繁低值） → 中段 YlGn → 高段 YlOrRd。"""
+    """三段非线性配色：Blues（低频）→ YlGn（中）→ YlOrRd（高）。"""
     vmax = np.ceil(mat.max() * 10) / 10 if mat.size else 1.0
     lo_bp, hi_bp = breakpoints
     if vmax < hi_bp + 0.1:
         vmax = hi_bp + 0.1
-
     bounds_lo = list(np.arange(0, lo_bp + 1e-9, 0.025))
     bounds_mid = list(np.arange(lo_bp, hi_bp + 1e-9, 0.05))
     bounds_hi = list(np.arange(hi_bp, min(vmax, 1.0) + 1e-9, 0.1))
@@ -111,11 +76,9 @@ def _build_tricolor_cmap(mat: np.ndarray, breakpoints: tuple[float, float]):
     bounds = sorted({round(b, 3) for b in bounds_lo + bounds_mid + bounds_hi})
     if bounds[-1] < vmax:
         bounds.append(round(float(vmax), 2))
-
     n_lo = sum(1 for b in bounds if b <= lo_bp) - 1
     n_mid = sum(1 for b in bounds if lo_bp < b <= hi_bp)
     n_hi = sum(1 for b in bounds if b > hi_bp)
-
     seg_lo = plt.cm.Blues(np.linspace(0.08, 0.55, max(n_lo + 1, 2)))
     seg_mid = plt.cm.YlGn(np.linspace(0.18, 0.65, max(n_mid + 1, 2)))
     seg_hi = plt.cm.YlOrRd(np.linspace(0.40, 0.95, max(n_hi + 1, 2)))
@@ -127,18 +90,6 @@ def _build_tricolor_cmap(mat: np.ndarray, breakpoints: tuple[float, float]):
     return cmap, norm, bounds, vmax
 
 
-def _cluster_order(mat: np.ndarray, method: str) -> list[int]:
-    """返回层次聚类的叶子顺序；≤2 行时返回原序。"""
-    if len(mat) <= 2:
-        return list(range(len(mat)))
-    try:
-        dist = pdist(mat, metric="euclidean")
-        link = linkage(dist, method=method)
-        return list(leaves_list(link))
-    except Exception:
-        return list(range(len(mat)))
-
-
 def analyze(
     abundance_df: pd.DataFrame,
     taxonomy_df: pd.DataFrame | None = None,
@@ -146,12 +97,11 @@ def analyze(
     metadata_df: pd.DataFrame | None = None,
     params: dict | None = None,
 ) -> AnalysisResult:
-    p = {**DEFAULTS, **(params or {})}
+    p = _normalize_deprecated_params({**DEFAULTS, **(params or {})})
 
-    # ── 丰度矩阵 ─────────────────────────────────────────────
+    # ── 丰度矩阵 ────────────────────────────────────────────
     ab = abundance_df.copy()
-    mag_c = _mag_col(ab)
-    ab = ab.rename(columns={mag_c: "MAG"})
+    ab = ab.rename(columns={_mc.mag_col(ab): "MAG"})
     ab = ab[ab["MAG"].astype(str) != "unmapped"]
     sample_cols = [c for c in ab.columns if c != "MAG"]
     if not sample_cols:
@@ -165,42 +115,15 @@ def analyze(
         raise ValueError("abundance 表无有效 MAG")
 
     mat_full = ab[sample_cols].to_numpy(dtype=float)
-    row_order, scores = _select_top_n(mat_full, p["top_n"], p["selection_by"])
-    df = ab.iloc[row_order].copy().reset_index(drop=True)
-    df["selection_score"] = scores[row_order]
-    mat = df[sample_cols].to_numpy(dtype=float)
+    df = ab.copy()
+    df["selection_score"] = _mc._select_score(mat_full, p["top_n_by"])
+    df["abundance_mean"] = mat_full.mean(axis=1)
 
-    # ── 分类（Phylum + Genus + Species）──────────────────────
-    if taxonomy_df is not None and not taxonomy_df.empty:
-        tax = taxonomy_df.copy()
-        tax = tax.rename(columns={_mag_col(tax): "MAG"})
-        tax["MAG"] = tax["MAG"].astype(str)
-        cls_col = next(
-            (c for c in tax.columns
-             if "classif" in c.lower() or "taxonomy" in c.lower()),
-            tax.columns[1] if len(tax.columns) > 1 else None,
-        )
-        if cls_col is not None:
-            tax["Phylum"] = tax[cls_col].apply(_extract_phylum)
-            tax["Genus"] = tax[cls_col].apply(lambda x: _extract_rank(x, "g__"))
-            tax["Species"] = tax[cls_col].apply(lambda x: _extract_rank(x, "s__"))
-            df = df.merge(tax[["MAG", "Phylum", "Genus", "Species"]],
-                          on="MAG", how="left")
-    df["Phylum"] = df.get("Phylum", pd.Series(["Unknown"] * len(df))).fillna("Unknown")
-    df["Genus"] = df.get("Genus", pd.Series([""] * len(df))).fillna("")
-    df["Species"] = df.get("Species", pd.Series([""] * len(df))).fillna("")
-    df["label"] = df.apply(
-        lambda r: _mag_display_label(r["MAG"], r["Genus"], r["Species"]), axis=1)
+    # 注释 Phylum / Genus / Species / label
+    df = _mc.annotate_taxonomy(df, taxonomy_df)
+    df = _mc.annotate_keystone(df, keystone_df)
 
-    # ── keystone ────────────────────────────────────────────
-    if keystone_df is not None and not keystone_df.empty:
-        ks = keystone_df.copy()
-        ks = ks.rename(columns={_mag_col(ks): "MAG"})
-        df["is_keystone"] = df["MAG"].isin(set(ks["MAG"].astype(str)))
-    else:
-        df["is_keystone"] = False
-
-    # ── metadata → group / sample 排序 ───────────────────────
+    # ── metadata → 样本按组排序 ──────────────────────────────
     groups_per_sample: dict[str, str | None] = {s: None for s in sample_cols}
     if metadata_df is not None and not metadata_df.empty:
         md = metadata_df.copy()
@@ -222,45 +145,46 @@ def analyze(
                 new_order.extend(by_grp[g])
             if new_order and new_order != sample_cols:
                 sample_cols = new_order
-                df = df[["MAG"] + sample_cols + [c for c in df.columns
-                                                   if c not in {"MAG", *sample_cols}]]
-                mat = df[sample_cols].to_numpy(dtype=float)
 
-    # ── 行聚类 ──────────────────────────────────────────────
-    if p["cluster_rows"]:
-        mat_for_clust = np.log1p(mat) if p["log_transform"] else mat
-        if p["cluster_within_phylum"] and "Phylum" in df.columns:
-            phy_order = df["Phylum"].value_counts().index.tolist()
-            reordered: list[int] = []
-            for phy in phy_order:
-                idx = df.index[df["Phylum"] == phy].tolist()
-                if not idx:
-                    continue
-                sub = mat_for_clust[idx]
-                leaf = _cluster_order(sub, p["linkage_method"])
-                reordered.extend([idx[k] for k in leaf])
-            if reordered:
-                df = df.iloc[reordered].reset_index(drop=True)
-                mat = df[sample_cols].to_numpy(dtype=float)
-        else:
-            leaf = _cluster_order(mat_for_clust, p["linkage_method"])
-            df = df.iloc[leaf].reset_index(drop=True)
-            mat = df[sample_cols].to_numpy(dtype=float)
+    # ── Layer 1 — filter_mode ────────────────────────────────
+    df = _mc.apply_filter_mode(
+        df,
+        mode=p["filter_mode"],
+        top_n_count=int(p["top_n_count"]),
+        top_n_by=p["top_n_by"],
+        score_matrix=df[sample_cols].to_numpy(dtype=float),
+    )
+
+    # ── Layer 3 — 行排序 ────────────────────────────────────
+    df = _mc.order_rows(
+        df,
+        mode=p["row_order"],
+        metric_col="selection_score",
+        abundance_col="abundance_mean",
+        cluster_matrix=df[sample_cols].to_numpy(dtype=float),
+        linkage_method=p["linkage_method"],
+        log_transform_cluster=p["log_transform"],
+    )
     df["row_order"] = range(len(df))
 
+    # 列聚类（可选）
+    mat = df[sample_cols].to_numpy(dtype=float)
     if p["cluster_cols"]:
         mat_T = np.log1p(mat.T) if p["log_transform"] else mat.T
-        col_leaf = _cluster_order(mat_T, p["linkage_method"])
+        col_leaf = _mc._cluster_order(mat_T, p["linkage_method"])
         sample_cols = [sample_cols[k] for k in col_leaf]
-        df = df[["MAG"] + sample_cols + [c for c in df.columns
-                                           if c not in {"MAG", *sample_cols}]]
+        mat = df[sample_cols].to_numpy(dtype=float)
+
+    # max_mags 硬截断
+    if p.get("max_mags"):
+        df = df.head(int(p["max_mags"])).reset_index(drop=True)
         mat = df[sample_cols].to_numpy(dtype=float)
 
     fig = _draw(df, sample_cols, mat, groups_per_sample, p)
 
     stats_df = df[["MAG", "label", "Phylum", "Genus", "Species",
-                   "is_keystone", "row_order", "selection_score"]
-                  + sample_cols].copy()
+                   "is_keystone", "row_order", "selection_score",
+                   "abundance_mean"] + sample_cols].copy()
     return AnalysisResult(figure=fig, stats=stats_df, params=p)
 
 
@@ -273,19 +197,22 @@ def _draw(df, sample_cols, mat, groups_per_sample, p) -> plt.Figure:
         figsize=(p["width_mm"] / 25.4, p["height_mm"] / 25.4),
         constrained_layout=True,
     )
-    # 三列：[门彩条 | 主热图 | 图例]
     show_phy = p["show_phylum_bar"]
-    width_ratios = [0.05, 1.0, 0.35] if show_phy else [0.0001, 1.0, 0.35]
-    gs = fig.add_gridspec(1, 3, width_ratios=width_ratios, wspace=0.02)
+    show_leg = p["show_phylum_legend"]
+    wr_phy = 0.05 if show_phy else 0.0001
+    wr_leg = 0.35 if show_leg else 0.0001
+    gs = fig.add_gridspec(1, 3, width_ratios=[wr_phy, 1.0, wr_leg], wspace=0.02)
     ax_phy = fig.add_subplot(gs[0, 0])
     ax = fig.add_subplot(gs[0, 1])
     ax_leg = fig.add_subplot(gs[0, 2])
+    ax_leg.axis("off")
 
     im = ax.imshow(mat, aspect="auto", cmap=cmap, norm=norm,
                    interpolation="nearest")
 
-    # ── 顶部组色带（画在主热图 Axes 内，紧贴 y=-1）──────────
-    if p["show_group_bar"] and any(groups_per_sample.values()):
+    # 顶部组彩条
+    has_group_info = any(groups_per_sample.values())
+    if p["show_group_bar"] and has_group_info:
         for j, s in enumerate(sample_cols):
             g = groups_per_sample.get(s)
             color = GROUP_COLORS.get(g, "#CCCCCC")
@@ -301,19 +228,13 @@ def _draw(df, sample_cols, mat, groups_per_sample, p) -> plt.Figure:
                 ax.axvline(j - 0.5, color="black", lw=1.2, zorder=4)
             prev = g
 
-    # ── 左侧门彩条（独立 Axes）──────────────────────────────
+    # 左侧门彩条
     if show_phy:
-        for i, phy in enumerate(df["Phylum"].tolist()):
-            ax_phy.add_patch(Rectangle(
-                (0, i - 0.5), 1.0, 1.0,
-                facecolor=PHYLUM_COLORS.get(phy, "#888"),
-                edgecolor="none", zorder=3,
-            ))
-        ax_phy.set_xlim(0, 1)
-        ax_phy.set_ylim(n_mag - 0.5, -0.5)
-    ax_phy.axis("off")
+        _mc.draw_phylum_bar(ax_phy, df["Phylum"].tolist())
+    else:
+        ax_phy.axis("off")
 
-    # ── 行标签（Genus / Genus sp. + 可选 ★ 前缀）───────────
+    # 行标签
     labels = []
     for _, r in df.iterrows():
         prefix = "★ " if (p["highlight_keystones"] and r["is_keystone"]) else ""
@@ -342,69 +263,35 @@ def _draw(df, sample_cols, mat, groups_per_sample, p) -> plt.Figure:
     for spine in ("top", "right"):
         ax.spines[spine].set_visible(False)
 
-    # ── 右侧图例区：Phylum / Group / Keystone + colorbar ───
-    _draw_legends(fig, ax, ax_leg, im, df, groups_per_sample, p)
+    # 右侧图例：Phylum + Group + ★ + colorbar
+    if show_leg:
+        _mc.draw_phylum_legend(ax_leg, df["Phylum"].tolist())
+        # Group 图例
+        if p["show_group_bar"] and has_group_info:
+            import matplotlib.patches as mpatches
+            grp_seen = [g for g in ("CK", "A", "B")
+                        if g in set(groups_per_sample.values())]
+            extra_g = sorted({g for g in groups_per_sample.values()
+                              if g is not None and g not in ("CK", "A", "B")})
+            grp_handles = [
+                mpatches.Patch(facecolor=GROUP_COLORS.get(g, "#CCC"),
+                               edgecolor="none", label=g)
+                for g in (grp_seen + extra_g)
+            ]
+            if grp_handles:
+                leg2 = ax_leg.legend(
+                    handles=grp_handles,
+                    loc="center left", bbox_to_anchor=(0.0, 0.38),
+                    fontsize=6, title="Group", title_fontsize=7,
+                    frameon=False, handlelength=1.2, handleheight=0.8,
+                    labelspacing=0.4,
+                )
+                ax_leg.add_artist(leg2)
+        if p["highlight_keystones"] and df["is_keystone"].any():
+            _mc.draw_keystone_note(ax_leg)
 
-    return fig
-
-
-def _draw_legends(fig, ax_main, ax_leg, im, df, groups_per_sample, p) -> None:
-    """在右侧 ax_leg 上画 Phylum / Group / Keystone 三段图例 + 独立 colorbar。"""
-    ax_leg.axis("off")
-
-    # Phylum 图例（按出现顺序去重）
-    phy_seen: list[str] = []
-    for phy in df["Phylum"].tolist():
-        if phy not in phy_seen:
-            phy_seen.append(phy)
-    phy_handles = [
-        mpatches.Patch(facecolor=PHYLUM_COLORS.get(phy, "#888"),
-                       edgecolor="none",
-                       label=f"{phy} ({(df['Phylum'] == phy).sum()})")
-        for phy in phy_seen
-    ]
-    leg1 = ax_leg.legend(
-        handles=phy_handles,
-        loc="upper left", bbox_to_anchor=(0.0, 1.0),
-        fontsize=6, title="Phylum", title_fontsize=7,
-        frameon=False, handlelength=1.2, handleheight=0.8,
-        labelspacing=0.4,
-    )
-    ax_leg.add_artist(leg1)
-
-    # Group 图例
-    if p["show_group_bar"] and any(groups_per_sample.values()):
-        grp_seen = [g for g in ("CK", "A", "B")
-                    if g in set(groups_per_sample.values())]
-        extra_g = sorted({g for g in groups_per_sample.values()
-                          if g is not None and g not in ("CK", "A", "B")})
-        grp_handles = [
-            mpatches.Patch(facecolor=GROUP_COLORS.get(g, "#CCCCCC"),
-                           edgecolor="none", label=g)
-            for g in (grp_seen + extra_g)
-        ]
-        if grp_handles:
-            leg2 = ax_leg.legend(
-                handles=grp_handles,
-                loc="center left", bbox_to_anchor=(0.0, 0.38),
-                fontsize=6, title="Group", title_fontsize=7,
-                frameon=False, handlelength=1.2, handleheight=0.8,
-                labelspacing=0.4,
-            )
-            ax_leg.add_artist(leg2)
-
-    # Keystone 说明 + colorbar 放在底部
-    if p["highlight_keystones"] and df["is_keystone"].any():
-        ax_leg.text(
-            0.0, 0.22,
-            "★ = keystone species",
-            transform=ax_leg.transAxes,
-            fontsize=6.5, fontweight="bold",
-            va="center", ha="left",
-        )
-
-    # 独立 colorbar：用 inset_axes 在 ax_leg 底部画一条竖向色标
     cax = ax_leg.inset_axes([0.1, 0.0, 0.22, 0.18])
     cbar = fig.colorbar(im, cax=cax, orientation="vertical")
     cbar.ax.tick_params(labelsize=6)
     cbar.set_label("Rel. abundance (%)", fontsize=6.5)
+    return fig

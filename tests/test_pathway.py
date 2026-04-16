@@ -33,9 +33,9 @@ def test_pathway_smoke(pathway_inputs):
 def test_pathway_completeness_range(pathway_inputs):
     ko, tax, ks = pathway_inputs
     r = pathway.analyze(ko, tax, ks)
-    pw_cols = [c for c in r.stats.columns if c not in
-               {"MAG", "Phylum", "is_keystone", "abundance_mean",
-                "total_completeness"}]
+    meta_cols = {"MAG", "label", "Phylum", "Genus", "Species",
+                 "is_keystone", "abundance_mean", "total_completeness"}
+    pw_cols = [c for c in r.stats.columns if c not in meta_cols]
     assert len(pw_cols) >= 10  # 至少 10 条通路
     vals = r.stats[pw_cols].values
     assert (vals >= 0).all() and (vals <= 100).all()

@@ -201,6 +201,191 @@ def _files_of(*types: FileType) -> dict[str, dict]:
 
 
 # ══════════════════════════════════════════════════════════
+# MAG-based 共享 UI（4 张图的侧边栏 Layer 1-2 一致）
+# ══════════════════════════════════════════════════════════
+
+def _first_of(*ftypes: FileType) -> str | None:
+    for n, info in st.session_state.files.items():
+        if info["type"] in ftypes:
+            return n
+    return None
+
+
+def _idx_or_default(options: list[str], name: str | None) -> int:
+    return options.index(name) if (name and name in options) else 0
+
+
+def render_mag_layer1_filter(prefix: str,
+                              default_max_mags: int = 0) -> dict:
+    """渲染 MAG 图统一 Layer 1 过滤参数。所有 4 张 MAG 图用同一套 widget。"""
+    st.markdown("**子集过滤**")
+    filter_mode = st.selectbox(
+        "MAG 子集",
+        ["top_plus_keystone", "top_n", "keystone_only", "all"],
+        index=0, key=f"{prefix}_fm",
+        help=(
+            "• top_plus_keystone（默认）: Top-N 丰度 ∪ 全部 keystone\n"
+            "• top_n: 只留按 Top-N 打分选出的 N 条\n"
+            "• keystone_only: 只留 keystone 物种\n"
+            "• all: 不过滤，显全部 MAG（再由 max_mags 硬截断）"
+        ),
+    )
+    top_n_by = st.selectbox(
+        "Top-N 打分依据",
+        ["mean", "sum", "variance"],
+        index=0, key=f"{prefix}_tnby",
+        help=(
+            "• mean: 平均丰度（默认）\n"
+            "• sum: 累计丰度\n"
+            "• variance: 方差（组间差异大的 MAG）"
+        ),
+    )
+    top_n_count = st.slider("Top-N 取几条", 5, 100, 30,
+                             step=5, key=f"{prefix}_tnc")
+    max_mags = st.slider("max_mags 硬截断（0=不截）", 0, 200, default_max_mags,
+                          step=10, key=f"{prefix}_mm")
+    return {
+        "filter_mode": filter_mode,
+        "top_n_by": top_n_by,
+        "top_n_count": top_n_count,
+        "max_mags": max_mags,
+    }
+
+
+def render_mag_layer2_visual(prefix: str,
+                              default_width: int, default_height: int,
+                              show_phylum_bar: bool = True) -> dict:
+    """渲染 MAG 图统一 Layer 2 视觉参数。"""
+    st.markdown("**视觉**")
+    hi_ks = st.checkbox("★ keystone 标记", True, key=f"{prefix}_hiks")
+    show_phy = True
+    if show_phylum_bar:
+        show_phy = st.checkbox("门彩条（左侧）", True, key=f"{prefix}_phy")
+    show_leg = st.checkbox("门图例（右侧）", True, key=f"{prefix}_leg")
+    size = render_figure_size({"width_mm": default_width,
+                               "height_mm": default_height},
+                              prefix=prefix)
+    return {
+        "highlight_keystones": hi_ks,
+        "show_phylum_bar": show_phy,
+        "show_phylum_legend": show_leg,
+        **size,
+    }
+
+
+def render_mag_layer3_order(prefix: str) -> dict:
+    """渲染 MAG 热图统一 Layer 3 行排序参数（mag_quality 散点图不用）。"""
+    st.markdown("**行排序**")
+    row_order = st.selectbox(
+        "排序方式",
+        ["phylum_cluster", "metric_desc", "abundance"],
+        index=0, key=f"{prefix}_ro",
+        help=(
+            "• phylum_cluster（默认）: 按门分组 → 门内层次聚类\n"
+            "• metric_desc: 按该图主 metric（完整度/基因数/丰度分）降序\n"
+            "• abundance: 按丰度均值降序"
+        ),
+    )
+    linkage_method = st.selectbox(
+        "聚类方法",
+        ["average", "ward", "complete"],
+        index=0, key=f"{prefix}_lm",
+    )
+    return {"row_order": row_order, "linkage_method": linkage_method}
+
+
+def _mag_file_selectors(prefix: str,
+                         *, ko_type: FileType | None = None,
+                         require_abundance: bool = False) -> dict[str, str]:
+    """渲染 MAG 图统一文件上传下拉（4 种标准输入，按 FileType 自动选默认）。
+
+    返回：{"_ko": name | None, "abundance": name | None, "taxonomy": ...,
+           "keystone": ..., "metadata": ...}
+    """
+    file_names = list(st.session_state.files.keys())
+    if not file_names:
+        st.warning("请先在「文件管理」上传数据文件。")
+        st.stop()
+
+    selected: dict[str, str | None] = {}
+
+    # KO 注释表（仅 pathway / gene_profile 需要）
+    if ko_type is not None:
+        ko_default = _first_of(ko_type)
+        ko_name = st.selectbox(
+            "KO 注释表（MAG + KEGG_ko 长表）",
+            file_names, key=f"{prefix}_ko",
+            index=_idx_or_default(file_names, ko_default),
+        )
+        selected["_ko"] = ko_name
+    used = [selected.get("_ko")] if ko_type else []
+
+    # MAG 丰度表
+    ab_default = _first_of(FileType.ABUNDANCE_WIDE)
+    ab_label = ("MAG 丰度表（必需）" if require_abundance
+                else "MAG 丰度表（可选，用于 Top-N 打分）")
+    if require_abundance:
+        ab_options = [n for n in file_names if n not in used]
+        ab_name = st.selectbox(ab_label, ab_options, key=f"{prefix}_ab",
+                               index=_idx_or_default(ab_options, ab_default))
+    else:
+        ab_options = ["（无）"] + [n for n in file_names if n not in used]
+        ab_name = st.selectbox(ab_label, ab_options, key=f"{prefix}_ab",
+                               index=_idx_or_default(ab_options, ab_default))
+    selected["abundance"] = ab_name if ab_name != "（无）" else None
+    used.append(ab_name if ab_name != "（无）" else None)
+
+    # Taxonomy
+    t_default = _first_of(FileType.MAG_TAXONOMY)
+    t_options = ["（无）"] + [n for n in file_names if n not in used]
+    t_name = st.selectbox(
+        "GTDB 分类表（可选，用于 Genus 标签 + 门彩条）",
+        t_options, key=f"{prefix}_tax",
+        index=_idx_or_default(t_options, t_default),
+    )
+    selected["taxonomy"] = t_name if t_name != "（无）" else None
+    used.append(t_name if t_name != "（无）" else None)
+
+    # Keystone
+    k_default = _first_of(FileType.KEYSTONE_SPECIES)
+    k_options = ["（无）"] + [n for n in file_names if n not in used]
+    k_name = st.selectbox(
+        "Keystone 物种列表（可选）",
+        k_options, key=f"{prefix}_ks",
+        index=_idx_or_default(k_options, k_default),
+    )
+    selected["keystone"] = k_name if k_name != "（无）" else None
+    used.append(k_name if k_name != "（无）" else None)
+
+    # Metadata
+    m_default = _first_of(FileType.METADATA)
+    m_options = ["（无）"] + [n for n in file_names if n not in used]
+    m_name = st.selectbox(
+        "样本分组表（可选，提供组彩条 / 样本排序）",
+        m_options, key=f"{prefix}_md",
+        index=_idx_or_default(m_options, m_default),
+    )
+    selected["metadata"] = m_name if m_name != "（无）" else None
+
+    return selected
+
+
+def _load_mag_df(name: str | None):
+    """按 name 取 DataFrame；处理 taxonomy 无 header 的特殊格式。"""
+    if name is None:
+        return None
+    t = st.session_state.files[name]["df"]
+    if t.shape[1] == 2:
+        cols_lower = [c.lower() for c in t.columns]
+        if ("classification" not in cols_lower
+                and "taxonomy" not in cols_lower
+                and not any("mag" in c for c in cols_lower)):
+            t = t.copy()
+            t.columns = ["MAG", "Taxonomy"]
+    return t
+
+
+# ══════════════════════════════════════════════════════════
 # 首页
 # ══════════════════════════════════════════════════════════
 if page == "首页":
@@ -794,42 +979,48 @@ elif page == "MAG-based 分析":
         if not checkm_files:
             st.warning("需要 1 个 CheckM / CheckM2 质量表（含 Completeness/Contamination/Genome_Size 列）。")
             st.stop()
-        q_name = st.selectbox("CheckM 质量表", list(checkm_files.keys()), key="mq_checkm")
+        q_name = st.selectbox("CheckM 质量表（必需）", list(checkm_files.keys()),
+                              key="mq_checkm")
+        t_default = _first_of(FileType.MAG_TAXONOMY)
+        t_options = ["（无）"] + [n for n in st.session_state.files
+                                 if n != q_name]
         t_name = st.selectbox(
-            "GTDB 分类表（可选）",
-            ["（无）"] + [n for n in st.session_state.files.keys() if n != q_name],
-            key="mq_tax",
+            "GTDB 分类表（可选，用于门分色）", t_options, key="mq_tax",
+            index=_idx_or_default(t_options, t_default),
         )
+        k_default = _first_of(FileType.KEYSTONE_SPECIES)
+        k_options = ["（无）"] + [n for n in st.session_state.files
+                                 if n not in (q_name, t_name)]
         k_name = st.selectbox(
-            "Keystone 物种列表（可选）",
-            ["（无）"] + [n for n in st.session_state.files.keys()
-                         if n not in (q_name, t_name)],
-            key="mq_ks",
+            "Keystone 物种列表（可选）", k_options, key="mq_ks",
+            index=_idx_or_default(k_options, k_default),
         )
 
         with st.sidebar:
             st.subheader("MAG 质量参数")
+            l1 = render_mag_layer1_filter("mq", default_max_mags=0)
+            # 默认 all —— 散点图核心价值 = 看全部 MAG 质量分布
+            l1["filter_mode"] = st.selectbox(
+                "（覆盖）MAG 子集",
+                ["all", "top_n", "keystone_only", "top_plus_keystone"],
+                index=0, key="mq_fm_override",
+                help="散点图默认 all（展示全部 MAG 质量分布）；选 keystone_only 可单看 keystone。",
+            )
+            l2 = render_mag_layer2_visual("mq", 260, 140, show_phylum_bar=False)
+            st.markdown("**质量阈值**")
             hc = st.slider("高质量 Completeness ≥", 50, 100, 90, key="mq_hc")
             hcon = st.slider("高质量 Contamination <", 1, 10, 5, key="mq_hcon")
             mc = st.slider("中质量 Completeness ≥", 30, 80, 50, key="mq_mc")
             mcon = st.slider("中质量 Contamination <", 5, 20, 10, key="mq_mcon")
-            size = render_figure_size({"width_mm": 260, "height_mm": 140}, prefix="mq")
 
         if st.button("生成 MAG 质量图", type="primary", key="mq_go"):
             q = checkm_files[q_name]["df"]
-            t = st.session_state.files[t_name]["df"] if t_name != "（无）" else None
-            # taxonomy 表若没有标题，需要设列名
-            if t is not None and "classification" not in [c.lower() for c in t.columns] \
-                    and "taxonomy" not in [c.lower() for c in t.columns]:
-                # 约定：无表头的 MAG\tTaxonomy 两列格式
-                if t.shape[1] == 2:
-                    t = t.copy()
-                    t.columns = ["MAG", "Taxonomy"]
+            t = _load_mag_df(t_name if t_name != "（无）" else None)
             k = st.session_state.files[k_name]["df"] if k_name != "（无）" else None
             params = {
+                **l1, **l2,
                 "high_completeness": float(hc), "high_contamination": float(hcon),
                 "med_completeness": float(mc), "med_contamination": float(mcon),
-                **size,
             }
             try:
                 result = mag_quality_mod.analyze(q, t, k, params)
@@ -861,97 +1052,35 @@ elif page == "MAG-based 分析":
             with st.expander("查看统计表"):
                 st.dataframe(last.stats, use_container_width=True)
     elif analysis_type == "MAG 丰度热图":
-        file_names = list(st.session_state.files.keys())
-        if not file_names:
-            st.warning("需要 1 个 MAG 丰度表（MAG × sample 宽表，首列 Genome/MAG）。")
-            st.stop()
-
-        def _mh_first_of(*ftypes: FileType) -> str | None:
-            for n, info in st.session_state.files.items():
-                if info["type"] in ftypes:
-                    return n
-            return None
-
-        def _mh_idx(options: list[str], name: str | None) -> int:
-            return options.index(name) if (name and name in options) else 0
-
-        ab_default = _mh_first_of(FileType.ABUNDANCE_WIDE)
-        ab_name = st.selectbox("MAG 丰度表", file_names, key="mh_ab",
-                               index=_mh_idx(file_names, ab_default))
-        t_default = _mh_first_of(FileType.MAG_TAXONOMY)
-        t_options = ["（无）"] + [n for n in file_names if n != ab_name]
-        t_name = st.selectbox(
-            "GTDB 分类表（可选，用于 Genus 标签 + 门彩条）",
-            t_options, key="mh_tax",
-            index=_mh_idx(t_options, t_default),
-        )
-        k_default = _mh_first_of(FileType.KEYSTONE_SPECIES)
-        k_options = ["（无）"] + [n for n in file_names if n not in (ab_name, t_name)]
-        k_name = st.selectbox(
-            "Keystone 物种列表（可选）",
-            k_options, key="mh_ks",
-            index=_mh_idx(k_options, k_default),
-        )
-        m_default = _mh_first_of(FileType.METADATA)
-        m_options = ["（无）"] + [n for n in file_names
-                                 if n not in (ab_name, t_name, k_name)]
-        m_name = st.selectbox(
-            "样本分组表（可选，提供组彩条 + 样本排序）",
-            m_options, key="mh_md",
-            index=_mh_idx(m_options, m_default),
-        )
+        sel = _mag_file_selectors("mh", require_abundance=True)
+        ab_name = sel["abundance"]
 
         with st.sidebar:
             st.subheader("MAG 丰度热图参数")
-            top_n = st.slider("Top-N MAG", 5, 100, 30, step=5, key="mh_topn")
-            selection_by = st.selectbox(
-                "Top-N 选择依据",
-                ["mean", "sum", "variance"],
-                key="mh_selby",
-                help="mean = 平均丰度；sum = 累计丰度；variance = 方差（差异性）",
-            )
-            cluster_rows = st.checkbox("行聚类（MAG）", True, key="mh_cr")
-            within_phy = st.checkbox("门内聚类（按门分组后组内聚类）",
-                                     True, key="mh_wp")
-            linkage = st.selectbox(
-                "聚类方法",
-                ["average", "ward", "complete"],
-                key="mh_link",
-            )
-            log_tr = st.checkbox("聚类前 log1p 变换（长尾分布）",
-                                 True, key="mh_log")
+            l1 = render_mag_layer1_filter("mh", default_max_mags=0)
+            l2 = render_mag_layer2_visual("mh", 240, 220)
+            l3 = render_mag_layer3_order("mh")
+            st.markdown("**配色 / 聚类（丰度热图特有）**")
             bp_lo = st.slider("配色低段边界 (%)", 0.05, 0.50, 0.20,
                               step=0.05, key="mh_bplo")
             bp_hi = st.slider("配色高段边界 (%)", 0.30, 1.00, 0.50,
                               step=0.05, key="mh_bphi")
-            show_phy = st.checkbox("显示门彩条", True, key="mh_phy")
-            show_grp = st.checkbox("显示组彩条", True, key="mh_grp")
-            hi_ks = st.checkbox("Keystone 前加 ★", True, key="mh_ks2")
-            size = render_figure_size({"width_mm": 180, "height_mm": 220},
-                                      prefix="mh")
+            log_tr = st.checkbox("聚类前 log1p 变换（长尾分布）",
+                                 True, key="mh_log")
+            cluster_cols = st.checkbox("列聚类（样本）", False, key="mh_cc")
+            show_grp = st.checkbox("组彩条（顶部）", True, key="mh_grp")
 
         if st.button("生成 MAG 丰度热图", type="primary", key="mh_go"):
             ab = st.session_state.files[ab_name]["df"]
-            t = st.session_state.files[t_name]["df"] if t_name != "（无）" else None
-            if t is not None and t.shape[1] == 2 and "classification" not in [
-                    c.lower() for c in t.columns] and "taxonomy" not in [
-                    c.lower() for c in t.columns]:
-                t = t.copy()
-                t.columns = ["MAG", "Taxonomy"]
-            k = st.session_state.files[k_name]["df"] if k_name != "（无）" else None
-            m = st.session_state.files[m_name]["df"] if m_name != "（无）" else None
+            t = _load_mag_df(sel["taxonomy"])
+            k = _load_mag_df(sel["keystone"])
+            m = _load_mag_df(sel["metadata"])
             params = {
-                "top_n": top_n,
-                "selection_by": selection_by,
-                "cluster_rows": cluster_rows,
-                "cluster_within_phylum": within_phy,
-                "linkage_method": linkage,
-                "log_transform": log_tr,
+                **l1, **l2, **l3,
                 "color_breakpoints": (bp_lo, max(bp_hi, bp_lo + 0.05)),
-                "show_phylum_bar": show_phy,
+                "log_transform": log_tr,
+                "cluster_cols": cluster_cols,
                 "show_group_bar": show_grp,
-                "highlight_keystones": hi_ks,
-                **size,
             }
             try:
                 result = mag_heatmap_mod.analyze(ab, t, k, m, params=params)
@@ -978,69 +1107,46 @@ elif page == "MAG-based 分析":
                                    file_name="mag_heatmap_stats.tsv",
                                    mime="text/tab-separated-values", key="mh_tsv")
             files_map = {"abundance": ab_name}
-            if t_name != "（无）": files_map["taxonomy"] = t_name
-            if k_name != "（无）": files_map["keystone"] = k_name
-            if m_name != "（无）": files_map["metadata"] = m_name
+            for k_, v_ in [("taxonomy", sel["taxonomy"]),
+                           ("keystone", sel["keystone"]),
+                           ("metadata", sel["metadata"])]:
+                if v_:
+                    files_map[k_] = v_
             _vector_downloads(last.figure, "mag_heatmap", "mh")
             _reproduce_button("mag_heatmap", files_map, last.params, key="mh_code")
             with st.expander("查看统计表"):
                 st.dataframe(last.stats, use_container_width=True)
     elif analysis_type == "代谢通路完整度":
-        # KO 注释表的文件类型目前落在 UNKNOWN 或 ABUNDANCE_WIDE，允许用户手选任何表
-        ko_candidates = list(st.session_state.files.keys())
-        if not ko_candidates:
-            st.warning("需要至少 1 个 KO 注释表（长格式：MAG + KEGG_ko 两列）。")
-            st.stop()
-        ko_name = st.selectbox("KO 注释表（MAG + KEGG_ko 长表）", ko_candidates, key="pw_ko")
-        t_name = st.selectbox(
-            "GTDB 分类表（可选）",
-            ["（无）"] + [n for n in ko_candidates if n != ko_name],
-            key="pw_tax",
-        )
-        k_name = st.selectbox(
-            "Keystone 物种列表（可选）",
-            ["（无）"] + [n for n in ko_candidates if n not in (ko_name, t_name)],
-            key="pw_ks",
-        )
-        a_name = st.selectbox(
-            "MAG 丰度表（可选，用于 Top-N 过滤 / 气泡大小）",
-            ["（无）"] + [n for n in ko_candidates
-                         if n not in (ko_name, t_name, k_name)],
-            key="pw_ab",
-        )
+        sel = _mag_file_selectors("pw", ko_type=FileType.KO_ANNOTATION_LONG)
+        ko_name = sel["_ko"]
 
         with st.sidebar:
             st.subheader("通路完整度参数")
+            l1 = render_mag_layer1_filter("pw", default_max_mags=50)
+            l2 = render_mag_layer2_visual("pw", 320, 220)
+            l3 = render_mag_layer3_order("pw")
+            st.markdown("**通路特有**")
             style = st.radio("图样式", ["heatmap", "bubble"], key="pw_style")
-            sort_by = st.selectbox(
-                "排序方式",
-                ["phylum_then_total", "total", "abundance"],
-                key="pw_sort",
-            )
             elem_opts = ["arsenic", "sulfur", "iron", "nitrogen"]
             elem_sel = st.multiselect("元素过滤（空=全部）", elem_opts,
                                       default=[], key="pw_elem")
-            max_mags = st.slider("最多显示 MAG 数（0=全部）", 0, 200, 50,
-                                 step=10, key="pw_max")
-            size = render_figure_size({"width_mm": 280, "height_mm": 200},
-                                      prefix="pw")
+            min_comp = st.slider("最低总完整度", 0, 200, 0, step=10,
+                                  key="pw_mc",
+                                  help="MAG 总完整度 < 此值时不显示")
+            bubble_scale = st.slider("bubble 缩放（仅 bubble）", 1.0, 10.0,
+                                      4.0, step=0.5, key="pw_bs")
 
         if st.button("生成通路完整度图", type="primary", key="pw_go"):
             ko = st.session_state.files[ko_name]["df"]
-            t = st.session_state.files[t_name]["df"] if t_name != "（无）" else None
-            if t is not None and t.shape[1] == 2 and "classification" not in [
-                    c.lower() for c in t.columns] and "taxonomy" not in [
-                    c.lower() for c in t.columns]:
-                t = t.copy()
-                t.columns = ["MAG", "Taxonomy"]
-            k = st.session_state.files[k_name]["df"] if k_name != "（无）" else None
-            a = st.session_state.files[a_name]["df"] if a_name != "（无）" else None
+            t = _load_mag_df(sel["taxonomy"])
+            k = _load_mag_df(sel["keystone"])
+            a = _load_mag_df(sel["abundance"])
             params = {
+                **l1, **l2, **l3,
                 "style": style,
-                "sort_by": sort_by,
                 "element_filter": elem_sel or None,
-                "max_mags": max_mags or None,
-                **size,
+                "min_completeness": float(min_comp),
+                "bubble_scale": float(bubble_scale),
             }
             try:
                 result = pathway_mod.analyze(ko, t, k, a, params=params)
@@ -1067,94 +1173,45 @@ elif page == "MAG-based 分析":
                                    file_name="pathway_stats.tsv",
                                    mime="text/tab-separated-values", key="pw_tsv")
             files_map = {"ko_annotation": ko_name}
-            if t_name != "（无）": files_map["taxonomy"] = t_name
-            if k_name != "（无）": files_map["keystone"] = k_name
-            if a_name != "（无）": files_map["abundance"] = a_name
+            for k_, v_ in [("taxonomy", sel["taxonomy"]),
+                           ("keystone", sel["keystone"]),
+                           ("abundance", sel["abundance"])]:
+                if v_:
+                    files_map[k_] = v_
             _vector_downloads(last.figure, "pathway", "pw")
             _reproduce_button("pathway", files_map, last.params, key="pw_code")
             with st.expander("查看统计表"):
                 st.dataframe(last.stats, use_container_width=True)
     elif analysis_type == "MAG 元素循环基因谱":
-        ko_candidates = list(st.session_state.files.keys())
-        if not ko_candidates:
-            st.warning("需要至少 1 个 KO 注释表（MAG + KEGG_ko 长表）。")
-            st.stop()
-        ko_name = st.selectbox("KO 注释表", ko_candidates, key="gp_ko")
-        t_name = st.selectbox(
-            "GTDB 分类表（可选）",
-            ["（无）"] + [n for n in ko_candidates if n != ko_name],
-            key="gp_tax",
-        )
-        k_name = st.selectbox(
-            "Keystone 物种列表（可选）",
-            ["（无）"] + [n for n in ko_candidates if n not in (ko_name, t_name)],
-            key="gp_ks",
-        )
-        a_name = st.selectbox(
-            "MAG 丰度表（可选）",
-            ["（无）"] + [n for n in ko_candidates
-                         if n not in (ko_name, t_name, k_name)],
-            key="gp_ab",
-        )
+        sel = _mag_file_selectors("gp", ko_type=FileType.KO_ANNOTATION_LONG)
+        ko_name = sel["_ko"]
 
         with st.sidebar:
             st.subheader("基因谱参数")
-            filter_mode = st.selectbox(
-                "MAG 子集",
-                ["top_plus_keystone", "top_abundance", "keystone_only", "all"],
-                index=0, key="gp_filter",
-                help=(
-                    "• top_plus_keystone（默认）: Top-N 丰度 MAG ∪ 全部 keystone\n"
-                    "• top_abundance: 只留 Top-N 丰度 MAG\n"
-                    "• keystone_only: 只留 keystone 物种\n"
-                    "• all: 不过滤，显全部 MAG（再由 max_mags 截断）"
-                ),
-            )
-            top_abund_n = st.slider(
-                "Top-N 丰度（filter_mode != all 时生效）", 5, 100, 30,
-                step=5, key="gp_topabn",
-            )
-            sort_by = st.selectbox(
-                "排序方式",
-                ["phylum_then_count", "count", "abundance"],
-                key="gp_sort",
-                help=(
-                    "• phylum_then_count: 按门分组→门内按基因总拷贝数降序；"
-                    "同门 MAG 相邻，门彩条呈块状。若前 N 都来自 1-2 个最大"
-                    "的门，彩条会看起来只有 1-2 色（这是正确行为）\n"
-                    "• count: 跨门按基因总拷贝数降序\n"
-                    "• abundance: 按平均丰度降序"
-                ),
-            )
+            l1 = render_mag_layer1_filter("gp", default_max_mags=60)
+            l2 = render_mag_layer2_visual("gp", 340, 220)
+            l3 = render_mag_layer3_order("gp")
+            st.markdown("**基因谱特有**")
+            cmap_opts = ["viridis", "plasma", "YlGnBu", "YlOrBr"]
+            cmap_name = st.selectbox("配色", cmap_opts, index=0, key="gp_cmap",
+                help="viridis（默认）感知均匀、色域宽；YlGnBu 双色冷暖过渡")
             elem_opts = ["arsenic", "sulfur", "iron", "nitrogen"]
             elem_sel = st.multiselect("元素过滤（空=全部）", elem_opts,
                                       default=[], key="gp_elem")
-            max_mags = st.slider("最多显示 MAG 数（0=全部）", 0, 200, 60,
-                                 step=10, key="gp_max",
-                                 help="在子集过滤 + 排序之后再做的硬截断。")
             show_names = st.checkbox("列标签显示基因名", True, key="gp_names")
-            st.caption("🎨 左侧门彩条颜色 = Phylum；对照 MAG 质量页右侧图例")
-            size = render_figure_size({"width_mm": 340, "height_mm": 220},
-                                      prefix="gp")
+            drop_zero = st.checkbox("过滤全 0 KO 列", True, key="gp_dz")
 
         if st.button("生成基因谱图", type="primary", key="gp_go"):
             ko = st.session_state.files[ko_name]["df"]
-            t = st.session_state.files[t_name]["df"] if t_name != "（无）" else None
-            if t is not None and t.shape[1] == 2 and "classification" not in [
-                    c.lower() for c in t.columns] and "taxonomy" not in [
-                    c.lower() for c in t.columns]:
-                t = t.copy()
-                t.columns = ["MAG", "Taxonomy"]
-            k = st.session_state.files[k_name]["df"] if k_name != "（无）" else None
-            a = st.session_state.files[a_name]["df"] if a_name != "（无）" else None
+            t = _load_mag_df(sel["taxonomy"])
+            k = _load_mag_df(sel["keystone"])
+            a = _load_mag_df(sel["abundance"])
             params = {
-                "sort_by": sort_by,
+                **l1, **l2, **l3,
+                "cmap_name": cmap_name,
                 "element_filter": elem_sel or None,
-                "max_mags": max_mags or None,
                 "show_gene_names": show_names,
-                "filter_mode": filter_mode,
-                "top_abundance_n": top_abund_n,
-                **size,
+                "drop_zero_kos": drop_zero,
             }
             try:
                 result = gene_profile_mod.analyze(ko, t, k, a, params=params)
@@ -1181,9 +1238,11 @@ elif page == "MAG-based 分析":
                                    file_name="gene_profile_stats.tsv",
                                    mime="text/tab-separated-values", key="gp_tsv")
             files_map = {"ko_annotation": ko_name}
-            if t_name != "（无）": files_map["taxonomy"] = t_name
-            if k_name != "（无）": files_map["keystone"] = k_name
-            if a_name != "（无）": files_map["abundance"] = a_name
+            for k_, v_ in [("taxonomy", sel["taxonomy"]),
+                           ("keystone", sel["keystone"]),
+                           ("abundance", sel["abundance"])]:
+                if v_:
+                    files_map[k_] = v_
             _vector_downloads(last.figure, "gene_profile", "gp")
             _reproduce_button("gene_profile", files_map, last.params, key="gp_code")
             with st.expander("查看统计表"):

@@ -20,6 +20,7 @@ import numpy as np
 import pandas as pd
 from matplotlib.lines import Line2D
 
+from envmeta.analysis import _mag_common as _mc
 from envmeta.analysis.base import AnalysisResult
 
 PHYLUM_COLORS = {
@@ -39,17 +40,29 @@ PHYLUM_COLORS = {
 }
 
 DEFAULTS = {
+    # Layer 1 — MAG 子集过滤（共享）
+    # 默认 "all"（散点图的核心价值 = 看全 MAG 质量分布）
+    "filter_mode": "all",
+    "top_n_by": "mean",
+    "top_n_count": 30,
+    "max_mags": 0,
+    # Layer 2 — 视觉（共享）
+    "highlight_keystones": True,
+    "show_phylum_legend": True,
     "width_mm": 260,
     "height_mm": 140,
+    # Layer 4 — MAG 质量特有
     "high_completeness": 90.0,
     "high_contamination": 5.0,
     "med_completeness": 50.0,
     "med_contamination": 10.0,
-    "size_scale": 12.0,         # 基因组大小（Mb）→ 点大小的倍率
-    "min_phylum_count": 3,      # 少于此数的门归为 Other
+    "size_scale": 12.0,
+    "min_phylum_count": 3,
     "show_keystone_labels": True,
     "xlim": (35.0, 102.0),
-    "ylim": None,               # None → 自动
+    "ylim": None,
+    # 向后兼容
+    "show_phylum_bar": None,              # mag_quality 没左侧彩条（散点）
 }
 
 
@@ -133,6 +146,18 @@ def analyze(
     else:
         df["is_keystone"] = False
         df["ks_genus"] = np.nan
+
+    # Layer 1 — filter_mode（统一子集过滤）
+    # mag_quality 用 Completeness 作为 top_n 的打分项（无丰度信息时的最佳替代）
+    if "abundance_mean" not in df.columns:
+        df["abundance_mean"] = df["Completeness"]
+    df = _mc.apply_filter_mode(
+        df,
+        mode=p.get("filter_mode", "all"),
+        top_n_count=int(p.get("top_n_count", 30)),
+        top_n_by=p.get("top_n_by", "mean"),
+        score_col="abundance_mean",
+    )
 
     # Quality
     df["Quality"] = df.apply(
