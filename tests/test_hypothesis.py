@@ -421,3 +421,42 @@ def test_validator_warns_unknown_pathway(tmp_path):
     assert result["errors"] == []
     assert result["warnings"]
     assert any("Totally_Fake_Pathway_XYZ" in w for w in result["warnings"])
+
+
+# ── S3.5-ui: score_by_groups ───────────────────────────────────
+
+def test_score_by_groups_returns_per_group_rows(cycle_inputs):
+    """score_by_groups 应对 metadata.Group 里每个组产生一行。"""
+    from envmeta.analysis.hypothesis_compare import score_by_groups
+    ko, tax, ks, ab, env, md = cycle_inputs
+    hyp = load_hypothesis(SAMPLE / "sample_hypothesis.yaml")
+    df = score_by_groups(
+        hyp, ko, tax, ks, ab, env, md,
+        params={**FAST_PARAMS, "env_rho_min": 0.3, "env_p_max": 0.1},
+        null_n=99,
+    )
+    # sample metadata 有 CK/A/B 三组
+    assert set(df["group"]) == {"CK", "A", "B"}
+    required_cols = {"group", "overall_score", "label", "null_p",
+                     "weight_robust", "n_satisfied", "n_total", "n_veto",
+                     "interpretation"}
+    assert required_cols <= set(df.columns)
+    # label 只能取已知值
+    assert set(df["label"]).issubset({"strong", "suggestive", "weak",
+                                       "insufficient"})
+
+
+def test_score_by_groups_interpretation_distinguishes_specificity(cycle_inputs):
+    """真实数据下 B 组 interpretation 应明显区别于 CK/A（论文 Results 素材）。"""
+    from envmeta.analysis.hypothesis_compare import score_by_groups
+    ko, tax, ks, ab, env, md = cycle_inputs
+    hyp = load_hypothesis("paper/hypotheses/arsenic_steel_slag.yaml")
+    df = score_by_groups(
+        hyp, ko, tax, ks, ab, env, md,
+        params={**FAST_PARAMS, "env_rho_min": 0.3, "env_p_max": 0.1},
+        null_n=199,
+    )
+    # B 组 overall=1.0 → 退化式 N/A → interpretation 含"最强支持"
+    b_row = df[df["group"] == "B"].iloc[0]
+    assert b_row["overall_score"] >= 0.95
+    assert "最强支持" in b_row["interpretation"]

@@ -1323,6 +1323,13 @@ elif page == "生物地球化学循环图":
             hyp_file = st.file_uploader(
                 "假说 YAML", type=["yaml", "yml"], key="hyp_upload",
             )
+            hyp_multi_group = st.checkbox(
+                "📊 对每组分别评分（跨组对比表，论文 Results 主轴）",
+                value=False, key="hyp_multi_group",
+                help="勾选后除了当前 group 的评分，还会自动对 metadata.Group "
+                     "里所有组分别评分，生成一张 group × 指标 的对比表。"
+                     "适合回答『B 组对假说的支持度是否独特高于 CK/A』。",
+            )
             if hyp_file is not None and st.button("评分", key="hyp_score_go"):
                 try:
                     from envmeta.geocycle.hypothesis import (
@@ -1389,6 +1396,27 @@ elif page == "生物地球化学循环图":
                         hyp_obj, data, compare_df=compare_df_arg,
                     )
                     st.session_state["_hyp_last"] = hyp_result
+                    # 跨组对比（可选）
+                    if hyp_multi_group:
+                        from envmeta.analysis.hypothesis_compare import (
+                            score_by_groups as _score_by_groups,
+                        )
+                        cmp_params = dict(hyp_params)
+                        cmp_params.pop("group_filter", None)
+                        try:
+                            multi_df = _score_by_groups(
+                                hyp_obj,
+                                ko_df2, t_df2, _get_file(k_name),
+                                _get_file(a_name), _get_file(e_name),
+                                _get_file(m_name),
+                                params=cmp_params, null_n=299,
+                            )
+                            st.session_state["_hyp_multi_last"] = multi_df
+                        except Exception as me:  # noqa: BLE001
+                            st.warning(f"跨组评分失败：{me}")
+                            st.session_state["_hyp_multi_last"] = None
+                    else:
+                        st.session_state["_hyp_multi_last"] = None
                 except Exception as e:
                     st.error(f"评分失败：{e}")
             hyp_last = st.session_state.get("_hyp_last")
@@ -1414,6 +1442,40 @@ elif page == "生物地球化学循环图":
                 # S3.5-ui: 综合解读一句话
                 _interp_txt, _interp_type = _interpret_hyp_score(hyp_last)
                 getattr(st, _interp_type)(_interp_txt)
+
+                # S3.5-ui 扩展：跨组对比表（若勾选）
+                _multi_df = st.session_state.get("_hyp_multi_last")
+                if _multi_df is not None and not _multi_df.empty:
+                    st.markdown(
+                        "---\n#### 📊 跨组支持度对比"
+                        "（论文 Results 主轴：谁独特支持假说）"
+                    )
+                    _display_df = _multi_df.copy()
+                    _display_df["null_p"] = _display_df["null_p"].apply(
+                        lambda x: "N/A" if pd.isna(x) else f"{x:.3f}"
+                    )
+                    _display_df["weight_robust"] = _display_df["weight_robust"].map(
+                        {True: "✅", False: "⚠️"}
+                    ).fillna("N/A")
+                    st.dataframe(
+                        _display_df[[
+                            "group", "overall_score", "label",
+                            "null_p", "weight_robust",
+                            "n_satisfied", "n_total", "n_veto",
+                            "interpretation",
+                        ]],
+                        use_container_width=True,
+                    )
+                    st.download_button(
+                        "⬇️ 跨组评分表 (TSV)",
+                        data=_multi_df.to_csv(sep="\t", index=False)
+                              .encode("utf-8"),
+                        file_name="hypothesis_score_by_group.tsv",
+                        mime="text/tab-separated-values",
+                        key="hyp_multi_tsv",
+                    )
+                    st.markdown("---\n#### 当前 group 的单次评分明细")
+
                 # S3.5: 显示 veto / null_p / weight_robust 三项可信度指标
                 if hyp_last.veto_reasons:
                     base_label = hyp_last.params.get(
