@@ -1320,15 +1320,21 @@ elif page == "生物地球化学循环图":
                     mime="application/x-yaml",
                     key="hyp_tmpl",
                 )
+            # 接受任意类型：避免错传文件时 streamlit 的"not allowed" 悬浮条
+            # 遮挡 × 删除键；格式错误在点"评分"时由 load_hypothesis 抛出
             hyp_file = st.file_uploader(
-                "假说 YAML", type=["yaml", "yml"], key="hyp_upload",
+                "假说 YAML（.yaml / .yml）",
+                type=None, key="hyp_upload",
+                help="选错文件？点文件名后的 × 可直接移除。"
+                     "格式错误会在点击「评分」后提示。",
             )
             hyp_multi_group = st.checkbox(
-                "📊 对每组分别评分（跨组对比表，论文 Results 主轴）",
+                "📊 对每组分别评分（生成跨组对比表）",
                 value=False, key="hyp_multi_group",
-                help="勾选后除了当前 group 的评分，还会自动对 metadata.Group "
-                     "里所有组分别评分，生成一张 group × 指标 的对比表。"
-                     "适合回答『B 组对假说的支持度是否独特高于 CK/A』。",
+                help="勾选后对 metadata.Group 里每个组分别评分，"
+                     "生成 group × 指标 的对比表。"
+                     "用于比较不同处理/条件下数据对同一假说的支持度差异，"
+                     "是论文 Results 里跨组对比叙事的直接素材。",
             )
             if hyp_file is not None and st.button("评分", key="hyp_score_go"):
                 try:
@@ -1445,11 +1451,9 @@ elif page == "生物地球化学循环图":
 
                 # S3.5-ui 扩展：跨组对比表（若勾选）
                 _multi_df = st.session_state.get("_hyp_multi_last")
-                if _multi_df is not None and not _multi_df.empty:
-                    st.markdown(
-                        "---\n#### 📊 跨组支持度对比"
-                        "（论文 Results 主轴：谁独特支持假说）"
-                    )
+                _has_multi = _multi_df is not None and not _multi_df.empty
+                if _has_multi:
+                    st.markdown("#### 📊 跨组支持度对比")
                     _display_df = _multi_df.copy()
                     _display_df["null_p"] = _display_df["null_p"].apply(
                         lambda x: "N/A" if pd.isna(x) else f"{x:.3f}"
@@ -1474,7 +1478,6 @@ elif page == "生物地球化学循环图":
                         mime="text/tab-separated-values",
                         key="hyp_multi_tsv",
                     )
-                    st.markdown("---\n#### 当前 group 的单次评分明细")
 
                 # S3.5: 显示 veto / null_p / weight_robust 三项可信度指标
                 if hyp_last.veto_reasons:
@@ -1488,66 +1491,69 @@ elif page == "生物地球化学循环图":
                         + "\n\n触发原因:\n"
                         + "\n".join(f"- {r}" for r in hyp_last.veto_reasons)
                     )
-                mcols = st.columns(2)
-                with mcols[0]:
-                    if hyp_last.null_p is not None:
-                        if hyp_last.null_p < 0.05:
+                # 勾选跨组对比时，对比表已含当前组的 null_p / robust，
+                # 无需再单独展示（减冗余）
+                if not _has_multi:
+                    mcols = st.columns(2)
+                    with mcols[0]:
+                        if hyp_last.null_p is not None:
+                            if hyp_last.null_p < 0.05:
+                                st.success(
+                                    f"**null_p = {hyp_last.null_p:.3f}** "
+                                    f"(n={hyp_last.null_p_samples})  \n"
+                                    "📉 越小越好；此处 < 0.05 = "
+                                    "权重设计与数据支持显著一致（特异）"
+                                )
+                            elif hyp_last.null_p < 0.20:
+                                st.warning(
+                                    f"**null_p = {hyp_last.null_p:.3f}** "
+                                    f"(n={hyp_last.null_p_samples})  \n"
+                                    "📉 越小越好；0.05-0.20 = 边界，"
+                                    "建议增加独立证据"
+                                )
+                            else:
+                                st.info(
+                                    f"**null_p = {hyp_last.null_p:.3f}** "
+                                    f"(n={hyp_last.null_p_samples})  \n"
+                                    "📉 ≥ 0.20 = 通过率运气主导，"
+                                    "权重设计未被数据特异支持"
+                                )
+                        else:
+                            # 区分退化式 N/A（好）vs 无信号 N/A（不好）
+                            if hyp_last.overall_score >= 0.95:
+                                st.success(
+                                    "**null_p = N/A**（退化式）  \n"
+                                    "🎯 全 claim satisfied → 排列无意义；"
+                                    "此 N/A 是『好』的退化，看 robust 兜底"
+                                )
+                            else:
+                                st.info(
+                                    "**null_p = N/A**（无信号）  \n"
+                                    "claim 数 < 3 / weight 同质 / score 同质 "
+                                    "→ 排列统计力不足，**不是『最好』**"
+                                )
+                    with mcols[1]:
+                        if hyp_last.weight_robust is True:
                             st.success(
-                                f"**null_p = {hyp_last.null_p:.3f}** "
-                                f"(n={hyp_last.null_p_samples})  \n"
-                                "📉 越小越好；此处 < 0.05 = "
-                                "权重设计与数据支持显著一致（特异）"
+                                "✅ **weight robust**  \n"
+                                "±20% 权重扰动下 label 保持不变，"
+                                "结论不靠阈值挑权重"
                             )
-                        elif hyp_last.null_p < 0.20:
+                        elif hyp_last.weight_robust is False:
+                            n_flip = sum(
+                                1 for r in hyp_last.weight_sensitivity_rows
+                                if r.get("flipped")
+                            )
                             st.warning(
-                                f"**null_p = {hyp_last.null_p:.3f}** "
-                                f"(n={hyp_last.null_p_samples})  \n"
-                                "📉 越小越好；0.05-0.20 = 边界，"
-                                "建议增加独立证据"
+                                f"⚠️ **weight sensitive**  \n"
+                                f"{n_flip}/{len(hyp_last.weight_sensitivity_rows)} "
+                                f"个扰动下 label 翻转，建议审视权重分配"
                             )
                         else:
                             st.info(
-                                f"**null_p = {hyp_last.null_p:.3f}** "
-                                f"(n={hyp_last.null_p_samples})  \n"
-                                "📉 ≥ 0.20 = 通过率运气主导，"
-                                "权重设计未被数据特异支持"
+                                "weight sensitivity = N/A  \n"
+                                "claim 数不足，非稳健也非敏感"
                             )
-                    else:
-                        # 区分退化式 N/A（好）vs 无信号 N/A（不好）
-                        if hyp_last.overall_score >= 0.95:
-                            st.success(
-                                "**null_p = N/A**（退化式）  \n"
-                                "🎯 全 claim satisfied → 排列无意义；"
-                                "此 N/A 是『好』的退化，看 robust 兜底"
-                            )
-                        else:
-                            st.info(
-                                "**null_p = N/A**（无信号）  \n"
-                                "claim 数 < 3 / weight 同质 / score 同质 "
-                                "→ 排列统计力不足，**不是『最好』**"
-                            )
-                with mcols[1]:
-                    if hyp_last.weight_robust is True:
-                        st.success(
-                            "✅ **weight robust**  \n"
-                            "±20% 权重扰动下 label 保持不变，"
-                            "结论不靠阈值挑权重"
-                        )
-                    elif hyp_last.weight_robust is False:
-                        n_flip = sum(
-                            1 for r in hyp_last.weight_sensitivity_rows
-                            if r.get("flipped")
-                        )
-                        st.warning(
-                            f"⚠️ **weight sensitive**  \n"
-                            f"{n_flip}/{len(hyp_last.weight_sensitivity_rows)} "
-                            f"个扰动下 label 翻转，建议审视权重分配"
-                        )
-                    else:
-                        st.info(
-                            "weight sensitivity = N/A  \n"
-                            "claim 数不足，非稳健也非敏感"
-                        )
 
                 st.dataframe(hyp_last.to_dataframe(), use_container_width=True)
 
