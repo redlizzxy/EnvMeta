@@ -14,7 +14,7 @@ from typing import Callable
 
 from envmeta import __version__
 
-SUPPORTED = {"stackplot", "pcoa", "gene_heatmap", "alpha_boxplot", "log2fc", "rda", "lefse", "mag_quality", "pathway", "gene_profile"}
+SUPPORTED = {"stackplot", "pcoa", "gene_heatmap", "alpha_boxplot", "log2fc", "rda", "lefse", "mag_quality", "pathway", "gene_profile", "mag_heatmap"}
 
 _HEADER_TEMPLATE = '''"""
 由 EnvMeta v{version} 于 {timestamp} 生成。
@@ -201,6 +201,20 @@ print(f"Saved: {output_base}.pdf + {output_base}_stats.tsv")
 '''
 
 
+def _tpl_mag_heatmap(files: dict, params: dict, output_base: str) -> str:
+    return _header("mag_heatmap", "mag_heatmap", files, params, output_base) + f'''
+abundance_df = pd.read_csv(FILES["abundance"], sep="\\t")
+taxonomy_df = pd.read_csv(FILES["taxonomy"], sep="\\t", header=None, names=["MAG", "Taxonomy"]) if FILES.get("taxonomy") else None
+keystone_df = pd.read_csv(FILES["keystone"], sep="\\t") if FILES.get("keystone") else None
+metadata_df = pd.read_csv(FILES["metadata"], sep="\\t") if FILES.get("metadata") else None
+
+result = mag_heatmap.analyze(abundance_df, taxonomy_df, keystone_df, metadata_df, params=PARAMS)
+export_figure(result.figure, "{output_base}.pdf", "pdf")
+result.stats.to_csv("{output_base}_stats.tsv", sep="\\t", index=False)
+print(f"Saved: {output_base}.pdf + {output_base}_stats.tsv")
+'''
+
+
 _TEMPLATES: dict[str, Callable[[dict, dict, str], str]] = {
     "stackplot": _tpl_stackplot,
     "pcoa": _tpl_pcoa,
@@ -212,6 +226,7 @@ _TEMPLATES: dict[str, Callable[[dict, dict, str], str]] = {
     "mag_quality": _tpl_mag_quality,
     "pathway": _tpl_pathway,
     "gene_profile": _tpl_gene_profile,
+    "mag_heatmap": _tpl_mag_heatmap,
 }
 
 

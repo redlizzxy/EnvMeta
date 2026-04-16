@@ -13,6 +13,7 @@ from envmeta.analysis import (
     cycle_diagram as cycle_mod,
     gene_heatmap, gene_profile as gene_profile_mod,
     lefse as lefse_mod,
+    mag_heatmap as mag_heatmap_mod,
     mag_quality as mag_quality_mod,
     pathway as pathway_mod,
     pcoa, rda as rda_mod, stackplot,
@@ -857,6 +858,113 @@ elif page == "MAG-based 分析":
             if k_name != "（无）": files_map["keystone"] = k_name
             _vector_downloads(last.figure, "mag_quality", "mq")
             _reproduce_button("mag_quality", files_map, last.params, key="mq_code")
+            with st.expander("查看统计表"):
+                st.dataframe(last.stats, use_container_width=True)
+    elif analysis_type == "MAG 丰度热图":
+        ab_candidates = list(st.session_state.files.keys())
+        if not ab_candidates:
+            st.warning("需要 1 个 MAG 丰度表（MAG × sample 宽表，首列 Genome/MAG）。")
+            st.stop()
+        ab_name = st.selectbox("MAG 丰度表", ab_candidates, key="mh_ab")
+        t_name = st.selectbox(
+            "GTDB 分类表（可选）",
+            ["（无）"] + [n for n in ab_candidates if n != ab_name],
+            key="mh_tax",
+        )
+        k_name = st.selectbox(
+            "Keystone 物种列表（可选）",
+            ["（无）"] + [n for n in ab_candidates if n not in (ab_name, t_name)],
+            key="mh_ks",
+        )
+        m_name = st.selectbox(
+            "样本分组表（可选，提供组彩条 + 样本排序）",
+            ["（无）"] + [n for n in ab_candidates
+                         if n not in (ab_name, t_name, k_name)],
+            key="mh_md",
+        )
+
+        with st.sidebar:
+            st.subheader("MAG 丰度热图参数")
+            top_n = st.slider("Top-N MAG", 5, 100, 30, step=5, key="mh_topn")
+            selection_by = st.selectbox(
+                "Top-N 选择依据",
+                ["mean", "sum", "variance"],
+                key="mh_selby",
+                help="mean = 平均丰度；sum = 累计丰度；variance = 方差（差异性）",
+            )
+            cluster_rows = st.checkbox("行聚类（MAG）", True, key="mh_cr")
+            within_phy = st.checkbox("门内聚类（按门分组后组内聚类）",
+                                     True, key="mh_wp")
+            linkage = st.selectbox(
+                "聚类方法",
+                ["average", "ward", "complete"],
+                key="mh_link",
+            )
+            log_tr = st.checkbox("聚类前 log1p 变换（长尾分布）",
+                                 True, key="mh_log")
+            bp_lo = st.slider("配色低段边界 (%)", 0.05, 0.50, 0.20,
+                              step=0.05, key="mh_bplo")
+            bp_hi = st.slider("配色高段边界 (%)", 0.30, 1.00, 0.50,
+                              step=0.05, key="mh_bphi")
+            show_phy = st.checkbox("显示门彩条", True, key="mh_phy")
+            show_grp = st.checkbox("显示组彩条", True, key="mh_grp")
+            hi_ks = st.checkbox("Keystone 前加 ★", True, key="mh_ks2")
+            size = render_figure_size({"width_mm": 180, "height_mm": 220},
+                                      prefix="mh")
+
+        if st.button("生成 MAG 丰度热图", type="primary", key="mh_go"):
+            ab = st.session_state.files[ab_name]["df"]
+            t = st.session_state.files[t_name]["df"] if t_name != "（无）" else None
+            if t is not None and t.shape[1] == 2 and "classification" not in [
+                    c.lower() for c in t.columns] and "taxonomy" not in [
+                    c.lower() for c in t.columns]:
+                t = t.copy()
+                t.columns = ["MAG", "Taxonomy"]
+            k = st.session_state.files[k_name]["df"] if k_name != "（无）" else None
+            m = st.session_state.files[m_name]["df"] if m_name != "（无）" else None
+            params = {
+                "top_n": top_n,
+                "selection_by": selection_by,
+                "cluster_rows": cluster_rows,
+                "cluster_within_phylum": within_phy,
+                "linkage_method": linkage,
+                "log_transform": log_tr,
+                "color_breakpoints": (bp_lo, max(bp_hi, bp_lo + 0.05)),
+                "show_phylum_bar": show_phy,
+                "show_group_bar": show_grp,
+                "highlight_keystones": hi_ks,
+                **size,
+            }
+            try:
+                result = mag_heatmap_mod.analyze(ab, t, k, m, params=params)
+            except ValueError as e:
+                st.error(str(e))
+                st.stop()
+            st.session_state["_mh_last"] = result
+
+        last = st.session_state.get("_mh_last")
+        if last is not None:
+            st.pyplot(last.figure, use_container_width=False)
+            d1, d2, d3 = st.columns(3)
+            with d1:
+                st.download_button("⬇️ PNG", data=export_to_bytes(last.figure, "png"),
+                                   file_name="mag_heatmap.png", mime="image/png",
+                                   key="mh_png")
+            with d2:
+                st.download_button("⬇️ PDF（矢量）", data=export_to_bytes(last.figure, "pdf"),
+                                   file_name="mag_heatmap.pdf",
+                                   mime="application/pdf", key="mh_pdf")
+            with d3:
+                st.download_button("⬇️ 统计表（TSV）",
+                                   data=last.stats.to_csv(sep="\t", index=False).encode("utf-8"),
+                                   file_name="mag_heatmap_stats.tsv",
+                                   mime="text/tab-separated-values", key="mh_tsv")
+            files_map = {"abundance": ab_name}
+            if t_name != "（无）": files_map["taxonomy"] = t_name
+            if k_name != "（无）": files_map["keystone"] = k_name
+            if m_name != "（无）": files_map["metadata"] = m_name
+            _vector_downloads(last.figure, "mag_heatmap", "mh")
+            _reproduce_button("mag_heatmap", files_map, last.params, key="mh_code")
             with st.expander("查看统计表"):
                 st.dataframe(last.stats, use_container_width=True)
     elif analysis_type == "代谢通路完整度":

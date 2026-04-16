@@ -244,80 +244,29 @@ S8 插件框架推迟到论文接收后再做。完整计划见 `C:\Users\REDLIZ
 3. **截图留档**：每个模块完成后截一张 EnvMeta 的界面截图，保存到 `paper/figures/screenshot_模块名.png`。
 4. **开发日志量化**：每次开发日志除了记录做了什么，加一行量化数据（代码行数、验证结果、耗时对比）。
 
-## 下次 session 计划（2026-04-19 末次更新）
+## 下次 session 计划（2026-04-20 末次更新）
 
-**当前进度**（2026-04-19 收工时）：
-- Phase 1 Reads-based **7/7 完成**（堆叠图 / PCoA / 基因热图 / α 多样性 / log2FC / RDA / LEfSe）
-- Phase 2 MAG-based **3/5 完成**（mag_quality / pathway / gene_profile），mag_heatmap + network 待做
-- Phase 3 循环图 **S1→S3.5-ui + S4 Fork Bundle 全部完成**（假说评分器 v2 + L4 绑定发布）
-- 测试 **215/215 全绿**
-- 分析图表累计 **11 种**（7 Reads + 3 MAG + 1 Cycle）
+**当前进度**（2026-04-20 S6 收工）：
+- Phase 1 Reads-based **7/7 完成**
+- Phase 2 MAG-based **4/5 完成**（mag_quality / pathway / gene_profile / **mag_heatmap**），network 待做
+- Phase 3 循环图 **S1→S4 全部完成**
+- 测试 **227/227 全绿**（+12 mag_heatmap case）
+- 分析图表累计 **12 种**（7 Reads + 4 MAG + 1 Cycle）——「12 图完整」声明达成
 
 ---
 
-### 下次做：S6 `mag_heatmap` — Top30 MAG 丰度热图（~3h）
+### 下次做：S7 `network` — 共现网络图 Gephi-prep 导出（~4h）
 
-**移植来源**：`scripts/python/07_MAG_abundance_heatmap.py`（544 行）
+**移植来源**：`scripts/python/09_cooccurrence_network.py`
 
-**10 个要移植的功能**：
+**关键功能**：
+- SparCC / Spearman 相关网络（|r| 阈值 + p 阈值过滤）
+- Keystone 候选识别（degree / betweenness 双标准）
+- **Gephi 导出**：nodes.csv + edges.csv（支持 modularity / force-atlas 排版）
+- matplotlib 静态预览（力导向 + keystone 高亮）
+- stats：节点表（degree / betweenness / phylum / keystone）+ 边表（from/to/r/p）
 
-| # | 功能 | 说明 |
-|---|---|---|
-| 1 | Top-N MAG 筛选 | 按 mean / sum / variance 三选法 |
-| 2 | 双向层次聚类 | 行（MAG）+ 列（样本），linkage 可选 average/ward/complete |
-| 3 | 三段非线性配色 | 处理"多数低丰度、少数极高"的动态范围（原脚本特色）|
-| 4 | Phylum 彩条（行侧）| 12 门 + Other，与 stackplot 共享配色 |
-| 5 | Group 彩条（列顶）| 复用 CK/A/B 的 #4DAF4A/#377EB8/#E41A1C |
-| 6 | Keystone ★ 高亮 | MAG 行名前加标记 |
-| 7 | MAG 标签（Phylum_Genus_MAGid） | 复用 S2.5-13 的 Genus + sp.Mx_XX 规则 |
-| 8 | log1p 预变换开关 | 处理长尾分布（默认 ON）|
-| 9 | PDF / SVG / TIFF 600dpi 导出 | 复用 figure_export |
-| 10 | stats 长表输出 | Top-N MAG × sample 百分比 + 聚类顺序索引 |
-
-**模块架构**：
-```
-envmeta/analysis/mag_heatmap.py
-├── analyze(abundance_df, taxonomy_df=None, keystone_df=None,
-│            metadata_df=None, params=None) → AnalysisResult
-├── DEFAULTS (12 个参数)
-└── _build_3stage_cmap() 辅助
-```
-
-**DEFAULTS 参数**：
-```python
-{
-    "top_n": 30, "selection_by": "mean", "log_transform": True,
-    "cluster_rows": True, "cluster_cols": False,
-    "linkage_method": "average", "color_breakpoints": [0.1, 0.5, 0.9],
-    "show_phylum_bar": True, "show_group_bar": True,
-    "highlight_keystones": True, "width_mm": 180, "height_mm": 220,
-}
-```
-
-**7 步工作流**：
-1. 读原脚本 + 设计模块接口（20 min）
-2. 核心实现 `mag_heatmap.py`（60 min）
-3. `app.py` 新页面「MAG 丰度热图」+ 上传 + 参数 + 下载（25 min）
-4. `code_generator.py` 加 `_tpl_mag_heatmap`（SUPPORTED 10→11, 15 min）
-5. `tests/test_mag_heatmap.py` +6 case（45 min）
-6. `paper/benchmarks/validation/mag_heatmap/` 归档 + `time_comparison.md` 补行（20 min）
-7. CLAUDE.md + commit + push（15 min）
-
-**6 测试 case**：
-```python
-test_mag_heatmap_smoke()                    # analyze 返回 figure + stats
-test_top_n_filter_correct()                 # Top30 数量正确
-test_cluster_order_deterministic()          # 同输入同顺序
-test_works_without_taxonomy()               # 缺可选输入不崩
-test_phylum_bar_toggle()                    # show_phylum_bar=False 不画
-test_three_stage_colormap_breakpoints()     # breakpoints 数值合法
-```
-
-**交付后的状态**：
-- Phase 2 MAG-based **3/5 → 4/5**
-- 分析图表 **11 → 12 种**，论文"12 图完整"声明达成
-- 测试 **215 → ~221**
-- `time_comparison.md` 补齐 mag_heatmap 行（544 行 / ~90 min vs 3 点击 / 5 s）
+**交付后**：Phase 2 **4/5 → 5/5 全完** → v0.5 内部测试版就绪
 
 ---
 
@@ -344,6 +293,58 @@ test_three_stage_colormap_breakpoints()     # breakpoints 数值合法
 ## 开发日志
 
 > 每次 session 结束前更新此区块。新对话开始时 Claude Code 自动读取，了解当前进度。
+
+### 2026-04-20（S6 — MAG 丰度热图 ⭐ Phase 2 达 4/5 + 12 图完整）
+
+- **目标**：把 `scripts/python/07_MAG_abundance_heatmap.py`（544 行硬编码
+  样本/组/配色）收敛为领域中立的 `envmeta/analysis/mag_heatmap.py`，
+  让 EnvMeta 达到「12 图完整」投稿就绪里程碑
+- **核心交付**：
+  - `envmeta/analysis/mag_heatmap.py`（~220 行）：
+    - `analyze(abundance_df, taxonomy_df, keystone_df, metadata_df, params)` → AnalysisResult
+    - 13 个 DEFAULTS：top_n / selection_by(mean|sum|variance) /
+      log_transform / cluster_rows / cluster_cols / cluster_within_phylum /
+      linkage_method / color_breakpoints / show_phylum_bar / show_group_bar /
+      highlight_keystones / width_mm / height_mm
+    - `_build_tricolor_cmap()` — 保留原脚本的 Blues→YlGn→YlOrRd 三段非线性
+      配色（适配少数极高 + 多数低值的长尾分布）
+    - metadata 驱动样本排序（按 CK/A/B 组分组再组内保序）—— 替代原脚本
+      的 `SAMPLE_ORDER` 硬编码
+    - 门内聚类（`cluster_within_phylum=True`）保持门分块视觉一致性
+  - `tests/test_mag_heatmap.py` **+12 case**（超额 6 case 目标）：
+    smoke / top_n / selection_by 降序 / cluster 确定性 / no-tax / no-md /
+    phylum+group bar 关闭 / color_breakpoints 自定义 / 极端 breakpoints /
+    empty / missing sample_cols / PNG+PDF 导出
+  - `app.py` 新页面「MAG 丰度热图」：4 文件上传（ab 必填 + tax/ks/md 可选）
+    + 13 个参数滑块 / 下拉 / 勾选框 + 4 键下载（PNG/PDF/TSV + SVG/TIFF
+    矢量）+ `_reproduce_button` 一键生成 .py 复现脚本
+  - `envmeta/export/code_generator.py` SUPPORTED **10→11**，加
+    `_tpl_mag_heatmap`（自动获得 +2 parametrize case = 37 code_generator 测试）
+  - `paper/benchmarks/validation/mag_heatmap/`：`_run.py` + `top30_EN.pdf` +
+    `top30_stats.tsv` + variance 模式副图 + README
+  - `paper/benchmarks/time_comparison.md` 补行（544 行 / 90 min vs 3 点击 / 5 s）
+- **真实数据亮点**（168 MAG × 10 样本 + 14 keystone）：
+  - Top-30（mean 模式）含 **5/14 keystone**（35.7%）= 高丰度 ∩ 关键物种交集
+  - **8 门** 分布；Pseudomonadota (11) / Chloroflexota (8) / Acidobacteriota (6)
+  - **Top-1 `Mx_All_102`**（Chloroflexota）在 mean + variance 两模式均第一
+    → 高丰度**且**组间分化大，机制验证首选候选
+  - variance 模式与 mean 模式的 Top-30 不完全重叠 → 互补：mean=核心菌群，
+    variance=处理响应敏感菌群
+- **架构要点**：
+  - 复用 `pathway.PHYLUM_COLORS` / `_extract_phylum` / `_mag_col`（避免重复）
+  - 组色带颜色继承 `cycle_diagram` 的 CK/A/B 标准色（#4DAF4A/#377EB8/#E41A1C）
+    —— 跨模块视觉一致性
+  - 默认 `cluster_within_phylum=True`：先按门分组，门内聚类 → 行视觉上
+    仍按门分块，但门内按相似性排序（原脚本同策略）
+  - `color_breakpoints=(0.2, 0.5)` 元组化（原脚本硬编码），UI 可滑块调
+- **测试**：215 → **227 全绿**（+12 mag_heatmap + code_generator 自动 +2 parametrize）
+- **里程碑**：
+  - Phase 2 MAG-based **3/5 → 4/5**
+  - 分析图表 **11 → 12 种**（7 Reads + 4 MAG + 1 Cycle）——「12 图完整」✅
+  - 投稿就绪清单 🟥 减一条（S6/S7 二合一只剩 S7）
+- **下一步**：**S7 network Gephi-prep（~4h）** 收尾 Phase 2 → **v0.5 内部测试版**
+
+---
 
 ### 2026-04-19（S4 — Fork Bundle 导出 ⭐ L4 层落地）
 
