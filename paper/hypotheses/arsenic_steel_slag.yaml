@@ -1,4 +1,83 @@
-name: "钢渣驱动铁氧化-砷固定机制（假说示例）"
+# ═══════════════════════════════════════════════════════════════════════════
+#  EnvMeta 机制假说评分器 — 示例模板 + 使用说明
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# 本文件既是**真实研究假说**（钢渣驱动铁氧化-砷固定），
+# 也是**自带教程**：打开就能读懂怎么写、为什么这样写、理论依据是什么。
+#
+# ───────────────────────────────────────────────────────────────────────────
+# § 1  使用前必读（理论定位）
+# ───────────────────────────────────────────────────────────────────────────
+#
+# 本评分器是 "EVIDENCE-WEIGHTING SCORECARD"，NOT hypothesis testing。
+# 它**不**产生 p-value，**不**做多重检验校正，**不**等价于统计显著性。
+# 它的作用：把 "多条可观测证据" 按用户权重汇总成 overall score + 标签，
+# 让审稿人/读者能逐条核对你的证据链。
+#
+# 四大理论框架（详见 § 4 REFERENCES）：
+#
+#   [1] MCDA — Multi-Criteria Decision Analysis
+#       Keeney & Raiffa 1993; Belton & Stewart 2002
+#       → 多标准加权决策的理论基础；权重**比例**有意义，绝对值无意义
+#
+#   [2] Bradford Hill criteria (流行病学证据权衡, 50+ 年传统)
+#       Hill 1965
+#       → 证据维度：strength / consistency / specificity / temporality /
+#                   biological gradient / plausibility / coherence /
+#                   experiment / analogy
+#       → 本评分器的 claim 可按这些维度分类（见每条 claim 注释）
+#
+#   [3] Weight-of-Evidence (生态风险评估 / 环境监管)
+#       Suter & Cormier 2011; Linkov et al. 2009
+#       → "多条独立弱证据" 叠加 > "一条强证据"（本评分器的核心原则）
+#
+#   [4] Evidence Integration Frameworks (毒理学 / 监管科学)
+#       Rhomberg et al. 2013
+#       → 权重 + 阈值的透明性是"可审计性"的前提；所有决策都在 YAML 里
+#
+# ⚠️ 写论文 Methods 时建议这样引用本评分器：
+#    "We used EnvMeta's weight-of-evidence scorecard (cite EnvMeta paper)
+#     following the conceptual framework of Belton & Stewart [ref] and
+#     Bradford Hill [ref]. All claim definitions, weights, and thresholds
+#     are fully externalized in a user-supplied YAML (see Supplementary);
+#     the scorer does NOT perform hypothesis testing."
+#
+# ───────────────────────────────────────────────────────────────────────────
+# § 2  YAML 写法速查
+# ───────────────────────────────────────────────────────────────────────────
+#
+# 顶层字段：
+#   name                  显示名（必填）
+#   description           自由文本背景
+#   author / version      可选元信息
+#   strong_threshold      overall ≥ 此值 → "strong" 标签（默认 0.75）
+#   suggestive_threshold  overall ≥ 此值 → "suggestive"（默认 0.40）
+#   claims                至少 1 条
+#
+# 每条 claim 结构：
+#   - id          必填；唯一；命名建议 snake_case 如 `fe_as_coupling`
+#     type        4 选 1：pathway_active | coupling_possible |
+#                          env_correlation | keystone_in_pathway
+#     weight      推荐比例：核心机制 = 2.0 / 主要辅证 = 1.0 / 可选辅证 = 0.5
+#                 （MCDA 原则：权重是相对比例，数值大小只要内部一致就行）
+#     description 让审稿人理解"为什么列这一条"
+#     params:     每种 type 的 params 不同，见 paper/hypotheses/README.md
+#
+# 聚合公式（仅对非 skipped 的 claim）：
+#   overall = Σ(weight_i × score_i) / Σ(weight_i)
+#   其中 score_i ∈ {1.0 satisfied, 0.5 partial, 0.0 unsatisfied}
+#   skipped 不进分母（KB 没定义 / 数据里没跑到）
+#
+# 阈值调校建议：
+#   严格期刊 (Nature/Science 类)    strong=0.80, suggestive=0.50
+#   方法学期刊 (iMeta/Bioinformatics) strong=0.70-0.75, suggestive=0.40  ← 默认
+#   探索性研究                      strong=0.60, suggestive=0.30
+#
+# ═══════════════════════════════════════════════════════════════════════════
+# § 3  YAML 主体
+# ═══════════════════════════════════════════════════════════════════════════
+
+name: "钢渣驱动铁氧化-砷固定机制（假说示例 + 教程）"
 description: |
   研究假说：高钢渣配比（B 组）通过促进 Gallionella 类 MAG 的铁氧化活性，
   产生 Fe(III) 表面吸附砷酸盐；同时 Sulfuricaulis 硫氧化调控 Eh，
@@ -10,12 +89,16 @@ description: |
 author: "EnvMeta 示例"
 version: "1.0"
 
-# 评分阈值（可按学科严格度调）
-strong_threshold: 0.70        # ≥ 0.70 → strong
-suggestive_threshold: 0.40    # ≥ 0.40 → suggestive，否则 weak / insufficient
+# 阈值设为方法学期刊默认（略松于 0.75，因为方法学强调透明性而非严格度）
+strong_threshold: 0.70
+suggestive_threshold: 0.40
 
 claims:
-  # ── 铁氧化相关 ───────────────────────────────
+
+  # ══ 铁氧化 ═════════════════════════════════════════════════════════════
+  # [主要辅证 w=1.0] Bradford Hill 维度: strength (of association)
+  #   Fe transport 的 KO 丰度是"铁氧化活性"的最直接代理；
+  #   若 Fe transport 通路无活跃 MAG，整个"铁氧化驱动"叙事就站不住。
   - id: iron_transport_active
     type: pathway_active
     weight: 1.0
@@ -24,6 +107,9 @@ claims:
       pathway: "Fe transport"
       min_completeness: 40
 
+  # [可选辅证 w=0.8] Bradford Hill 维度: specificity
+  #   "keystone 承担核心代谢" 比 "随机 MAG 承担" 更支撑因果叙述；
+  #   但不是必需，非 keystone 也能做铁氧化 → 降权 0.8
   - id: keystone_on_iron
     type: keystone_in_pathway
     weight: 0.8
@@ -32,7 +118,10 @@ claims:
       pathway: "Fe transport"
       min_keystones: 1
 
-  # ── 砷代谢相关 ──────────────────────────────
+  # ══ 砷代谢 ═════════════════════════════════════════════════════════════
+  # [主要辅证 w=1.0] Bradford Hill 维度: strength + biological plausibility
+  #   arsC 是砷酸盐还原酶，活性是砷循环的必要条件；
+  #   门槛 30% 而非 50%：砷代谢 MAG 在真实样本里 completeness 普遍偏低
   - id: arsenate_reduction_active
     type: pathway_active
     weight: 1.0
@@ -41,6 +130,8 @@ claims:
       pathway: "Arsenate reduction"
       min_completeness: 30
 
+  # [可选辅证 w=0.8] Bradford Hill 维度: coherence (多机制共存)
+  #   砷转运活跃 = 细胞主动处理 As，间接支持砷压力应答叙事
   - id: as_transport_active
     type: pathway_active
     weight: 0.8
@@ -49,7 +140,11 @@ claims:
       pathway: "As transport/detox"
       min_completeness: 30
 
-  # ── 跨元素化学耦合 ─────────────────────────
+  # ══ 跨元素化学耦合 ═════════════════════════════════════════════════════
+  # [核心机制 w=2.0] Bradford Hill 维度: biological plausibility + specificity
+  #   Fe(III) oxide 吸附 As(V) 是热力学 + 配位化学已知机制（非生物学假设）；
+  #   评分器只验证"两端物种同时被观测到"，不重建反应动力学。
+  #   权重 2.0：这是假说的**核心命题**，若失败整个叙事瓦解。
   - id: fe_as_adsorption_coupling
     type: coupling_possible
     weight: 2.0
@@ -58,6 +153,8 @@ claims:
       species_a: "As(V)"
       species_b: "Fe(III)"
 
+  # [主要辅证 w=1.0] Bradford Hill 维度: analogy + coherence
+  #   As₂S₃ 沉淀是砷固定的替代机制；与主假说不冲突反而互补
   - id: s_as_precipitation_coupling
     type: coupling_possible
     weight: 1.0
@@ -66,7 +163,10 @@ claims:
       species_a: "As(III)"
       species_b: "S-2"
 
-  # ── 环境相关性 ──────────────────────────────
+  # ══ 环境相关性 ═════════════════════════════════════════════════════════
+  # [主要辅证 w=1.0] Bradford Hill 维度: biological gradient (dose-response)
+  #   氨氧化 ↔ Eh 正相关符合生化理论（氨氧化产生 H⁺ + e⁻）；
+  #   min_confidence=suggestive：方向对即可，不强求 strong 档
   - id: ammonia_ox_eh_link
     type: env_correlation
     weight: 1.0
@@ -77,6 +177,9 @@ claims:
       expected_sign: positive
       min_confidence: suggestive
 
+  # [可选辅证 w=0.8] Bradford Hill 维度: biological gradient
+  #   总砷浓度高 → 选择压力强 → 砷酸盐还原 MAG 丰度高（压力-应答响应）；
+  #   min_confidence=weak：样本量小（n=3-4/组），允许 weak 档
   - id: arsenate_total_as_link
     type: env_correlation
     weight: 0.8
@@ -86,3 +189,46 @@ claims:
       env_factor: "Total_As"
       expected_sign: positive
       min_confidence: weak
+
+# ═══════════════════════════════════════════════════════════════════════════
+# § 4  REFERENCES （Vancouver 风格 + DOI；建议用户自查 https://doi.org/<DOI>）
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# [1] Keeney RL, Raiffa H. Decisions with Multiple Objectives: Preferences
+#     and Value Tradeoffs. Cambridge: Cambridge University Press; 1993.
+#     DOI: 10.1017/CBO9781139174084
+#     — MCDA 奠基教科书（1976 Wiley 版由 Cambridge 1993 再版）
+#
+# [2] Belton V, Stewart TJ. Multiple Criteria Decision Analysis: An
+#     Integrated Approach. Boston: Springer; 2002.
+#     DOI: 10.1007/978-1-4615-1495-4
+#     — 当代 MCDA 标准参考；"权重 × 分数 → 综合评价" 的工程实现
+#
+# [3] Hill AB. The Environment and Disease: Association or Causation?
+#     Proc R Soc Med. 1965;58(5):295-300.
+#     DOI: 10.1177/003591576505800503
+#     — Bradford Hill 九条因果判据原始文献；流行病学引用 20000+
+#
+# [4] Suter GW II, Cormier SM. Why and how to combine evidence in
+#     environmental assessments: Weighing evidence and building cases.
+#     Sci Total Environ. 2011;409(8):1406-17.
+#     DOI: 10.1016/j.scitotenv.2010.12.029
+#     — EPA 生态风险评估中 "weight-of-evidence" 的方法论总纲
+#
+# [5] Linkov I, Loney D, Cormier S, Satterstrom FK, Bridges T.
+#     Weight-of-evidence evaluation in environmental assessment: review
+#     of qualitative and quantitative approaches.
+#     Sci Total Environ. 2009;407(19):5199-205.
+#     DOI: 10.1016/j.scitotenv.2009.05.004
+#     — 定量 vs 定性 WoE 方法的系统评述
+#
+# [6] Rhomberg LR, Goodman JE, Bailey LA, Prueitt RL, Beck NB, Bevan C,
+#     et al. A survey of frameworks for best practices in weight-of-
+#     evidence analyses. Crit Rev Toxicol. 2013;43(9):753-84.
+#     DOI: 10.3109/10408444.2013.832727
+#     — 对 50+ WoE 框架的横向比较；"透明性 + 可审计性" 是共性要求
+#
+# ═══════════════════════════════════════════════════════════════════════════
+# 使用说明结束。下方 YAML 主体可直接作为起点修改，写你自己的假说。
+# 更多参数细节见 paper/hypotheses/README.md 的 schema 速查表。
+# ═══════════════════════════════════════════════════════════════════════════
