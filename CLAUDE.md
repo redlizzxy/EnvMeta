@@ -418,6 +418,102 @@ test_three_stage_colormap_breakpoints()     # breakpoints 数值合法
 
 ---
 
+### 2026-04-19（**阶段性自检** — 产品定位 / 竞争分析 / 投稿就绪度 三角审视）
+
+在 S5/S6 启动前做一次全局自检，避免闭门造车。**不动代码**，结论写入此处供后续
+session 随时引用。
+
+#### 1. 功能 vs 初衷对齐
+
+**✅ 已精进（超出预期）**：
+- L1 循环图：从"2×2 抽象柱图"升级到 Mockup 10 发表级级联 + KEGG-driven KB + 跨元素耦合
+- L2 假说评分器：原承诺"用户自带 YAML → strong/none"→ 现在 5 类 claim + 3 可信度指标
+  (null_p / weight_robust / required-veto) + 9 档 UI 解读 + 跨组表 + CLI 校验 + 7 篇理论文献
+- L4 Fork Bundle：论文-EnvMeta 绑定发布协议如期落地
+- 架构解耦：hypothesis.py 不依赖 inference.py / bundle.py 不依赖 cycle_compare —— 单向依赖图
+- 描述性不断言：S1 去偏反思彻底，评分器明确声明 "NOT hypothesis testing"
+
+**⚠️ 未实现 / 落后**：
+| 项 | 阻塞等级 | 工时 |
+|---|---|---|
+| S6 mag_heatmap + S7 network（12/12 图）| 🟥 阻塞投稿 | 7h |
+| R 侧侧对比验证 | 🟥 阻塞投稿 | 1 天 |
+| English README | 🟥 iMeta 要求 | 2h |
+| tool_comparison.md 填表 | 🟥 审稿必挑 | 4h |
+| 示例数据 Zenodo DOI | 🟥 投稿必备 | 2h |
+| LICENSE 文件 | 🟥 合规 | 10 min |
+| Methods + Results + Discussion 起草 | 🟥 论文本体 | 1-2 周 |
+| User study（5-10 人 SUS）| 🟨 推荐 | 1 周 |
+| S4.5 HTML 交互导出（SI）| 🟨 推荐 | 10-15h |
+| 第二个数据集复现 | 🟨 推荐 | 2 天 |
+| L3 插件框架 / L5 KB 工具 / Docker | 🟩 推迟 | — |
+
+**🟡 可能冗余（已审视，保留为主）**：
+- CLAUDE.md 日志超长：对 AI 上下文恢复必要，对人类阅读不友好 → 可抽"精简版发版日志"（不紧急）
+- `scripts/` 下原论文 R/Python：保留作 validation reference，可整理入 `scripts/legacy/`
+
+**结论：无实质偏离初衷**。L1/L2/L4 三层超预期，缺口全在"投稿前行政事务"。
+
+---
+
+#### 2. 竞争分析 — 三件套矩阵
+
+| 工具 | Cycle inference | 假说评分 | Bundle / 论文绑定 |
+|---|---|---|---|
+| **EnvMeta** | ✅ **独** | ✅ **独** | ✅ **独** |
+| Shiny-phyloseq | ❌ | ❌ | ❌ |
+| plotmicrobiome | ❌ | ❌ | ❌ |
+| Anvi'o | 部分 | ❌ | ❌ |
+| iPath3 | 静态 | ❌ | ❌ |
+| BioCyc（商用）| ✅ | ❌ | ❌ |
+
+三件套同时具备 = **业界空白**。三个卖点相互强化（bundle 装的就是 KB+YAML，闭环）。
+
+**相对劣势**：无 R 集成 / 用户基数小 / KB 当前聚焦 As/N/S/Fe / 依赖 GTDB+KEGG 上游 /
+无在线 demo / 中文优先（国际化滞后）/ 单数据集验证。
+
+---
+
+#### 3. 审稿人视角 + 投稿就绪度
+
+**会表扬的 8 点**：差异化独份；理论扎实；架构透明；诚实校准（不假装 hypothesis
+testing）；null_p 真有区分力；测试 215；Fork Bundle 方法学创新；S1 去偏反思彻底。
+
+**会质疑的 10 点**（按杀伤力排序）：
+1. 只在单数据集验证 → 补公开数据集复现
+2. 无 R 对照 → 装 R 做侧侧 PDF 对比
+3. 无 user study 证据 → 5-10 人 SUS
+4. 12 图不全 → S6 + S7
+5. KEGG license 声明 → 加 NOTICE
+6. 权重主观性 → 已引 MCDA 回应
+7. 大数据集性能 benchmark 缺 → 跑 500+ MAG
+8. YAML 写法门槛 → 已有 validate CLI
+9. 其他元素循环通用性 → 补 C 或 Hg KB 示范
+10. LICENSE 未定 → MIT / Apache-2.0
+
+**接收率估计**：
+- 现在投稿：**30-40%**（差异化强但证据单薄）
+- 补完 🟥 清单后：**60-75%**（三大硬伤解决）
+- 加 🟨 清单：**75-85%**（方法学论文稳妥）
+
+---
+
+#### 4. 推荐冲刺路线（4-6 周到投稿）
+
+```
+Week 1:  S6 mag_heatmap + S7 network + LICENSE + tool_comparison.md
+Week 2:  R 对照（6 图）+ 第二数据集复现
+Week 3:  English README + Zenodo DOI + 示例数据包 + Figures 整理
+Week 4-5: Methods + Results + Discussion 起草
+Week 6:  User study + S4.5 HTML SI + Cover Letter
+```
+
+**核心判断**：工具本身已达投稿级别，剩余都是"科研行政事务"而非技术创新。
+
+**即刻下一步**：**先 S6**（~3h）收紧 11/12 → 12/12，再开其他。
+
+---
+
 ### 2026-04-19（**Today's Session 总结** — 全日 8 commit / L2 假说评分器 v2 + L4 Fork Bundle 落地）
 
 今日一日跑完 **8 个 commit / 测试 176 → 215（+39）**，L1-L2-L4 三层架构闭环，
