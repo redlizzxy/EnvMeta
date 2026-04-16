@@ -242,8 +242,14 @@ def render_mag_layer1_filter(prefix: str,
     )
     top_n_count = st.slider("Top-N 取几条", 5, 100, 30,
                              step=5, key=f"{prefix}_tnc")
-    max_mags = st.slider("max_mags 硬截断（0=不截）", 0, 200, default_max_mags,
-                          step=10, key=f"{prefix}_mm")
+    max_mags = st.slider("max_mags 最终展示上限（0=不截）", 0, 200,
+                          default_max_mags, step=10, key=f"{prefix}_mm",
+                          help=(
+                              "顺序：filter_mode 过滤 → row_order 排序 → "
+                              "max_mags 截断 → 画图。若过滤 + 排序后剩的 MAG "
+                              "数 ≤ max_mags，此项不生效；超过才截前 N。"
+                              "设 0 = 不截断。"
+                          ))
     return {
         "filter_mode": filter_mode,
         "top_n_by": top_n_by,
@@ -1195,6 +1201,24 @@ elif page == "MAG-based 分析":
             cmap_opts = ["viridis", "plasma", "YlGnBu", "YlOrBr"]
             cmap_name = st.selectbox("配色", cmap_opts, index=0, key="gp_cmap",
                 help="viridis（默认）感知均匀、色域宽；YlGnBu 双色冷暖过渡")
+            blank_zeros = st.checkbox(
+                "0 值留白（缺失 vs 低表达一眼分）",
+                True, key="gp_bz",
+                help=(
+                    "推荐开启。开启后 0 拷贝数显示为白色，"
+                    "彩色 = 有基因存在；关闭则 0 显 cmap 最低色（深色）"
+                    "可能占据大部分视觉。"
+                ),
+            )
+            sort_ko_cov = st.checkbox(
+                "KO 列按覆盖率排序（左密右稀）",
+                False, key="gp_skc",
+                help=(
+                    "勾选后 KO 列按「有多少 MAG 持有该 KO」降序；"
+                    "高覆盖 KO 集中在左侧，稀疏 KO 在右。"
+                    "适合看子集 MAG 的共有功能。"
+                ),
+            )
             elem_opts = ["arsenic", "sulfur", "iron", "nitrogen"]
             elem_sel = st.multiselect("元素过滤（空=全部）", elem_opts,
                                       default=[], key="gp_elem")
@@ -1209,6 +1233,8 @@ elif page == "MAG-based 分析":
             params = {
                 **l1, **l2, **l3,
                 "cmap_name": cmap_name,
+                "blank_zeros": blank_zeros,
+                "sort_ko_by_coverage": sort_ko_cov,
                 "element_filter": elem_sel or None,
                 "show_gene_names": show_names,
                 "drop_zero_kos": drop_zero,

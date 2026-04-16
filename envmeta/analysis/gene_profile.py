@@ -56,6 +56,10 @@ DEFAULTS = {
     "show_gene_names": True,
     "drop_zero_kos": True,
     "show_element_bar": True,
+    # 0 值视觉处理（解决"深色占大部分视觉"问题）
+    "blank_zeros": True,                  # True → 0 值显白色（缺失 vs 低表达一眼分）
+    "zero_threshold": 0.0,                # 原始拷贝数 ≤ 此值视为 0；设 >0 可把"低"也当缺失
+    "sort_ko_by_coverage": False,         # True → KO 列按覆盖率降序（左密右稀）
     # 向后兼容旧 key
     "sort_by": None,
     "annotate_keystone": None,
@@ -193,11 +197,19 @@ def analyze(
     if p.get("max_mags"):
         df = df.head(int(p["max_mags"])).reset_index(drop=True)
 
+    # 可选：KO 列按当前 MAG 子集里的覆盖率降序（左密右稀）
+    if p.get("sort_ko_by_coverage"):
+        sub = df[active_kos].to_numpy(dtype=float)
+        coverage = (sub > 0).sum(axis=0)
+        order = np.argsort(-coverage, kind="stable")
+        active_kos = [active_kos[i] for i in order]
+        active_elements = [active_elements[i] for i in order]
+
     mat_sorted = df[active_kos].to_numpy()
     mat_log = np.log1p(mat_sorted)
 
-    fig = _draw(df, active_kos, active_elements, mat_log, elem_color,
-                ko_map, p)
+    fig = _draw(df, active_kos, active_elements, mat_sorted, mat_log,
+                elem_color, ko_map, p)
 
     stats_df = df[["MAG", "label", "Phylum", "Genus", "Species",
                    "is_keystone", "abundance_mean",
@@ -205,7 +217,8 @@ def analyze(
     return AnalysisResult(figure=fig, stats=stats_df, params=p)
 
 
-def _draw(df, active_kos, active_elements, mat_log, elem_color, ko_map, p) -> plt.Figure:
+def _draw(df, active_kos, active_elements, mat_raw, mat_log,
+          elem_color, ko_map, p) -> plt.Figure:
     n_mag, n_ko = mat_log.shape
     # gridspec 三列布局（同 pathway）
     fig = plt.figure(
@@ -222,10 +235,20 @@ def _draw(df, active_kos, active_elements, mat_log, elem_color, ko_map, p) -> pl
     ax_leg = fig.add_subplot(gs[0, 2])
     ax_leg.axis("off")
 
-    cmap = plt.get_cmap(p["cmap_name"])
+    cmap = plt.get_cmap(p["cmap_name"]).copy()
     vmax = mat_log.max() if mat_log.max() > 0 else 1.0
-    im = ax.imshow(mat_log, aspect="auto", cmap=cmap, vmin=0, vmax=vmax,
-                   interpolation="nearest")
+    # 0 值（或 ≤ zero_threshold）留白 —— 解决"深色占大部分视觉"问题
+    if p.get("blank_zeros", True):
+        cmap.set_bad("white")
+        thresh = float(p.get("zero_threshold", 0.0))
+        display_mat = np.ma.masked_where(mat_raw <= thresh, mat_log)
+        # vmin 设为下一档色度避免最低彩色块与白色混淆
+        vmin = 1e-3
+    else:
+        display_mat = mat_log
+        vmin = 0
+    im = ax.imshow(display_mat, aspect="auto", cmap=cmap,
+                   vmin=vmin, vmax=vmax, interpolation="nearest")
 
     # 元素色带（顶部）
     if p["show_element_bar"]:

@@ -81,17 +81,26 @@ def extract_phylum(cls: str) -> str:
     return phy or "Unknown"
 
 
-def mag_display_label(mag: str, genus: str = "", species: str = "") -> str:
-    """S2.5-13 三档 fallback：Genus species / Genus sp. Mx_XX / MAG_id。"""
+def mag_display_label(mag: str, genus: str = "", species: str = "",
+                      family: str = "") -> str:
+    """四档 fallback（S2.5-13 规则扩展）：
+    - Genus species         （两者都有）
+    - Genus sp. Mx_XX       （只有 Genus）
+    - Family sp. Mx_XX      （只有 Family；比如 GTDB `g__;` 但 `f__` 有值）
+    - Mx_XX                 （Genus / Family 都空）
+    """
     g = (genus or "").strip()
     s = (species or "").strip()
+    f = (family or "").strip()
+    tail = str(mag).split("_")[-1] if "_" in str(mag) else str(mag)
     if g and s:
         if s.startswith(g + " "):
             s = s[len(g) + 1:]
         return f"{g} {s}".strip()
     if g:
-        tail = str(mag).split("_")[-1] if "_" in str(mag) else str(mag)
         return f"{g} sp. Mx_{tail}"
+    if f:
+        return f"{f} sp. Mx_{tail}"
     return str(mag)
 
 
@@ -117,16 +126,20 @@ def annotate_taxonomy(
         )
         if cls_col is not None:
             tax["Phylum"] = tax[cls_col].apply(extract_phylum)
+            tax["Family"] = tax[cls_col].apply(lambda x: extract_rank(x, "f__"))
             tax["Genus"] = tax[cls_col].apply(lambda x: extract_rank(x, "g__"))
             tax["Species"] = tax[cls_col].apply(lambda x: extract_rank(x, "s__"))
-            out = out.merge(tax[["MAG", "Phylum", "Genus", "Species"]],
+            out = out.merge(tax[["MAG", "Phylum", "Family", "Genus", "Species"]],
                             on="MAG", how="left")
-    for col, default in (("Phylum", "Unknown"), ("Genus", ""), ("Species", "")):
+    for col, default in (("Phylum", "Unknown"), ("Family", ""),
+                          ("Genus", ""), ("Species", "")):
         if col not in out.columns:
             out[col] = default
         out[col] = out[col].fillna(default)
     out["label"] = out.apply(
-        lambda r: mag_display_label(r["MAG"], r["Genus"], r["Species"]), axis=1)
+        lambda r: mag_display_label(r["MAG"], r["Genus"], r["Species"],
+                                     r["Family"]),
+        axis=1)
     return out
 
 
