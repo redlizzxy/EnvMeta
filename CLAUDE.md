@@ -244,14 +244,17 @@ S8 插件框架推迟到论文接收后再做。完整计划见 `C:\Users\REDLIZ
 3. **截图留档**：每个模块完成后截一张 EnvMeta 的界面截图，保存到 `paper/figures/screenshot_模块名.png`。
 4. **开发日志量化**：每次开发日志除了记录做了什么，加一行量化数据（代码行数、验证结果、耗时对比）。
 
-## 下次 session 计划（2026-04-20 末次更新）
+## 下次 session 计划（2026-04-17 末次更新）
 
-**当前进度**（2026-04-20 S6 收工）：
+**当前进度**（2026-04-17 收工，S6 系列 4 commit 连击）：
 - Phase 1 Reads-based **7/7 完成**
-- Phase 2 MAG-based **4/5 完成**（mag_quality / pathway / gene_profile / **mag_heatmap**），network 待做
+- Phase 2 MAG-based **4/5 完成**（mag_quality / pathway / gene_profile /
+  mag_heatmap）—— 全部按**统一 4 层参数**重构，network 待做
 - Phase 3 循环图 **S1→S4 全部完成**
-- 测试 **227/227 全绿**（+12 mag_heatmap case）
-- 分析图表累计 **12 种**（7 Reads + 4 MAG + 1 Cycle）——「12 图完整」声明达成
+- 测试 **235/235 全绿**（+8 over S6 base）
+- 分析图表累计 **12 种**（7 Reads + 4 MAG + 1 Cycle）——「12 图完整」达成
+- **4 张 MAG 图完全视觉统一**：Genus 标签规则（含 Family fallback）/ 门彩条
+  位置 / 门图例 / 共享参数（filter_mode / row_order / top_n_by / max_mags）
 
 ---
 
@@ -293,6 +296,77 @@ S8 插件框架推迟到论文接收后再做。完整计划见 `C:\Users\REDLIZ
 ## 开发日志
 
 > 每次 session 结束前更新此区块。新对话开始时 Claude Code 自动读取，了解当前进度。
+
+### 2026-04-17（S6 系列收口 — S6-fix + S6-fix2 + S6-fix3 三轮用户反馈打磨）
+
+S6 mag_heatmap 落地后用户浏览器实测 → 提出 13 点细节问题，一天内
+3 轮迭代全部收口。**测试 215 → 235 全绿**。
+
+#### 三轮 commit 时间线
+
+| # | commit | 触发反馈 | 交付 |
+|---|---|---|---|
+| 1 | `fda28d5` **S6-fix** | alpha.txt 被误选当 MAG 丰度 / 上传 tax 仍显 Mx ID / 门彩条重叠无图例 / bubble 无 colorbar / gene_profile 缺"只看 keystone"过滤 / phylum_then_count 含义晦涩 | 文件自识别 (`_first_of`) / Genus 标签 / gridspec 布局 / Phylum 图例 / bubble colorbar / gene_profile filter_mode |
+| 2 | `48e7f97` **S6-fix2** | 剩余 MAG 图（pathway / gene_profile / mag_quality）**未自动识别文件** + 通路完整度**无 Genus** + 基因谱**单色配色不明显** + phylum_then_XX 意义弱 + 想要**所有参数统一** | 抽出 `_mag_common.py` 共享模块（~260 行）；4 张 MAG 图对齐到**统一 4 层参数**（Layer 1-3 完全相同 + Layer 4 特有）；gene_profile 默认 cmap 改 **viridis** |
+| 3 | `6ddcde7` **S6-fix3** | Mx_All_153 未显 Genus 原因？/ max_mags 语义？/ 基因谱 0 值占大部分视觉 | Family fallback（`JACPRB01 sp. Mx_153`）/ max_mags help 文案改"最终展示上限"/ gene_profile 加 **blank_zeros**（0 留白）+ **sort_ko_by_coverage** 选项 |
+
+#### 架构成果：`envmeta/analysis/_mag_common.py` 新增（S6-fix2）
+
+把 4 张 MAG 图的共性抽出来：
+
+- `PHYLUM_COLORS` / `GROUP_COLORS` 共享常量
+- `annotate_taxonomy()`: GTDB classification →
+  Phylum / Family / Genus / Species / label 五列（label 用
+  4 档 fallback：`Genus species` → `Genus sp. Mx_XX` → `Family sp. Mx_XX` → `Mx_XX`）
+- `apply_filter_mode()`: **all / top_n / keystone_only / top_plus_keystone**
+  统一子集过滤；score 来源可以是矩阵（mag_heatmap 丰度）或列
+  （pathway abundance_mean / gene_profile gene_count）
+- `order_rows()`: **phylum_cluster / metric_desc / abundance** 统一行排序；
+  替代各图自己的 `phylum_then_total` / `phylum_then_count` 等晦涩名字
+- `draw_phylum_bar()` / `draw_phylum_legend()` / `draw_keystone_note()`:
+  统一左侧彩条 + 右侧图例区
+
+#### 统一参数面板（4 张 MAG 图完全一致）
+
+| 层 | 参数 | 说明 |
+|---|---|---|
+| L1 子集过滤 | filter_mode / top_n_by / top_n_count / max_mags | 所有 4 图同一套 widget |
+| L2 视觉 | highlight_keystones / show_phylum_bar / show_phylum_legend + 画布 | 同上 |
+| L3 行排序 | row_order / linkage_method | mag_heatmap / pathway / gene_profile 共享；mag_quality 不用（散点图） |
+| L4 特有 | 各图独有（质量阈值 / 三段配色 / bubble 样式 / blank_zeros 等）| 按图变化 |
+
+#### 向后兼容（所有老 bundle / 老调用不破）
+
+hypothesis.py / bundle / cycle / 历史脚本写的老参数名（`sort_by=phylum_then_total`、
+`top_n=30`、`selection_by=mean`、`cluster_rows=True`、`top_abundance_n`）
+全部通过 `_normalize_deprecated_params()` 自动迁移到新名字，
+旧测试与 paper/bundles 里的老 zip 仍能加载。
+
+#### 真实数据验证（`paper/benchmarks/validation/mag_heatmap/`）
+
+同一组数据（168 MAG × 10 sample + 14 keystone）：
+- Top-30 mean 模式 Top-1 **Mx_All_102 (Chloroflexota)** mean=0.698%
+- Top-30 variance 模式 Top-1 同样 **Mx_All_102** → 高丰度+组间分化大
+- 5/14 keystone 进 Top-30 = 35.7% 重叠
+- Mx_All_153（只到 f__JACPRB01）现在标签 **`JACPRB01 sp. Mx_153`**，
+  保留科级信息而非纯 MAG id
+
+#### 关键学习
+
+1. **UI 大重构必须靠"先答疑 + 出参数表 + AskUser 定关键决策"三段式**：
+   S6-fix2 用户明确要求"先为我设计每个功能侧边的可调参数"，不立刻写
+   代码；AskUserQuestion 问 4 个关键决策后用户全部选推荐方案 → 一口气
+   完成 4 图统一而不用反复改
+2. **0 值的视觉处理比 cmap 选型更重要**：用户第一次反馈 cmap 单色
+   不明显，但换成 viridis 后用户又发现"深紫满屏"——根本问题是
+   viridis 的 0 值 ≠ 白色。`cmap.set_bad('white') + masked array`
+   让"缺失 vs 低表达"一眼分
+3. **向后兼容是架构自由度的代价**：为了保留 hypothesis.py 导入
+   `pathway.PHYLUM_COLORS` + paper/bundles 里的老 YAML 参数名，
+   每个模块都加了 `_normalize_deprecated_params()`；小成本换大收益
+   （所有老 bundle 可加载 + 所有老测试不破）
+
+---
 
 ### 2026-04-20（S6 — MAG 丰度热图 ⭐ Phase 2 达 4/5 + 12 图完整）
 
