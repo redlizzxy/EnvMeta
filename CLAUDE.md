@@ -244,39 +244,102 @@ S8 插件框架推迟到论文接收后再做。完整计划见 `C:\Users\REDLIZ
 3. **截图留档**：每个模块完成后截一张 EnvMeta 的界面截图，保存到 `paper/figures/screenshot_模块名.png`。
 4. **开发日志量化**：每次开发日志除了记录做了什么，加一行量化数据（代码行数、验证结果、耗时对比）。
 
-## 下次 session 计划（2026-04-16 起）
+## 下次 session 计划（2026-04-19 末次更新）
 
-**当前进度**：Phase 0 + Phase 1 迭代 1/2/3/4 完成。Phase 1 Reads-based 全部 6 种分析（堆叠图 / PCoA / 基因热图 / α 多样性 / log2FC / RDA）+ 代码生成器 + combined 样式端到端可用。文件识别覆盖 7 类，测试 61/61 全绿。
+**当前进度**（2026-04-19 收工时）：
+- Phase 1 Reads-based **7/7 完成**（堆叠图 / PCoA / 基因热图 / α 多样性 / log2FC / RDA / LEfSe）
+- Phase 2 MAG-based **3/5 完成**（mag_quality / pathway / gene_profile），mag_heatmap + network 待做
+- Phase 3 循环图 **S1→S3.5-ui + S4 Fork Bundle 全部完成**（假说评分器 v2 + L4 绑定发布）
+- 测试 **215/215 全绿**
+- 分析图表累计 **11 种**（7 Reads + 3 MAG + 1 Cycle）
 
-**Phase 1 基本收口** — 剩余只有 LEfSe（迭代 5 或并入 Phase 2）。
+---
 
-**建议下次做**（按优先级）：
+### 下次做：S6 `mag_heatmap` — Top30 MAG 丰度热图（~3h）
 
-1. **LEfSe 差异分析**（移植 `scripts/R/04_LEfSe.R`，~2 小时）
-   - LDA + KW 分析，输出柱图（LDA score 由大到小）
-   - Python 端用 `scipy.stats.kruskal` 做总检验 + `sklearn.discriminant_analysis.LinearDiscriminantAnalysis` 算 LDA score
-   - 新建 `envmeta/analysis/lefse.py` + app.py 页面 + 测试
-   - 完成后 Phase 1 Reads-based 全部 7 图闭环
+**移植来源**：`scripts/python/07_MAG_abundance_heatmap.py`（544 行）
 
-2. **进入 Phase 2：MAG-based 图表**（按优先级排序）
-   - `envmeta/analysis/mag_quality.py` ← `scripts/python/06_MAG_quality.py`（MAG 质量散点图，最简单 ~1.5h）
-   - `envmeta/analysis/mag_heatmap.py` ← `scripts/python/07_MAG_abundance_heatmap.py`（Top30 MAG 丰度热图，含聚类 ~3h）
-   - `envmeta/analysis/pathway.py` ← `scripts/python/08_pathway_completeness.py`（通路完整度气泡图 ~2h）
-   - `envmeta/analysis/gene_profile.py` ← `scripts/python/06_MAG_gene_profile.py`（MAG 元素循环基因谱 ~2h）
-   - `envmeta/analysis/network.py` ← `scripts/python/09_cooccurrence_network.py`（共现网络 ~3h）
+**10 个要移植的功能**：
 
-3. **SVG / TIFF 导出**（~0.5 小时）
-   - 修改 `envmeta/export/figure_export.py` 增加 SVG + TIFF 格式支持
-   - 每页导出区追加 2 个下载按钮（对应"SCI 投稿"和"毕业论文"预设）
+| # | 功能 | 说明 |
+|---|---|---|
+| 1 | Top-N MAG 筛选 | 按 mean / sum / variance 三选法 |
+| 2 | 双向层次聚类 | 行（MAG）+ 列（样本），linkage 可选 average/ward/complete |
+| 3 | 三段非线性配色 | 处理"多数低丰度、少数极高"的动态范围（原脚本特色）|
+| 4 | Phylum 彩条（行侧）| 12 门 + Other，与 stackplot 共享配色 |
+| 5 | Group 彩条（列顶）| 复用 CK/A/B 的 #4DAF4A/#377EB8/#E41A1C |
+| 6 | Keystone ★ 高亮 | MAG 行名前加标记 |
+| 7 | MAG 标签（Phylum_Genus_MAGid） | 复用 S2.5-13 的 Genus + sp.Mx_XX 规则 |
+| 8 | log1p 预变换开关 | 处理长尾分布（默认 ON）|
+| 9 | PDF / SVG / TIFF 600dpi 导出 | 复用 figure_export |
+| 10 | stats 长表输出 | Top-N MAG × sample 百分比 + 聚类顺序索引 |
 
-**建议顺序**：先 1（小但收尾 Phase 1），再按 MAG 图表的依赖与复杂度递增开 Phase 2。
+**模块架构**：
+```
+envmeta/analysis/mag_heatmap.py
+├── analyze(abundance_df, taxonomy_df=None, keystone_df=None,
+│            metadata_df=None, params=None) → AnalysisResult
+├── DEFAULTS (12 个参数)
+└── _build_3stage_cmap() 辅助
+```
 
-**阻塞项**：装 R 做 EnvMeta vs 原脚本的 PDF 侧侧对比（论文关键验证数据，目前所有 6 张 Reads-based 都等这一步）。
+**DEFAULTS 参数**：
+```python
+{
+    "top_n": 30, "selection_by": "mean", "log_transform": True,
+    "cluster_rows": True, "cluster_cols": False,
+    "linkage_method": "average", "color_breakpoints": [0.1, 0.5, 0.9],
+    "show_phylum_bar": True, "show_group_bar": True,
+    "highlight_keystones": True, "width_mm": 180, "height_mm": 220,
+}
+```
 
-**里程碑**：
-- Phase 1 基本完成 → 开始准备论文 Methods 草稿（代码生成器 + 效率对比表 + validation PDF 都已齐全）
-- Phase 2：补齐 5 张 MAG 图 → v0.5 内部测试版
-- Phase 3：循环图生成器（核心创新 → v1.0 发布）
+**7 步工作流**：
+1. 读原脚本 + 设计模块接口（20 min）
+2. 核心实现 `mag_heatmap.py`（60 min）
+3. `app.py` 新页面「MAG 丰度热图」+ 上传 + 参数 + 下载（25 min）
+4. `code_generator.py` 加 `_tpl_mag_heatmap`（SUPPORTED 10→11, 15 min）
+5. `tests/test_mag_heatmap.py` +6 case（45 min）
+6. `paper/benchmarks/validation/mag_heatmap/` 归档 + `time_comparison.md` 补行（20 min）
+7. CLAUDE.md + commit + push（15 min）
+
+**6 测试 case**：
+```python
+test_mag_heatmap_smoke()                    # analyze 返回 figure + stats
+test_top_n_filter_correct()                 # Top30 数量正确
+test_cluster_order_deterministic()          # 同输入同顺序
+test_works_without_taxonomy()               # 缺可选输入不崩
+test_phylum_bar_toggle()                    # show_phylum_bar=False 不画
+test_three_stage_colormap_breakpoints()     # breakpoints 数值合法
+```
+
+**交付后的状态**：
+- Phase 2 MAG-based **3/5 → 4/5**
+- 分析图表 **11 → 12 种**，论文"12 图完整"声明达成
+- 测试 **215 → ~221**
+- `time_comparison.md` 补齐 mag_heatmap 行（544 行 / ~90 min vs 3 点击 / 5 s）
+
+---
+
+### 备选路径（按优先级）
+
+1. **S7 network Gephi-prep（~4h）** — Phase 2 最后一张，共现网络 Gephi 兼容导出。完成后 Phase 2 **5/5 全完**
+2. **S4.5 HTML 交互导出（~10-15h, 论文 SI 杀手锏）** — D3.js 独立 HTML 嵌入 cycle_data + hypothesis_score JSON，审稿人可交互
+3. **S8-ui 导出中心统一重构（~3-4h）** — Phase 2 + S4.5 完成后再做，把所有导出（bundle / 图表 / .py 脚本）汇集到"导出中心"页
+4. **装 R 做 EnvMeta vs 原脚本侧侧对比** — 论文 Methods 关键证据，独立时间做（需装 R 环境）
+5. **S9 论文 Methods 起草** — 素材已齐（S1 去偏 + S2 置换 + S3+S3.5 评分器 + S4 Bundle）
+
+### 已推迟（明确）
+
+- **KB version 字段升 v2.0**：`elements.json` 里 `"version": "1.1"` 与实际含 v2.0 字段不匹配；独立小 session 修
+- **S3.5-doc DOI 验证**：WebFetch 当时被 firewall 挡，写进 YAML 的 6 个 DOI 待用户手动过一遍
+- **S8 插件框架**：论文接收后再做（CLAUDE.md 明确承诺）
+
+### 里程碑
+
+- ✅ Phase 1 + Phase 3 核心功能全部完成
+- ⏳ Phase 2：S6 + S7 补齐 → **v0.5 内部测试版**
+- 📄 论文 Methods 可起草节点：S6 + S7 完成后
 
 ## 开发日志
 
@@ -355,96 +418,120 @@ S8 插件框架推迟到论文接收后再做。完整计划见 `C:\Users\REDLIZ
 
 ---
 
-### 2026-04-19（**Today's Session 总结** — S2.5-14 耦合回归修复 + S3 L2 假说评分器落地）
+### 2026-04-19（**Today's Session 总结** — 全日 8 commit / L2 假说评分器 v2 + L4 Fork Bundle 落地）
 
-今日两条主线：**先修 bug，后加大功能**。累计 **3 个 commit / 测试 176 → 189 全绿**。
+今日一日跑完 **8 个 commit / 测试 176 → 215（+39）**，L1-L2-L4 三层架构闭环，
+循环图 + 假说评分器 + 绑定发布协议全部可发表级。
 
-#### 时间线
+#### 时间线（commit 顺序）
 
-| 顺序 | 内容 | commit |
-|---|---|---|
-| 1 | S2.5-14 multi-chain 细胞丢失化学物耦合锚点（As(V)↔Fe(III) 棕色线消失）| 27c32d6 |
-| 2 | 2026-04-19 S2.5-14 session 日志 | 3701f28 |
-| 3 | S3 机制假说 YAML 评分器（L2 层落地） | ff4b1b5 |
+| # | commit | 主题 | 测试变化 |
+|---|---|---|---|
+| 1 | `27c32d6` | fix(cycle) S2.5-14 multi-chain 耦合锚点回归（As(V)↔Fe(III) 棕线消失）| +1 |
+| 2 | `3701f28` | docs: S2.5-14 session 日志 | — |
+| 3 | `ff4b1b5` | feat(hypothesis) **S3** — 机制假说 YAML 评分器（L2 层首次落地）| +12 |
+| 4 | `d35b7d2` | docs: 2026-04-19 阶段性总结（v1）| — |
+| 5 | `13a1681` | docs(hypothesis) **S3.5-doc** — YAML 自带理论依据 + 6 篇 DOI 文献 | — |
+| 6 | `8039f13` | feat(hypothesis) **S3.5** — null 检验 + weight 敏感度 + required + validate CLI + group_contrast | +13 |
+| 7 | `2b0241c` | feat(app) **S3.5-ui** — 评分解读一句话 + 三指标参考卡 | — |
+| 8 | `e075c6a` | feat(hypothesis) 跨组评分对比表（论文 Results 主轴一键呈现）| +2 |
+| 9 | `1f85db5` | fix(app) 假说评分 UI 3 点打磨（not-allowed 遮挡 / 普适表述 / 减冗余）| — |
+| 10 | `d495c3b` | feat(bundle) **S4** — Fork Bundle 导出（L4 层论文绑定发布协议）| +10 |
+| 11 | `447546b` | fix(bundle) app UI 导出补齐 KEGG 快照 + README + 清空字段 | +1 |
 
-#### 关键发现 / 用户反馈
+#### 四大里程碑
 
-1. **视觉回归一定要用真实数据跑**：S2.5-14 的 bug（MAG-merge 后 merged_genes[0].substrate=None
-   导致 Fe 细胞锚点丢失）**单元测试没捕获**，必须靠用户对比 v29 vs v33 截图才发现。
-   → 修复同时加了 `test_multichain_cell_exposes_fe_iii_for_coupling` 锁死
-2. **"假说评估"与"推断"必须架构解耦**：S3 落地前反复讨论"inference 要不要
-   接受 hypothesis 输入" → 最终决定 **不接受**。hypothesis.py 只读 CycleData，
-   inference.py 零改动。论文可以诚实说 "hypothesis-agnostic inference +
-   separate evaluator"
-3. **skipped 不扣分的语义设计**：如果 claim 指向 KB 没有的耦合 / data 里没跑
-   到的 pathway → **分母剔除**，而不是判为 0 分。否则用户"写得不完整 →
-   分数被压低"会产生误解。CK 组的 3 条实跑数据验证了这个设计合理
+**S3 / S3.5（L2 层 — 机制假说 YAML 评分器 v2）**：
+- 5 类 claim：pathway_active / coupling_possible / env_correlation /
+  keystone_in_pathway / group_contrast
+- 3 个可信度指标：null_p（Fisher 1935 排列）/ weight_robust（OAT ±20%）/
+  required-veto（Bradford Hill）
+- UI 综合解读（9 档判断）+ 跨组对比表（CK/A/B 一屏呈现）
+- `envmeta hypothesis-validate` CLI 校验 YAML 对 KB 的引用
+- **hypothesis.py 不 import inference.py**，架构性解耦 —— 论文可
+  诚实声明 "hypothesis-agnostic inference + separate evaluator"
 
-#### 本次 session 两个里程碑
+**S3.5-doc（YAML 理论武装）**：
+- `arsenic_steel_slag.yaml` 顶部 80 行教程 + 7 篇带 DOI 文献（MCDA
+  Keeney&Raiffa 1993 / Belton&Stewart 2002 / Bradford Hill 1965 /
+  WoE Suter&Cormier 2011 / Linkov 2009 / Rhomberg 2013 / Fisher 1935）
+- 每条 claim 带 Bradford Hill 维度标注（strength / specificity /
+  biological plausibility / coherence / gradient）
+- README 精简，YAML 成自包含教程
 
-**S2.5-14**：
-- 根因 `merged_genes[0].substrate` 取单值，第一个基因若是 fur/tonB 就 None
-- 修复 3 处：物种列表化 + 多链位置 map (`substrate_pos_map`/`product_pos_map`)
-  + species-specific 定位 + 跳过 None substrate 的外部绘制
-- **4/4 KB 耦合线全部回归**：As(III)↔S-2 / As(V)↔Fe(III) (brown) /
-  Fe(II)↔S-2 / NO3-↔As(III)，CK/A/B × 2 ranking 下一致
+**S4（L4 层 — Fork Bundle 绑定发布协议）**：
+- `envmeta/tools/bundle.py` ~370 行：create/load/inspect
+- `envmeta bundle-create` + `envmeta bundle-inspect` 双 CLI
+- app.py 循环图页双列 UI（加载 / 导出）
+- `paper/bundles/arsenic_steel_slag_bundle.zip` 14.6 KB 官方示例
+- 读者/审稿人 fork zip → 一键复现论文分析
 
-**S3**：
-- 4 类 claim 全部实现 + 加权总分 + 4 档标签
-- 8 claim 示例 `arsenic_steel_slag.yaml` 对应用户真实论文研究
-- UI 集成到循环图页底部 expander，不破坏现有工作流
-- 真实数据：CK 0.879 / A 0.868 / **B 1.000** — 与 2026-04-17 推断观察完全对齐
-- +12 测试 case（4 claim 各一个 satisfied + 各一个 skipped/unsatisfied 路径
-  + load schema 校验 + to_dataframe/to_json）
+**S2.5-14（收尾）**：
+- multi-chain cell 的 substrate_pos_map / product_pos_map 修正
+- 4/4 KB 耦合线（含 As(V)↔Fe(III) 棕色）CK/A/B 全部回归
 
-#### 测试进展
+#### 真实数据亮点（论文 Results 一张表）
 
-**176 → 189（+13）**：
-- +1 multichain Fe(III) 暴露回归（S2.5-14）
-- +12 hypothesis 单元（S3）
+`arsenic_steel_slag.yaml` 9 claims vs 三组实测（S3.5 版）：
 
-#### 交付文件（今日新增）
+| 组 | overall | label | null_p | weight_robust | 判读 |
+|---|---|---|---|---|---|
+| CK | 0.901 | strong | 0.297 | ✅ | strong 但不特异（通过率运气主导）|
+| A  | 0.890 | strong | 0.770 | ✅ | strong 但不特异（最随机）|
+| **B** | **1.000** | **strong** | **N/A** | ✅ | **最强支持（退化式 N/A + robust = 真 strong）**|
+
+null_p 让 "B 组独特性"看得见：CK/A 的 strong label 其实是"通过率幸运"，
+只有 B 组是权重设计与数据贯穿的真 strong。
+
+#### 测试累计
+
+**176 → 215（+39）**：
+- +1 multi-chain 耦合回归（S2.5-14）
+- +12 hypothesis S3 单元（load/4 类 claim/overall 聚合）
+- +13 S3.5 可信度指标（null×3 / sensitivity×2 / required×3 /
+  group_contrast×3 / validate×2）
+- +2 跨组评分 `score_by_groups`
+- +10 bundle round-trip / manifest / inspect / 错误路径
+- +1 manifest 空字段省略
+
+#### 交付文件（今日新增全清单）
 
 | 类别 | 文件 |
 |---|---|
-| 源码 | `envmeta/geocycle/hypothesis.py`（+430 行）|
-| UI | `app.py` 循环图页 hypothesis expander |
+| 源码 | `envmeta/geocycle/hypothesis.py`（+430 行）/ `envmeta/tools/bundle.py`（~370 行）/ `envmeta/tools/hypothesis_validator.py`（~170 行）/ `envmeta/analysis/hypothesis_compare.py`（~150 行）|
+| CLI | `envmeta bundle-create` / `envmeta bundle-inspect` / `envmeta hypothesis-validate` |
+| UI | app.py 「📦 Fork Bundle」expander + 「🧪 假说评分」9 档解读 + 跨组对比表 + 三指标速查 |
 | 依赖 | `requirements.txt` +pyyaml |
-| 测试 | `tests/test_hypothesis.py`（+12 case）|
-| 测试数据 | `tests/sample_data/sample_hypothesis.yaml` |
-| 论文示例 | `paper/hypotheses/arsenic_steel_slag.yaml` |
-| 论文文档 | `paper/hypotheses/README.md` |
-| 归档 | `paper/benchmarks/validation/hypothesis/` (CK/A/B 各 TSV+JSON + README) |
+| 测试 | `tests/test_hypothesis.py`（+27 case）/ `tests/test_bundle.py`（+11 case）|
+| 论文示例 | `paper/hypotheses/arsenic_steel_slag.yaml`（9 claims + 7 文献）+ `paper/bundles/arsenic_steel_slag_bundle.zip` |
+| 论文文档 | `paper/hypotheses/README.md` + `paper/bundles/README.md` |
+| 归档 | `paper/benchmarks/validation/hypothesis/` (CK/A/B 三组 TSV+JSON+README) |
 
 #### 论文 Methods 素材
 
-> "EnvMeta couples hypothesis-agnostic cycle inference (evidence of pathway
-> activity / MAG contribution / env correlation, all without user-supplied
-> hypothesis input) with an optional hypothesis-testing YAML evaluator."
-
-#### 下次 Session 可选路径
-
-1. **S4 Fork Bundle 导出**（~4h）：打包 elements.json + 用户 YAML + 配置 →
-   zip，落地"论文-EnvMeta 绑定发布"协议。S3 + S4 组合后，L1-L2-L4 三层形成
-   闭环
-2. **S4.5 HTML 交互导出**（~10-15h，论文 SI 杀手锏）：D3.js 独立 HTML 嵌入
-   cycle_data + hypothesis_score JSON，审稿人能直接交互
-3. **S3.5 group_contrast claim**（~2h）：补 S3 v2 缺口。调用 cycle_compare
-   在 YAML 里写"B vs CK total_contribution 比值 ≥ 1.5"
-4. **S6 mag_heatmap**（~3h）：补 Phase 2 欠账
-5. **S9 论文 Methods 起草**：素材已齐（S1 去偏 + S2 置换 + S3 评分器）
-
-**强烈推荐先 S4**：与 S3 天然衔接，工时低，论文叙事完整度直接拉满。
-S4.5 推到论文投稿前冲刺。
+> "EnvMeta couples hypothesis-agnostic cycle inference with an
+> evidence-weighting scorecard [MCDA: Keeney & Raiffa 1993; Bradford Hill
+> 1965]. The scorer reports three complementary robustness indicators:
+> (i) a permutation null p-value [Fisher 1935] quantifying the probability
+> of reaching the observed overall score by chance; (ii) one-at-a-time
+> weight sensitivity analysis reporting label stability under ±20%
+> weight perturbation; (iii) a Bradford-Hill-inspired `required` veto
+> mechanism for user-designated necessary conditions. Analysis
+> configurations (knowledge base + hypothesis YAML + parameters) can be
+> packaged into a Fork Bundle (zip) for reviewer-reproducible delivery."
 
 #### 今日关键学习
 
-1. **视觉回归不要依赖单元测试**：要跑真实数据 + 用户视觉对比。本次 S2.5-14
-   正是靠用户对比截图发现
-2. **skipped 不是错误处理，是语义设计**：让"不适用"和"不成立"分开，
-   才符合用户的科学判断流程
-3. **架构解耦的成本最低的时候就是"不写"**：S3 没让 inference 接受 hypothesis
-   输入，省去了 5+ 个 API/依赖复杂度，后期维护成本大幅降低
+1. **UI 解读 ≫ 原始指标**：null_p=0.30 单看没感觉，配上"通过率运气主导"
+   的一句话解读，审稿人立刻懂。S3.5-ui 是本日投入 / 产出比最高的改动
+2. **架构解耦的最佳时机是"不写"**：hypothesis.py 不依赖 inference.py、
+   bundle.py 不依赖 cycle_compare.py，单向依赖维持系统可演化
+3. **Bundle 的价值在"不打包什么"**：不打包原始数据（体积/敏感），留 DOI
+   指针；不加密 / 不签名（违反分布式 fork 原则）
+4. **"required claim 硬否决" 的语义独立性**：与软惩罚（加权重）的关键
+   区别是它有独立的语义位面，避免用户用权重调参蒙混过关
+5. **退化式 N/A vs 无信号 N/A**：null_p=None 在 overall=1.0 时是"好"，
+   在 claim<3 时是"没信号"—— 必须在 UI 层区分，不能只展示原始值
 
 ---
 
