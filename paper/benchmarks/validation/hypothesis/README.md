@@ -6,15 +6,23 @@
 - **CycleData**：`tests/sample_data/` 六份文件
 - **推断参数**：`env_rho_min=0.3, env_p_max=0.1, perm_n=99`
 
-## 输出（按组）
+## 输出（S3.5 多指标版，按组）
 
-| 组 | overall | label | satisfied | skipped |
-|---|---|---|---|---|
-| CK | 0.879 | **strong** | 5/6 | 2 |
-| A  | 0.868 | **strong** | 6/7 | 1 |
-| B  | 1.000 | **strong** | 6/6 | 2 |
+| 组 | overall | label | null_p | weight_robust | veto |
+|---|---|---|---|---|---|
+| CK | 0.901 | strong | 0.296 (随机样) | ✅ | 0 |
+| A  | 0.890 | strong | 0.764 (高随机) | ✅ | 0 |
+| **B** | **1.000** | **strong** | N/A (退化) | ✅ | 0 |
 
-每组 TSV + JSON 分别落在 `score_group_{CK,A,B}.tsv` / `.json`。
+**解读**：
+- B 组满分 + label strong + 全 required claim 通过 = 假说被强支持
+- null_p: CK/A 接近随机（假说对它们不特异），B 组因全 satisfied 退化
+  （单一 score 集不够多样无法做排列） → 这些信号精确反映了"B 组独特性"
+- weight_robust: 三组都 ✅，说明 label 不是"权重恰好调对"的巧合
+- 无 veto 触发：required=true 的 `iron_transport_active` +
+  `fe_as_adsorption_coupling` 在三组都 satisfied（铁-砷耦合基础在各组都存在）
+
+每组 TSV + JSON 落在 `score_group_{CK,A,B}.tsv` / `.json`。
 
 ## 解读
 

@@ -282,6 +282,51 @@ S8 插件框架推迟到论文接收后再做。完整计划见 `C:\Users\REDLIZ
 
 > 每次 session 结束前更新此区块。新对话开始时 Claude Code 自动读取，了解当前进度。
 
+### 2026-04-19（S3.5 — 假说评分器 v2：null 检验 + weight 敏感度 + required + validate CLI + group_contrast）
+
+- **目标**：回应 reviewer 两大核心质疑（加权和是 ad-hoc / 阈值武断），把 S3 从
+  "scorecard v1" 升到 "scorecard v2 with robustness indicators"；顺便补 group_contrast
+- **5 项产出**（一次 session 全部封死）：
+  1. **Null comparison**（排列检验 Fisher 1935 风格）：`HypothesisScore.null_p` +
+     `null_p_samples`；n_non_skipped<3 或 weight/score 同质时退化为 None
+  2. **Weight sensitivity** OAT ±20%：`weight_robust: bool | None` +
+     `weight_sensitivity_rows: list[dict]`
+  3. **required claim 硬否决**：YAML `required: true` 字段；任一必要条件失败 →
+     label 强制 `insufficient` + `veto_reasons` 列原因。overall_score 仍透明显示
+     + params 保留 `base_label_before_veto`
+  4. **`envmeta hypothesis-validate` CLI**：检查 YAML 对 KB 的引用是否存在
+     （pathway 名 / coupling species），给出相近候选建议
+  5. **第 5 类 claim `group_contrast`**：`high_group/low_group` total_contribution
+     比值 ≥ min_ratio → satisfied。`score(..., compare_df=)` 可选注入；
+     app.py 检测到 group_contrast claim 自动调 compare_groups
+- **架构**：hypothesis.py 不 import cycle_compare（避免循环依赖），compare_df
+  作为参数注入；inference.py 完全不动
+- **理论基础文献写入 YAML 顶部**（Fisher 1935 新加一条）：`required` 对应
+  Bradford Hill 必要条件；null_p 对应 Fisher 排列检验；权重比例对应 MCDA
+- **真实数据结果**（arsenic_steel_slag.yaml 9 claims vs 三组）：
+  - **CK**: 0.901 strong | null_p=0.296（随机样）| robust ✅ | veto 0
+  - **A**:  0.890 strong | null_p=0.764（最随机）| robust ✅ | veto 0
+  - **B**:  **1.000 strong** | null_p=N/A（退化）| robust ✅ | veto 0
+  - null_p 让 "B 组独特性" 看得见：CK/A null_p 接近随机，说明 YAML 里的
+    假说对它们不特异；B 组全通过（退化为 None）+ label strong + robust = 真正支持
+- **测试 189 → 202（+13）**：
+  - null 3 (basic / too few / disable)
+  - sensitivity 2 (present / stable)
+  - required 3 (satisfied no-veto / unsatisfied veto / schema reject non-bool)
+  - group_contrast 3 (satisfied / skipped no-compare_df / schema accept)
+  - validate CLI 2 (accept good / warn unknown pathway)
+- **commit**（待）：feat(hypothesis) S3.5 + docs(yaml) required/group_contrast
+- **论文 Methods 可引用**：
+  > "We report three complementary robustness indicators alongside the headline
+  > score: (1) a permutation null p-value [Fisher 1935] quantifying the
+  > probability of reaching this score by chance; (2) one-at-a-time weight
+  > sensitivity analysis [Saltelli 2008] reporting label stability under ±20%
+  > perturbation; (3) a Bradford-Hill-inspired `required` veto mechanism [Hill 1965]
+  > for user-designated necessary conditions."
+- **下一步**：S4 Fork Bundle (~4h) 或 S6 mag_heatmap (~3h, Phase 2 补齐)
+
+---
+
 ### 2026-04-19（**Today's Session 总结** — S2.5-14 耦合回归修复 + S3 L2 假说评分器落地）
 
 今日两条主线：**先修 bug，后加大功能**。累计 **3 个 commit / 测试 176 → 189 全绿**。

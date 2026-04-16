@@ -26,6 +26,8 @@
 #                   biological gradient / plausibility / coherence /
 #                   experiment / analogy
 #       → 本评分器的 claim 可按这些维度分类（见每条 claim 注释）
+#       → **required=true 机制**直接对应 Bradford Hill 的"必要条件"语义：
+#           核心 claim 一旦失败，整个假说 label 被硬否决为 insufficient
 #
 #   [3] Weight-of-Evidence (生态风险评估 / 环境监管)
 #       Suter & Cormier 2011; Linkov et al. 2009
@@ -34,6 +36,12 @@
 #   [4] Evidence Integration Frameworks (毒理学 / 监管科学)
 #       Rhomberg et al. 2013
 #       → 权重 + 阈值的透明性是"可审计性"的前提；所有决策都在 YAML 里
+#
+#   [5] Permutation test (排列检验)
+#       Fisher 1935 Design of Experiments
+#       → 本评分器的 null_p 指标：把观测到的 score 集合在 claim 间随机
+#         重新分配 999 次，得"如果 weight 与 satisfaction 不相关，overall
+#         能到这么高的概率"。null_p < 0.05 = 不像随机巧合。
 #
 # ⚠️ 写论文 Methods 时建议这样引用本评分器：
 #    "We used EnvMeta's weight-of-evidence scorecard (cite EnvMeta paper)
@@ -56,10 +64,13 @@
 #
 # 每条 claim 结构：
 #   - id          必填；唯一；命名建议 snake_case 如 `fe_as_coupling`
-#     type        4 选 1：pathway_active | coupling_possible |
-#                          env_correlation | keystone_in_pathway
+#     type        5 选 1：pathway_active | coupling_possible |
+#                          env_correlation | keystone_in_pathway |
+#                          group_contrast (S3.5)
 #     weight      推荐比例：核心机制 = 2.0 / 主要辅证 = 1.0 / 可选辅证 = 0.5
 #                 （MCDA 原则：权重是相对比例，数值大小只要内部一致就行）
+#     required    (S3.5, 默认 false) true = 必要条件；失败则整个假说被 veto
+#                 为 insufficient（见 § 1 的 Bradford Hill 段）
 #     description 让审稿人理解"为什么列这一条"
 #     params:     每种 type 的 params 不同，见 paper/hypotheses/README.md
 #
@@ -96,13 +107,15 @@ suggestive_threshold: 0.40
 claims:
 
   # ══ 铁氧化 ═════════════════════════════════════════════════════════════
-  # [主要辅证 w=1.0] Bradford Hill 维度: strength (of association)
+  # [★ REQUIRED 前提条件, w=1.0] Bradford Hill: strength + necessity
   #   Fe transport 的 KO 丰度是"铁氧化活性"的最直接代理；
-  #   若 Fe transport 通路无活跃 MAG，整个"铁氧化驱动"叙事就站不住。
+  #   若该通路无活跃 MAG，"铁氧化驱动砷固定"假说的前提就不存在，
+  #   整个假说应被硬否决（插入到 insufficient 类）。
   - id: iron_transport_active
     type: pathway_active
     weight: 1.0
-    description: "Fe transport 通路应有活跃 MAG（ABC.FEV.A/P/S 或 afuA）"
+    required: true
+    description: "Fe transport 通路必须有活跃 MAG（前提条件）"
     params:
       pathway: "Fe transport"
       min_completeness: 40
@@ -141,13 +154,15 @@ claims:
       min_completeness: 30
 
   # ══ 跨元素化学耦合 ═════════════════════════════════════════════════════
-  # [核心机制 w=2.0] Bradford Hill 维度: biological plausibility + specificity
+  # [★ REQUIRED 核心机制 w=2.0] Bradford Hill: biological plausibility + specificity
   #   Fe(III) oxide 吸附 As(V) 是热力学 + 配位化学已知机制（非生物学假设）；
   #   评分器只验证"两端物种同时被观测到"，不重建反应动力学。
-  #   权重 2.0：这是假说的**核心命题**，若失败整个叙事瓦解。
+  #   这是假说的**核心命题**，若失败（两端物种不同时存在）整个叙事瓦解，
+  #   故 required=true 硬否决。
   - id: fe_as_adsorption_coupling
     type: coupling_possible
     weight: 2.0
+    required: true
     description: "核心假说：As(V) 吸附于 Fe(III) 表面（Fe-As_surface）"
     params:
       species_a: "As(V)"
@@ -190,6 +205,22 @@ claims:
       expected_sign: positive
       min_confidence: weak
 
+  # ══ 跨组对比 (S3.5) ════════════════════════════════════════════════════
+  # [主要辅证 w=1.5] Bradford Hill 维度: experiment (干预-响应)
+  #   核心生物学假说：高钢渣（B 组）处理应诱导砷酸盐还原活性上升。
+  #   本 claim 需要 compare_df（来自 cycle_compare.compare_groups）；
+  #   在 app 里自动注入，CLI 用户请自行准备。min_ratio=1.5 意为
+  #   B 组 total_contribution / CK 组 ≥ 1.5。
+  - id: b_enriches_arsenate_reduction
+    type: group_contrast
+    weight: 1.5
+    description: "高钢渣组（B）砷酸盐还原活性应显著高于对照（CK）"
+    params:
+      pathway: "Arsenate reduction"
+      high_group: "B"
+      low_group: "CK"
+      min_ratio: 1.5
+
 # ═══════════════════════════════════════════════════════════════════════════
 # § 4  REFERENCES （Vancouver 风格 + DOI；建议用户自查 https://doi.org/<DOI>）
 # ═══════════════════════════════════════════════════════════════════════════
@@ -227,6 +258,12 @@ claims:
 #     evidence analyses. Crit Rev Toxicol. 2013;43(9):753-84.
 #     DOI: 10.3109/10408444.2013.832727
 #     — 对 50+ WoE 框架的横向比较；"透明性 + 可审计性" 是共性要求
+#
+# [7] Fisher RA. The Design of Experiments. Edinburgh: Oliver and Boyd;
+#     1935.
+#     (OCLC 905211158；无 DOI；再版至第 9 版 1971 Hafner/Macmillan)
+#     — 排列检验（permutation test）的经典奠基；本评分器 null_p 指标的
+#       方法学来源。
 #
 # ═══════════════════════════════════════════════════════════════════════════
 # 使用说明结束。下方 YAML 主体可直接作为起点修改，写你自己的假说。

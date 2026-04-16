@@ -7,3 +7,4 @@ fe_as_adsorption_coupling	coupling_possible	satisfied	1.0	2.0	As(V) + Fe(III) �
 s_as_precipitation_coupling	coupling_possible	satisfied	1.0	1.0	As(III) + S-2 → As2S3 (precipitation)：两端物种都被观测到
 ammonia_ox_eh_link	env_correlation	unsatisfied	0.0	1.0	(Ammonia oxidation, Eh): ρ=+1.00 但 confidence=spurious?，未达 suggestive 要求
 arsenate_total_as_link	env_correlation	skipped	0.0	0.8	找不到 (Arsenate reduction, Total_As) 的相关性记录
+b_enriches_arsenate_reduction	group_contrast	satisfied	1.0	1.5	Arsenate reduction: B/CK = 361.3/189.4 = 1.91 ≥ 1.5

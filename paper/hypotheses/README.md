@@ -35,12 +35,25 @@ suggestive_threshold: 0.40     # overall ≥ 此值 → suggestive
 
 claims:                        # 至少 1 条
   - id: 唯一标识
-    type: claim 类型（4 选 1）
+    type: claim 类型（5 选 1）   # +group_contrast (S3.5)
     weight: 1.0                # 推荐比例 核心=2.0 / 主辅=1.0 / 可选=0.5
+    required: false            # S3.5: true = 必要条件；失败则整个假说 veto
     description: "..."
     params:
-      # 每种 type 的 params 不同，见下方四类 claim 表
+      # 每种 type 的 params 不同，见下方五类 claim 表
 ```
+
+## S3.5 可信度指标
+
+每次评分返回 **3 个独立指标**（除 overall_score 之外）：
+
+| 指标 | 意义 | 何时显示 |
+|---|---|---|
+| `null_p` | 排列检验 p 值（Fisher 1935）。P(随机 shuffling 达到此分) | 非 skipped claim ≥ 3 且 weight/score 非均一 |
+| `weight_robust` | OAT ±20% 权重扰动下 label 是否保持 | 非 skipped claim ≥ 2 |
+| `veto_reasons` | 哪些 required=true 的 claim 失败 → 强制 insufficient | 有 required claim 失败时 |
+
+详细理论依据见 `arsenic_steel_slag.yaml` § 1。
 
 ---
 
@@ -98,6 +111,22 @@ claims:                        # 至少 1 条
 
 **评分**：≥ min → `satisfied`；1~min-1 → `partial`；0 → `unsatisfied`；
 通路匹配不到 → `skipped`
+
+### 5. `group_contrast` — 跨组 total_contribution 比值 (S3.5)
+
+| 字段 | 类型 | 默认 | 说明 |
+|---|---|---|---|
+| `pathway` | str | — | 通路名 |
+| `high_group` | str | — | 处理组（如 `B`）|
+| `low_group` | str | — | 对照组（如 `CK`）|
+| `min_ratio` | float | 1.5 | `high / low` total_contribution 阈值 |
+
+**评分**：ratio ≥ min → `satisfied`；0.8 × min ≤ ratio < min → `partial`；
+< 0.8 × min → `unsatisfied`；找不到 pathway / group / 未提供 compare_df → `skipped`
+
+**需要**：`score(hyp, data, compare_df=...)` 传入跨组对比表（
+`envmeta.analysis.cycle_compare.compare_groups` 输出）。app.py 检测到
+group_contrast claim 会自动调用。
 
 ---
 

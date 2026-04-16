@@ -1,9 +1,9 @@
 {
-  "hypothesis_name": "钢渣驱动铁氧化-砷固定机制（假说示例）",
+  "hypothesis_name": "钢渣驱动铁氧化-砷固定机制（假说示例 + 教程）",
   "overall_score": 1.0,
   "label": "strong",
-  "n_satisfied": 6,
-  "n_total": 6,
+  "n_satisfied": 7,
+  "n_total": 7,
   "n_skipped": 2,
   "claim_results": [
     {
@@ -120,10 +120,148 @@
         "env_factor": "Total_As"
       },
       "explanation": "找不到 (Arsenate reduction, Total_As) 的相关性记录"
+    },
+    {
+      "claim_id": "b_enriches_arsenate_reduction",
+      "claim_type": "group_contrast",
+      "status": "satisfied",
+      "score": 1.0,
+      "weight": 1.5,
+      "evidence": {
+        "pathway": "Arsenate reduction",
+        "high_group": "B",
+        "high_total_contribution": 361.3,
+        "low_group": "CK",
+        "low_total_contribution": 189.4,
+        "ratio": 1.908,
+        "min_ratio": 1.5
+      },
+      "explanation": "Arsenate reduction: B/CK = 361.3/189.4 = 1.91 ≥ 1.5"
     }
   ],
   "params": {
     "strong_threshold": 0.7,
-    "suggestive_threshold": 0.4
-  }
+    "suggestive_threshold": 0.4,
+    "sensitivity_delta": 0.2,
+    "null_n": 499,
+    "base_label_before_veto": "strong"
+  },
+  "null_p": null,
+  "null_p_samples": 0,
+  "weight_robust": true,
+  "weight_sensitivity_rows": [
+    {
+      "claim_id": "iron_transport_active",
+      "direction": "down",
+      "new_weight": 0.8,
+      "new_overall": 1.0,
+      "new_label": "strong",
+      "flipped": false
+    },
+    {
+      "claim_id": "iron_transport_active",
+      "direction": "up",
+      "new_weight": 1.2,
+      "new_overall": 1.0,
+      "new_label": "strong",
+      "flipped": false
+    },
+    {
+      "claim_id": "keystone_on_iron",
+      "direction": "down",
+      "new_weight": 0.64,
+      "new_overall": 1.0,
+      "new_label": "strong",
+      "flipped": false
+    },
+    {
+      "claim_id": "keystone_on_iron",
+      "direction": "up",
+      "new_weight": 0.96,
+      "new_overall": 1.0,
+      "new_label": "strong",
+      "flipped": false
+    },
+    {
+      "claim_id": "arsenate_reduction_active",
+      "direction": "down",
+      "new_weight": 0.8,
+      "new_overall": 1.0,
+      "new_label": "strong",
+      "flipped": false
+    },
+    {
+      "claim_id": "arsenate_reduction_active",
+      "direction": "up",
+      "new_weight": 1.2,
+      "new_overall": 1.0,
+      "new_label": "strong",
+      "flipped": false
+    },
+    {
+      "claim_id": "as_transport_active",
+      "direction": "down",
+      "new_weight": 0.64,
+      "new_overall": 1.0,
+      "new_label": "strong",
+      "flipped": false
+    },
+    {
+      "claim_id": "as_transport_active",
+      "direction": "up",
+      "new_weight": 0.96,
+      "new_overall": 1.0,
+      "new_label": "strong",
+      "flipped": false
+    },
+    {
+      "claim_id": "fe_as_adsorption_coupling",
+      "direction": "down",
+      "new_weight": 1.6,
+      "new_overall": 1.0,
+      "new_label": "strong",
+      "flipped": false
+    },
+    {
+      "claim_id": "fe_as_adsorption_coupling",
+      "direction": "up",
+      "new_weight": 2.4,
+      "new_overall": 1.0,
+      "new_label": "strong",
+      "flipped": false
+    },
+    {
+      "claim_id": "s_as_precipitation_coupling",
+      "direction": "down",
+      "new_weight": 0.8,
+      "new_overall": 1.0,
+      "new_label": "strong",
+      "flipped": false
+    },
+    {
+      "claim_id": "s_as_precipitation_coupling",
+      "direction": "up",
+      "new_weight": 1.2,
+      "new_overall": 1.0,
+      "new_label": "strong",
+      "flipped": false
+    },
+    {
+      "claim_id": "b_enriches_arsenate_reduction",
+      "direction": "down",
+      "new_weight": 1.2,
+      "new_overall": 1.0,
+      "new_label": "strong",
+      "flipped": false
+    },
+    {
+      "claim_id": "b_enriches_arsenate_reduction",
+      "direction": "up",
+      "new_weight": 1.8,
+      "new_overall": 1.0,
+      "new_label": "strong",
+      "flipped": false
+    }
+  ],
+  "veto_reasons": []
 }

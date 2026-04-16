@@ -1278,7 +1278,31 @@ elif page == "生物地球化学循环图":
                         params=hyp_params,
                     )
                     hyp_obj = _load_hyp(hyp_file.read().decode("utf-8"))
-                    hyp_result = _score_hyp(hyp_obj, data)
+                    # S3.5: 若 YAML 含 group_contrast claim，自动调
+                    # compare_groups 注入 compare_df
+                    has_gc = any(c.type == "group_contrast"
+                                  for c in hyp_obj.claims)
+                    compare_df_arg = None
+                    if has_gc:
+                        from envmeta.analysis.cycle_compare import (
+                            compare_groups as _compare_groups,
+                        )
+                        cmp_params = dict(hyp_params)
+                        cmp_params.pop("group_filter", None)  # compare 遍历所有组
+                        try:
+                            compare_df_arg = _compare_groups(
+                                ko_df2, t_df2, _get_file(k_name),
+                                _get_file(a_name), _get_file(e_name),
+                                _get_file(m_name), params=cmp_params,
+                            )
+                        except Exception as ge:  # noqa: BLE001
+                            st.warning(
+                                f"自动跨组对比失败，group_contrast "
+                                f"将 skipped：{ge}"
+                            )
+                    hyp_result = _score_hyp(
+                        hyp_obj, data, compare_df=compare_df_arg,
+                    )
                     st.session_state["_hyp_last"] = hyp_result
                 except Exception as e:
                     st.error(f"评分失败：{e}")
@@ -1302,7 +1326,74 @@ elif page == "生物地球化学循环图":
                     f"{hyp_last.n_satisfied}/{hyp_last.n_total} claim 满足"
                     f"（{hyp_last.n_skipped} 条 skipped 不计）"
                 )
+                # S3.5: 显示 veto / null_p / weight_robust 三项可信度指标
+                if hyp_last.veto_reasons:
+                    base_label = hyp_last.params.get(
+                        "base_label_before_veto", "?",
+                    )
+                    st.error(
+                        "🚫 **VETOED** — 由 required=true 的 claim 触发硬否决；"
+                        f"若无 veto 原本应为 **{base_label}** "
+                        f"({hyp_last.overall_score:.2f})。"
+                        + "\n\n触发原因:\n"
+                        + "\n".join(f"- {r}" for r in hyp_last.veto_reasons)
+                    )
+                mcols = st.columns(2)
+                with mcols[0]:
+                    if hyp_last.null_p is not None:
+                        if hyp_last.null_p < 0.05:
+                            st.success(
+                                f"**null_p = {hyp_last.null_p:.3f}** "
+                                f"(n={hyp_last.null_p_samples})"
+                                "  \n"
+                                "观测分数显著高于随机排列 → 非巧合"
+                            )
+                        elif hyp_last.null_p < 0.20:
+                            st.warning(
+                                f"**null_p = {hyp_last.null_p:.3f}** "
+                                f"(n={hyp_last.null_p_samples})"
+                                "  \n"
+                                "边界显著；建议增加更多证据"
+                            )
+                        else:
+                            st.info(
+                                f"**null_p = {hyp_last.null_p:.3f}** "
+                                f"(n={hyp_last.null_p_samples})"
+                                "  \n"
+                                "与随机排列无显著差异"
+                            )
+                    else:
+                        st.info(
+                            "null_p = N/A  \n"
+                            "(claim 数不足或 score/weight 同质 → 排列退化)"
+                        )
+                with mcols[1]:
+                    if hyp_last.weight_robust is True:
+                        st.success(
+                            "✅ **weight robust**  \n"
+                            "±20% 权重扰动下 label 保持不变"
+                        )
+                    elif hyp_last.weight_robust is False:
+                        n_flip = sum(
+                            1 for r in hyp_last.weight_sensitivity_rows
+                            if r.get("flipped")
+                        )
+                        st.warning(
+                            f"⚠️ **weight sensitive**  \n"
+                            f"{n_flip}/{len(hyp_last.weight_sensitivity_rows)} "
+                            f"个扰动下 label 翻转"
+                        )
+                    else:
+                        st.info("weight sensitivity = N/A (claim 数不足)")
+
                 st.dataframe(hyp_last.to_dataframe(), use_container_width=True)
+
+                if hyp_last.weight_sensitivity_rows:
+                    with st.expander("weight sensitivity 详表（OAT ±20%）"):
+                        st.dataframe(
+                            pd.DataFrame(hyp_last.weight_sensitivity_rows),
+                            use_container_width=True,
+                        )
                 c1, c2 = st.columns(2)
                 with c1:
                     st.download_button(

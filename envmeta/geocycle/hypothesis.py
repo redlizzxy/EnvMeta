@@ -9,15 +9,22 @@
 - skipped 不扣分：YAML claim 指向 KB 没有 / data 里没跑到的对象 → 分母剔除，
   不让用户因"写多了无关 claim"被压低分数
 
-支持 4 类 claim（v1）：
+支持 5 类 claim（v2 / S3.5）：
 1. `pathway_active`        —— 某通路活跃
 2. `coupling_possible`     —— 某两物种 KB 有耦合 AND 数据里两端 species 都观测到
 3. `env_correlation`       —— (通路, 环境因子) 相关性符号 + confidence 达阈
 4. `keystone_in_pathway`   —— 某通路包含 ≥N 个 keystone contributor
+5. `group_contrast`        —— 跨组 total_contribution 比值 ≥ min_ratio (S3.5)
+
+S3.5 三大可信度指标：
+- **null_p**：排列检验（Fisher 1935 风格），999 次 shuffle 算 P(null ≥ observed)
+- **weight_robust**：OAT ±20% 权重扰动下 label 是否稳定
+- **required / veto**：硬否决机制（Bradford Hill biological plausibility）
 """
 from __future__ import annotations
 
 import json
+import random
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
@@ -37,6 +44,7 @@ CLAIM_TYPES = (
     "coupling_possible",
     "env_correlation",
     "keystone_in_pathway",
+    "group_contrast",
 )
 
 CONFIDENCE_RANK = {
@@ -54,6 +62,7 @@ class Claim:
     id: str
     type: str
     weight: float = 1.0
+    required: bool = False         # S3.5: 硬否决标志（Bradford Hill 前提条件）
     description: str = ""
     params: dict = field(default_factory=dict)
 
@@ -90,6 +99,12 @@ class HypothesisScore:
     n_skipped: int
     claim_results: list[ClaimResult] = field(default_factory=list)
     params: dict = field(default_factory=dict)
+    # S3.5 robustness indicators
+    null_p: float | None = None             # P(null_overall ≥ observed) from permutation
+    null_p_samples: int = 0                 # actual number of permutations used
+    weight_robust: bool | None = None       # True = label stable under OAT ±δ perturbation
+    weight_sensitivity_rows: list[dict] = field(default_factory=list)
+    veto_reasons: list[str] = field(default_factory=list)   # which required claim(s) vetoed
 
     def to_dataframe(self) -> pd.DataFrame:
         rows = []
@@ -163,10 +178,16 @@ def load_hypothesis(src: str | Path | dict) -> Hypothesis:
             raise ValueError(
                 f"claim[{cid}] 的 type={ctype!r} 非法；合法值: {CLAIM_TYPES}"
             )
+        required_raw = c.get("required", False)
+        if not isinstance(required_raw, bool):
+            raise ValueError(
+                f"claim[{cid}] 的 required={required_raw!r} 必须是 bool (true/false)"
+            )
         claims.append(Claim(
             id=cid,
             type=ctype,
             weight=float(c.get("weight", 1.0)),
+            required=required_raw,
             description=str(c.get("description", "")),
             params=dict(c.get("params") or {}),
         ))
@@ -481,31 +502,260 @@ def _eval_keystone_in_pathway(claim: Claim, data: CycleData) -> ClaimResult:
     )
 
 
+def _eval_group_contrast(
+    claim: Claim, data: CycleData, compare_df: pd.DataFrame | None,
+) -> ClaimResult:
+    """第 5 类 claim (S3.5)：跨组 total_contribution 比值 ≥ min_ratio。
+
+    需要 `cycle_compare.compare_groups()` 输出的 long-format DataFrame。
+    若 compare_df=None → skipped（评分器不直接调 compare_groups，保持解耦）。
+    """
+    p = claim.params
+    pw_name = p.get("pathway")
+    high = p.get("high_group")
+    low = p.get("low_group")
+    min_ratio = float(p.get("min_ratio", 1.5))
+    if not pw_name or not high or not low:
+        return ClaimResult(
+            claim.id, claim.type, "skipped", 0.0, claim.weight,
+            evidence={"reason": "missing pathway / high_group / low_group"},
+            explanation="未指定 pathway 或 high_group/low_group",
+        )
+    if compare_df is None or compare_df.empty:
+        return ClaimResult(
+            claim.id, claim.type, "skipped", 0.0, claim.weight,
+            evidence={"reason": "no compare_df"},
+            explanation="未提供跨组数据（score(..., compare_df=...) 缺省）",
+        )
+
+    # 找 pathway + 两个 group 的 total_contribution
+    target = _norm(pw_name)
+    df = compare_df.copy()
+    df["_pw_norm"] = df["display_name"].apply(_norm)
+    df["_pid_norm"] = df["pathway_id"].apply(_norm)
+    matched = df[(df["_pw_norm"] == target) | (df["_pid_norm"] == target)]
+    if matched.empty:
+        # 子串模糊
+        matched = df[df["_pw_norm"].str.contains(target, na=False) |
+                     df["_pid_norm"].str.contains(target, na=False)]
+    if matched.empty:
+        return ClaimResult(
+            claim.id, claim.type, "skipped", 0.0, claim.weight,
+            evidence={"pathway_query": pw_name},
+            explanation=f"compare_df 里找不到通路 {pw_name!r}",
+        )
+    high_row = matched[matched["group"].astype(str) == str(high)]
+    low_row = matched[matched["group"].astype(str) == str(low)]
+    if high_row.empty or low_row.empty:
+        avail = sorted(matched["group"].astype(str).unique())
+        return ClaimResult(
+            claim.id, claim.type, "skipped", 0.0, claim.weight,
+            evidence={"high_group": high, "low_group": low,
+                      "available_groups": avail},
+            explanation=f"compare_df 里找不到 group {high!r} 或 {low!r}（有 {avail}）",
+        )
+    high_c = float(high_row["total_contribution"].iloc[0])
+    low_c = float(low_row["total_contribution"].iloc[0])
+    # 处理 low_c=0 的边界
+    if low_c <= 0:
+        ratio = float("inf") if high_c > 0 else 0.0
+    else:
+        ratio = high_c / low_c
+    ev = {
+        "pathway": pw_name,
+        "high_group": high,
+        "high_total_contribution": round(high_c, 2),
+        "low_group": low,
+        "low_total_contribution": round(low_c, 2),
+        "ratio": (None if ratio == float("inf") else round(ratio, 3)),
+        "min_ratio": min_ratio,
+    }
+    if ratio >= min_ratio:
+        return ClaimResult(
+            claim.id, claim.type, "satisfied", 1.0, claim.weight,
+            evidence=ev,
+            explanation=(
+                f"{pw_name}: {high}/{low} = "
+                f"{high_c:.1f}/{low_c:.1f} = "
+                f"{('∞' if ratio == float('inf') else f'{ratio:.2f}')} "
+                f"≥ {min_ratio}"
+            ),
+        )
+    if ratio >= 0.8 * min_ratio:
+        return ClaimResult(
+            claim.id, claim.type, "partial", 0.5, claim.weight,
+            evidence=ev,
+            explanation=(
+                f"{pw_name}: {high}/{low} ratio = {ratio:.2f}，"
+                f"接近 {min_ratio} 但未达"
+            ),
+        )
+    return ClaimResult(
+        claim.id, claim.type, "unsatisfied", 0.0, claim.weight,
+        evidence=ev,
+        explanation=(
+            f"{pw_name}: {high}/{low} ratio = {ratio:.2f} < {min_ratio}"
+        ),
+    )
+
+
 _DISPATCH = {
     "pathway_active": _eval_pathway_active,
     "coupling_possible": _eval_coupling_possible,
     "env_correlation": _eval_env_correlation,
     "keystone_in_pathway": _eval_keystone_in_pathway,
+    # group_contrast 单独分派（签名不同，需要 compare_df）
 }
+
+
+# =============================================================================
+# 聚合辅助 & 可信度指标（S3.5）
+# =============================================================================
+
+def _compute_overall(weights: list[float], scores: list[float]) -> float:
+    """Σ(w·s) / Σ(w)；Σ(w)=0 → 0.0。"""
+    total = sum(weights)
+    if total <= 0:
+        return 0.0
+    return sum(w * s for w, s in zip(weights, scores)) / total
+
+
+def _label_for(overall: float, strong_t: float, suggestive_t: float) -> str:
+    if overall >= strong_t:
+        return "strong"
+    if overall >= suggestive_t:
+        return "suggestive"
+    if overall > 0:
+        return "weak"
+    return "insufficient"
+
+
+def _permutation_null_p(
+    claim_results: list[ClaimResult],
+    observed_overall: float,
+    n: int = 999,
+    rng_seed: int | None = 42,
+) -> tuple[float | None, int]:
+    """排列检验：观测到的 score 集合在 claim 间随机重新分配，算 null 分布。
+
+    返回 (null_p, actual_n)。
+    - 非-skipped claim < 3 → (None, 0)
+    - 所有 weight 相同（或全 skipped）→ null 退化为常数 → (None, 0)
+    """
+    scored = [r for r in claim_results if r.status != "skipped"]
+    if len(scored) < 3:
+        return None, 0
+    scores = [r.score for r in scored]
+    weights = [r.weight for r in scored]
+    # weight 全相等时 permutation 退化（overall 恒等于均值）
+    if len(set(weights)) == 1:
+        return None, 0
+    # 全同 score 同样退化
+    if len(set(scores)) == 1:
+        return None, 0
+    rng = random.Random(rng_seed)
+    count_ge = 0
+    for _ in range(n):
+        shuffled = scores[:]
+        rng.shuffle(shuffled)
+        null_overall = _compute_overall(weights, shuffled)
+        if null_overall >= observed_overall - 1e-12:   # 容忍浮点
+            count_ge += 1
+    # 经典 permutation p：(count + 1) / (N + 1) 防 0
+    null_p = (count_ge + 1) / (n + 1)
+    return null_p, n
+
+
+def _weight_sensitivity_scan(
+    hypothesis: Hypothesis,
+    claim_results: list[ClaimResult],
+    delta: float = 0.2,
+) -> tuple[bool | None, list[dict]]:
+    """OAT ±delta：独立扰动每条 non-skipped claim 的 weight，看 label 是否变。
+
+    返回 (robust, rows)。non-skipped < 2 → (None, [])
+    """
+    scored_pairs = [
+        (c, r) for c, r in zip(hypothesis.claims, claim_results)
+        if r.status != "skipped"
+    ]
+    if len(scored_pairs) < 2:
+        return None, []
+
+    weights = [c.weight for c, _ in scored_pairs]
+    scores = [r.score for _, r in scored_pairs]
+    baseline_overall = _compute_overall(weights, scores)
+    baseline_label = _label_for(
+        baseline_overall,
+        hypothesis.strong_threshold, hypothesis.suggestive_threshold,
+    )
+
+    rows: list[dict] = []
+    robust = True
+    for i, (c, _) in enumerate(scored_pairs):
+        for factor, tag in ((1 - delta, "down"), (1 + delta, "up")):
+            w_pert = weights[:]
+            w_pert[i] = weights[i] * factor
+            new_overall = _compute_overall(w_pert, scores)
+            new_label = _label_for(
+                new_overall,
+                hypothesis.strong_threshold, hypothesis.suggestive_threshold,
+            )
+            flipped = new_label != baseline_label
+            if flipped:
+                robust = False
+            rows.append({
+                "claim_id": c.id,
+                "direction": tag,
+                "new_weight": round(w_pert[i], 3),
+                "new_overall": round(new_overall, 3),
+                "new_label": new_label,
+                "flipped": flipped,
+            })
+    return robust, rows
 
 
 # =============================================================================
 # 聚合入口
 # =============================================================================
 
-def score(hypothesis: Hypothesis, data: CycleData) -> HypothesisScore:
-    """评估假说对 CycleData 的支持度。"""
+def score(
+    hypothesis: Hypothesis,
+    data: CycleData,
+    *,
+    compare_df: pd.DataFrame | None = None,
+    run_null: bool = True,
+    null_n: int = 999,
+    null_seed: int | None = 42,
+    run_sensitivity: bool = True,
+    sensitivity_delta: float = 0.2,
+) -> HypothesisScore:
+    """评估假说对 CycleData 的支持度。
+
+    参数
+    -----
+    compare_df         来自 cycle_compare.compare_groups() 的长表；若 YAML
+                       含 group_contrast claim 且未提供 → 该 claim 状态 skipped。
+    run_null           跑 permutation null comparison
+    null_n             排列次数（默认 999）
+    null_seed          排列随机种子（None → 系统随机；默认 42 用于可复现）
+    run_sensitivity    跑 OAT weight sensitivity
+    sensitivity_delta  权重扰动幅度（默认 ±20%）
+    """
     results: list[ClaimResult] = []
     for claim in hypothesis.claims:
-        evaluator = _DISPATCH.get(claim.type)
-        if evaluator is None:
-            results.append(ClaimResult(
-                claim.id, claim.type, "skipped", 0.0, claim.weight,
-                evidence={"reason": "unknown claim type"},
-                explanation=f"未知 claim type: {claim.type}",
-            ))
-            continue
         try:
+            if claim.type == "group_contrast":
+                results.append(_eval_group_contrast(claim, data, compare_df))
+                continue
+            evaluator = _DISPATCH.get(claim.type)
+            if evaluator is None:
+                results.append(ClaimResult(
+                    claim.id, claim.type, "skipped", 0.0, claim.weight,
+                    evidence={"reason": "unknown claim type"},
+                    explanation=f"未知 claim type: {claim.type}",
+                ))
+                continue
             results.append(evaluator(claim, data))
         except Exception as e:  # noqa: BLE001 - 评估器不应让整个评分崩掉
             results.append(ClaimResult(
@@ -515,20 +765,39 @@ def score(hypothesis: Hypothesis, data: CycleData) -> HypothesisScore:
             ))
 
     scored = [r for r in results if r.status != "skipped"]
-    total_w = sum(r.weight for r in scored)
-    earned = sum(r.weight * r.score for r in scored)
-    overall = (earned / total_w) if total_w > 0 else 0.0
+    weights = [r.weight for r in scored]
+    scores = [r.score for r in scored]
+    overall = _compute_overall(weights, scores)
+    total_w = sum(weights)
 
-    if total_w == 0:
-        label = "insufficient"
-    elif overall >= hypothesis.strong_threshold:
-        label = "strong"
-    elif overall >= hypothesis.suggestive_threshold:
-        label = "suggestive"
-    elif overall > 0:
-        label = "weak"
-    else:
-        label = "insufficient"
+    base_label = "insufficient" if total_w <= 0 else _label_for(
+        overall, hypothesis.strong_threshold, hypothesis.suggestive_threshold,
+    )
+
+    # S3.5: required → veto
+    veto_reasons: list[str] = []
+    for claim, r in zip(hypothesis.claims, results):
+        if claim.required and r.status != "satisfied":
+            veto_reasons.append(
+                f"{claim.id}: {r.status} (required=true)"
+            )
+    label = "insufficient" if veto_reasons else base_label
+
+    # S3.5: null permutation
+    null_p: float | None = None
+    null_p_samples = 0
+    if run_null:
+        null_p, null_p_samples = _permutation_null_p(
+            results, overall, n=null_n, rng_seed=null_seed,
+        )
+
+    # S3.5: weight sensitivity (OAT) — 以 base_label 为参考，不考虑 veto
+    weight_robust: bool | None = None
+    weight_sensitivity_rows: list[dict] = []
+    if run_sensitivity:
+        weight_robust, weight_sensitivity_rows = _weight_sensitivity_scan(
+            hypothesis, results, delta=sensitivity_delta,
+        )
 
     n_satisfied = sum(1 for r in scored if r.status == "satisfied")
     n_total = len(scored)
@@ -544,5 +813,13 @@ def score(hypothesis: Hypothesis, data: CycleData) -> HypothesisScore:
         params={
             "strong_threshold": hypothesis.strong_threshold,
             "suggestive_threshold": hypothesis.suggestive_threshold,
+            "sensitivity_delta": sensitivity_delta,
+            "null_n": null_n,
+            "base_label_before_veto": base_label,
         },
+        null_p=null_p,
+        null_p_samples=null_p_samples,
+        weight_robust=weight_robust,
+        weight_sensitivity_rows=weight_sensitivity_rows,
+        veto_reasons=veto_reasons,
     )

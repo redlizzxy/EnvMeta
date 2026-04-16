@@ -4,7 +4,8 @@
     python -m envmeta kb-build --elements arsenic,nitrogen ...
 
 子命令：
-    kb-build      Build elements.json from KEGG snapshot + seed KO list
+    kb-build              Build elements.json from KEGG snapshot + seed KO list
+    hypothesis-validate   Validate hypothesis YAML against KB references (S3.5)
 """
 from __future__ import annotations
 
@@ -16,8 +17,14 @@ def _kb_build(argv: list[str]) -> int:
     return kb_main(argv)
 
 
+def _hypothesis_validate(argv: list[str]) -> int:
+    from envmeta.tools.hypothesis_validator import main as v_main
+    return v_main(argv)
+
+
 _COMMANDS = {
     "kb-build": _kb_build,
+    "hypothesis-validate": _hypothesis_validate,
 }
 
 
