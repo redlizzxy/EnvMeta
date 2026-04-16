@@ -67,6 +67,91 @@ def _reproduce_button(analysis_id: str, file_paths: dict[str, str],
         help="独立可运行的 Python 脚本，复现当前参数下的图表",
     )
 
+
+def _interpret_hyp_score(hyp_last) -> tuple[str, str]:
+    """根据 (label, overall, null_p, weight_robust, vetoed) 的组合，
+    返回 (一句话解读, alert_type)。alert_type ∈ {error, warning, success, info}。
+
+    10 档判断覆盖"最强支持 / 通过但不特异 / 权重敏感 / 边界 / 中等 / 弱 / 未通过"等
+    常见情景；"退化式 N/A"(null_p=None AND overall≥0.95 ≈ 全 satisfied) 视为
+    可信 signal（兜底有 weight_robust 把关）。
+    """
+    overall = hyp_last.overall_score
+    label = hyp_last.label
+    p = hyp_last.null_p
+    robust = hyp_last.weight_robust
+    vetoed = bool(hyp_last.veto_reasons)
+
+    if vetoed:
+        return (
+            "🚫 **假说未通过**：必要前提（required=true 的 claim）未被数据支持；"
+            "无论 overall 多高都被硬否决。",
+            "error",
+        )
+
+    specific = (p is not None and p < 0.05)
+    degenerate_ok = (p is None and overall >= 0.95)
+
+    if label == "strong":
+        if (specific or degenerate_ok) and robust:
+            return (
+                "⭐ **最强支持**：label=strong，权重设计与数据支持一致"
+                + ("（全 claim 通过，排列退化）" if degenerate_ok else "")
+                + "，对 ±20% 权重扰动稳健。",
+                "success",
+            )
+        if robust and p is not None and p >= 0.20:
+            return (
+                f"⚠️ **strong 但不特异**：label 达 strong，但 null_p={p:.2f} 偏高"
+                "，说明通过率够高即可达此分，权重设计未被数据特异支持。"
+                "建议关注哪些 claim 是真正的核心机制。",
+                "warning",
+            )
+        if not robust:
+            return (
+                "⚠️ **strong 但权重敏感**：±20% 权重扰动下 label 翻转，"
+                "结论不稳，建议审视权重分配依据。",
+                "warning",
+            )
+        if p is not None and 0.05 <= p < 0.20:
+            return (
+                f"🟢 **strong 边界**：null_p={p:.2f}（0.05-0.20），"
+                "权重设计与数据中度一致，建议加入更多独立证据。",
+                "info",
+            )
+        # fallback（应极少命中）
+        return (
+            "🟢 **strong**：overall 达阈值；具体指标见下方。",
+            "info",
+        )
+
+    if label == "suggestive":
+        if specific or degenerate_ok:
+            return (
+                "🟡 **中等支持**：未达 strong 但权重设计与数据一致，"
+                "可作为支持性证据叙述（非主论证）。",
+                "info",
+            )
+        return (
+            "🟡 **中等支持**：证据部分吻合，未达 strong 阈值。",
+            "info",
+        )
+
+    if label == "weak":
+        return (
+            "🟠 **证据薄弱**：overall > 0 但低于 suggestive 阈值；"
+            "数据仅零星支持假说。",
+            "warning",
+        )
+
+    # insufficient（未 veto）
+    return (
+        "🔴 **证据不足**：overall ≈ 0，或无可评分 claim（全 skipped）；"
+        "数据未提供任何支持。",
+        "error",
+    )
+
+
 # ── 页面配置 ──────────────────────────────────────────────
 st.set_page_config(
     page_title="EnvMeta",
@@ -1326,6 +1411,9 @@ elif page == "生物地球化学循环图":
                     f"{hyp_last.n_satisfied}/{hyp_last.n_total} claim 满足"
                     f"（{hyp_last.n_skipped} 条 skipped 不计）"
                 )
+                # S3.5-ui: 综合解读一句话
+                _interp_txt, _interp_type = _interpret_hyp_score(hyp_last)
+                getattr(st, _interp_type)(_interp_txt)
                 # S3.5: 显示 veto / null_p / weight_robust 三项可信度指标
                 if hyp_last.veto_reasons:
                     base_label = hyp_last.params.get(
@@ -1344,34 +1432,44 @@ elif page == "生物地球化学循环图":
                         if hyp_last.null_p < 0.05:
                             st.success(
                                 f"**null_p = {hyp_last.null_p:.3f}** "
-                                f"(n={hyp_last.null_p_samples})"
-                                "  \n"
-                                "观测分数显著高于随机排列 → 非巧合"
+                                f"(n={hyp_last.null_p_samples})  \n"
+                                "📉 越小越好；此处 < 0.05 = "
+                                "权重设计与数据支持显著一致（特异）"
                             )
                         elif hyp_last.null_p < 0.20:
                             st.warning(
                                 f"**null_p = {hyp_last.null_p:.3f}** "
-                                f"(n={hyp_last.null_p_samples})"
-                                "  \n"
-                                "边界显著；建议增加更多证据"
+                                f"(n={hyp_last.null_p_samples})  \n"
+                                "📉 越小越好；0.05-0.20 = 边界，"
+                                "建议增加独立证据"
                             )
                         else:
                             st.info(
                                 f"**null_p = {hyp_last.null_p:.3f}** "
-                                f"(n={hyp_last.null_p_samples})"
-                                "  \n"
-                                "与随机排列无显著差异"
+                                f"(n={hyp_last.null_p_samples})  \n"
+                                "📉 ≥ 0.20 = 通过率运气主导，"
+                                "权重设计未被数据特异支持"
                             )
                     else:
-                        st.info(
-                            "null_p = N/A  \n"
-                            "(claim 数不足或 score/weight 同质 → 排列退化)"
-                        )
+                        # 区分退化式 N/A（好）vs 无信号 N/A（不好）
+                        if hyp_last.overall_score >= 0.95:
+                            st.success(
+                                "**null_p = N/A**（退化式）  \n"
+                                "🎯 全 claim satisfied → 排列无意义；"
+                                "此 N/A 是『好』的退化，看 robust 兜底"
+                            )
+                        else:
+                            st.info(
+                                "**null_p = N/A**（无信号）  \n"
+                                "claim 数 < 3 / weight 同质 / score 同质 "
+                                "→ 排列统计力不足，**不是『最好』**"
+                            )
                 with mcols[1]:
                     if hyp_last.weight_robust is True:
                         st.success(
                             "✅ **weight robust**  \n"
-                            "±20% 权重扰动下 label 保持不变"
+                            "±20% 权重扰动下 label 保持不变，"
+                            "结论不靠阈值挑权重"
                         )
                     elif hyp_last.weight_robust is False:
                         n_flip = sum(
@@ -1381,10 +1479,13 @@ elif page == "生物地球化学循环图":
                         st.warning(
                             f"⚠️ **weight sensitive**  \n"
                             f"{n_flip}/{len(hyp_last.weight_sensitivity_rows)} "
-                            f"个扰动下 label 翻转"
+                            f"个扰动下 label 翻转，建议审视权重分配"
                         )
                     else:
-                        st.info("weight sensitivity = N/A (claim 数不足)")
+                        st.info(
+                            "weight sensitivity = N/A  \n"
+                            "claim 数不足，非稳健也非敏感"
+                        )
 
                 st.dataframe(hyp_last.to_dataframe(), use_container_width=True)
 
@@ -1394,6 +1495,65 @@ elif page == "生物地球化学循环图":
                             pd.DataFrame(hyp_last.weight_sensitivity_rows),
                             use_container_width=True,
                         )
+
+                with st.expander("📖 三指标怎么看（独立指标 + 组合判断）"):
+                    st.markdown(
+                        """
+**1. overall_score** (0 ~ 1.0) — 越高越好
+
+加权平均"claim 被数据支持的程度"。1.0 = 全通过。默认阈值：
+- ≥ `strong_threshold` (default 0.75) → label = **strong**
+- ≥ `suggestive_threshold` (default 0.40) → **suggestive**
+- \> 0 → **weak**；= 0 或全 skipped → **insufficient**
+
+---
+
+**2. null_p** (排列检验 p 值) — **越低越好**
+
+把观测到的 score 集合在 claim 间随机重新分配 999 次，
+算 P(null_overall ≥ observed)。
+
+| null_p | 含义 |
+|---|---|
+| < 0.05 | ⭐ 权重设计与数据特异一致（strong + specific）|
+| 0.05-0.20 | 🟢 边界显著 |
+| ≥ 0.20 | ⚠️ 通过率运气主导，权重设计未被数据特异支持 |
+| **N/A (退化式)** | 🎯 overall ≥ 0.95，全通过导致排列无意义。**此 N/A 是"好的"** |
+| **N/A (无信号)** | ⚠️ claim<3 / weight 同质 / score 同质。**不是"好"，是统计力不足** |
+
+---
+
+**3. weight_robust** (OAT ±20%) — `True` 最好
+
+对每条 claim 独立扰动 weight ±20%，检查 label 是否翻转。
+- `True` = label 稳健，结论不靠挑权重
+- `False` = 对 ±20% 扰动敏感，审视权重依据
+- `None` = claim 数 < 2，无法测
+
+---
+
+**4. 🚫 VETOED** (required claim)
+
+任一 `required: true` 的 claim 失败 → label 强制 `insufficient`。
+overall_score 仍显示（透明度），但 label 被否决。
+
+---
+
+**组合判断优先级**（顶部"一句话解读"自动应用这张表）：
+
+| 条件 | 判定 |
+|---|---|
+| vetoed | 🚫 假说未通过（必要前提失败）|
+| strong + (null_p<0.05 或 退化式 N/A) + robust | ⭐ 最强支持 |
+| strong + robust + null_p≥0.20 | ⚠️ strong 但不特异 |
+| strong + not robust | ⚠️ strong 但权重敏感 |
+| strong + 0.05≤null_p<0.20 | 🟢 strong 边界 |
+| suggestive + specific | 🟡 中等支持（权重一致）|
+| weak | 🟠 证据薄弱 |
+| insufficient (未 veto) | 🔴 证据不足 |
+""".strip()
+                    )
+
                 c1, c2 = st.columns(2)
                 with c1:
                     st.download_button(
