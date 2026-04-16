@@ -284,6 +284,9 @@ def _draw_bubble(df, pw_order, pw_display, pw_elem, elem_color, p) -> plt.Figure
     ab_scale = abund / (abund.max() + 1e-9) * p["bubble_scale"] * 80 + 8
 
     cmap = plt.get_cmap(p["cmap_name"])
+    from matplotlib.cm import ScalarMappable
+    from matplotlib.colors import Normalize
+    norm = Normalize(vmin=0, vmax=100)
     for i in range(n_mag):
         for j in range(n_pw):
             val = mat[i, j]
@@ -310,22 +313,31 @@ def _draw_bubble(df, pw_order, pw_display, pw_elem, elem_color, p) -> plt.Figure
     ax.set_ylim(-1.5, n_mag)
     ax.invert_yaxis()
     ax.set_title(
-        "Pathway Completeness Bubble (color=completeness, size=abundance)",
-        fontsize=11, fontweight="bold", pad=12,
+        "Pathway Completeness Bubble  "
+        "(color=completeness %, bubble size ≈ abundance × completeness)",
+        fontsize=10, fontweight="bold", pad=12,
     )
     for spine in ("top", "right"):
         ax.spines[spine].set_visible(False)
 
-    # 图例：大小
+    # 颜色 colorbar（completeness %）
+    sm = ScalarMappable(norm=norm, cmap=cmap)
+    sm.set_array([])
+    cbar = fig.colorbar(sm, ax=ax, shrink=0.5, pad=0.02,
+                        label="Completeness (%)")
+    cbar.ax.tick_params(labelsize=8)
+
+    # 图例：大小（与 abundance × completeness 的代表点对应）
     from matplotlib.lines import Line2D
     legend_vals = [20, 50, 100]
     handles = [
         Line2D([0], [0], marker="o", color="none", markerfacecolor="#555",
                markersize=np.sqrt(v * 0.4 * p["bubble_scale"]),
                markeredgecolor="white", markeredgewidth=0.3,
-               label=f"{v}% complete")
+               label=f"{v}% × top-abund.")
         for v in legend_vals
     ]
-    ax.legend(handles=handles, loc="upper right", bbox_to_anchor=(1.12, 1.0),
-              fontsize=7, frameon=False)
+    ax.legend(handles=handles, loc="upper right", bbox_to_anchor=(1.18, 1.0),
+              fontsize=7, frameon=False,
+              title="bubble size", title_fontsize=7)
     return fig

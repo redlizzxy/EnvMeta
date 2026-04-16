@@ -68,3 +68,41 @@ def test_gene_profile_export(gp_inputs):
     r = gene_profile.analyze(ko, tax, ks, params={"max_mags": 30})
     pdf = export_to_bytes(r.figure, "pdf")
     assert pdf.startswith(b"%PDF")
+
+
+# ── S6-fix: filter_mode ────────────────────────────────────
+
+def test_gene_profile_filter_mode_top_plus_keystone(gp_inputs):
+    """top_plus_keystone = Top-N abundance ∪ keystone。结果必须包含所有 keystone。"""
+    ko, tax, ks = gp_inputs
+    # 必须传 abundance 才能算 top_abundance；复用 keystone 表里没丰度，另取
+    abundance = pd.read_csv(SAMPLE / "abundance.tsv", sep="\t")
+    r = gene_profile.analyze(
+        ko, tax, ks, abundance,
+        params={"filter_mode": "top_plus_keystone", "top_abundance_n": 20},
+    )
+    ks_set = set(ks["MAG"].astype(str))
+    stats_mags = set(r.stats["MAG"].astype(str))
+    # 所有 keystone 都在结果里（即使不在 Top-20 丰度里）
+    kept_ks = stats_mags & ks_set
+    assert kept_ks == ks_set, (
+        f"top_plus_keystone 应保留所有 keystone；"
+        f"缺失：{ks_set - stats_mags}"
+    )
+    # 结果 ≤ Top-N + |keystone|（去重后的并集）
+    assert len(stats_mags) <= 20 + len(ks_set)
+
+
+def test_gene_profile_filter_mode_keystone_only(gp_inputs):
+    ko, tax, ks = gp_inputs
+    r = gene_profile.analyze(ko, tax, ks,
+                             params={"filter_mode": "keystone_only"})
+    assert r.stats["is_keystone"].all()
+
+
+def test_gene_profile_filter_mode_all_keeps_everyone(gp_inputs):
+    ko, tax, ks = gp_inputs
+    r_all = gene_profile.analyze(ko, tax, ks, params={"filter_mode": "all"})
+    r_default = gene_profile.analyze(ko, tax, ks)   # 默认 top_plus_keystone
+    # "all" 至少不小于默认（top_plus_keystone 是 "all" 的子集）
+    assert len(r_all.stats) >= len(r_default.stats)

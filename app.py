@@ -861,26 +861,44 @@ elif page == "MAG-based 分析":
             with st.expander("查看统计表"):
                 st.dataframe(last.stats, use_container_width=True)
     elif analysis_type == "MAG 丰度热图":
-        ab_candidates = list(st.session_state.files.keys())
-        if not ab_candidates:
+        file_names = list(st.session_state.files.keys())
+        if not file_names:
             st.warning("需要 1 个 MAG 丰度表（MAG × sample 宽表，首列 Genome/MAG）。")
             st.stop()
-        ab_name = st.selectbox("MAG 丰度表", ab_candidates, key="mh_ab")
+
+        def _mh_first_of(*ftypes: FileType) -> str | None:
+            for n, info in st.session_state.files.items():
+                if info["type"] in ftypes:
+                    return n
+            return None
+
+        def _mh_idx(options: list[str], name: str | None) -> int:
+            return options.index(name) if (name and name in options) else 0
+
+        ab_default = _mh_first_of(FileType.ABUNDANCE_WIDE)
+        ab_name = st.selectbox("MAG 丰度表", file_names, key="mh_ab",
+                               index=_mh_idx(file_names, ab_default))
+        t_default = _mh_first_of(FileType.MAG_TAXONOMY)
+        t_options = ["（无）"] + [n for n in file_names if n != ab_name]
         t_name = st.selectbox(
-            "GTDB 分类表（可选）",
-            ["（无）"] + [n for n in ab_candidates if n != ab_name],
-            key="mh_tax",
+            "GTDB 分类表（可选，用于 Genus 标签 + 门彩条）",
+            t_options, key="mh_tax",
+            index=_mh_idx(t_options, t_default),
         )
+        k_default = _mh_first_of(FileType.KEYSTONE_SPECIES)
+        k_options = ["（无）"] + [n for n in file_names if n not in (ab_name, t_name)]
         k_name = st.selectbox(
             "Keystone 物种列表（可选）",
-            ["（无）"] + [n for n in ab_candidates if n not in (ab_name, t_name)],
-            key="mh_ks",
+            k_options, key="mh_ks",
+            index=_mh_idx(k_options, k_default),
         )
+        m_default = _mh_first_of(FileType.METADATA)
+        m_options = ["（无）"] + [n for n in file_names
+                                 if n not in (ab_name, t_name, k_name)]
         m_name = st.selectbox(
             "样本分组表（可选，提供组彩条 + 样本排序）",
-            ["（无）"] + [n for n in ab_candidates
-                         if n not in (ab_name, t_name, k_name)],
-            key="mh_md",
+            m_options, key="mh_md",
+            index=_mh_idx(m_options, m_default),
         )
 
         with st.sidebar:
@@ -1081,17 +1099,41 @@ elif page == "MAG-based 分析":
 
         with st.sidebar:
             st.subheader("基因谱参数")
+            filter_mode = st.selectbox(
+                "MAG 子集",
+                ["top_plus_keystone", "top_abundance", "keystone_only", "all"],
+                index=0, key="gp_filter",
+                help=(
+                    "• top_plus_keystone（默认）: Top-N 丰度 MAG ∪ 全部 keystone\n"
+                    "• top_abundance: 只留 Top-N 丰度 MAG\n"
+                    "• keystone_only: 只留 keystone 物种\n"
+                    "• all: 不过滤，显全部 MAG（再由 max_mags 截断）"
+                ),
+            )
+            top_abund_n = st.slider(
+                "Top-N 丰度（filter_mode != all 时生效）", 5, 100, 30,
+                step=5, key="gp_topabn",
+            )
             sort_by = st.selectbox(
                 "排序方式",
                 ["phylum_then_count", "count", "abundance"],
                 key="gp_sort",
+                help=(
+                    "• phylum_then_count: 按门分组→门内按基因总拷贝数降序；"
+                    "同门 MAG 相邻，门彩条呈块状。若前 N 都来自 1-2 个最大"
+                    "的门，彩条会看起来只有 1-2 色（这是正确行为）\n"
+                    "• count: 跨门按基因总拷贝数降序\n"
+                    "• abundance: 按平均丰度降序"
+                ),
             )
             elem_opts = ["arsenic", "sulfur", "iron", "nitrogen"]
             elem_sel = st.multiselect("元素过滤（空=全部）", elem_opts,
                                       default=[], key="gp_elem")
             max_mags = st.slider("最多显示 MAG 数（0=全部）", 0, 200, 60,
-                                 step=10, key="gp_max")
+                                 step=10, key="gp_max",
+                                 help="在子集过滤 + 排序之后再做的硬截断。")
             show_names = st.checkbox("列标签显示基因名", True, key="gp_names")
+            st.caption("🎨 左侧门彩条颜色 = Phylum；对照 MAG 质量页右侧图例")
             size = render_figure_size({"width_mm": 340, "height_mm": 220},
                                       prefix="gp")
 
@@ -1110,6 +1152,8 @@ elif page == "MAG-based 分析":
                 "element_filter": elem_sel or None,
                 "max_mags": max_mags or None,
                 "show_gene_names": show_names,
+                "filter_mode": filter_mode,
+                "top_abundance_n": top_abund_n,
                 **size,
             }
             try:

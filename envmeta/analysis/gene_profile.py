@@ -31,15 +31,19 @@ from envmeta.analysis.pathway import (
 DEFAULTS = {
     "width_mm": 340,
     "height_mm": 220,
-    "max_mags": None,            # None → 全部
-    "sort_by": "phylum_then_count",  # | "count" | "abundance"
+    "max_mags": None,                     # None → 全部
+    "sort_by": "phylum_then_count",       # | "count" | "abundance"
     "element_filter": None,
     "annotate_keystone": True,
     "cmap_name": "YlOrBr",
-    "drop_zero_kos": True,       # True → 过滤全 0 KO 列
-    "show_gene_names": True,     # KO 列标签是否显示基因名
+    "drop_zero_kos": True,                # True → 过滤全 0 KO 列
+    "show_gene_names": True,              # KO 列标签是否显示基因名
     "show_element_bar": True,
     "show_phylum_bar": True,
+    # S6-fix: MAG 子集过滤（按 abundance / keystone 双标准）
+    "filter_mode": "top_plus_keystone",   # "all" | "top_abundance" |
+                                          # "keystone_only" | "top_plus_keystone"
+    "top_abundance_n": 30,                # filter_mode != "all" 时生效
 }
 
 
@@ -144,6 +148,25 @@ def analyze(
         df["abundance_mean"] = 0.0
 
     df["gene_count"] = df[active_kos].sum(axis=1)
+
+    # S6-fix: 子集过滤（在排序之前，针对 MAG 集合做筛选）
+    mode = p.get("filter_mode", "all")
+    n_top = int(p.get("top_abundance_n", 30))
+    if mode == "top_abundance":
+        df = df.sort_values("abundance_mean", ascending=False).head(n_top)
+    elif mode == "keystone_only":
+        df = df[df["is_keystone"]]
+    elif mode == "top_plus_keystone":
+        top_mags = set(df.sort_values("abundance_mean", ascending=False)
+                         .head(n_top)["MAG"].tolist())
+        ks_mags = set(df[df["is_keystone"]]["MAG"].tolist())
+        df = df[df["MAG"].isin(top_mags | ks_mags)]
+    # "all" → 不过滤
+    df = df.reset_index(drop=True)
+    if df.empty:
+        raise ValueError(
+            f"filter_mode={mode!r} 过滤后无 MAG 可显示"
+            f"（keystone 数 / top_abundance_n 过小）")
 
     # 排序
     if p["sort_by"] == "count":

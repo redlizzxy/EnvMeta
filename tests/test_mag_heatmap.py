@@ -2,6 +2,7 @@
 from pathlib import Path
 
 import matplotlib
+import matplotlib.pyplot as plt  # noqa: F401 — used by legend assertion
 import numpy as np
 import pandas as pd
 import pytest
@@ -125,3 +126,38 @@ def test_export_png_pdf(mh_inputs):
     pdf = export_to_bytes(r.figure, "pdf")
     assert png.startswith(b"\x89PNG")
     assert pdf.startswith(b"%PDF")
+
+
+# ── S6-fix: Genus 标签 + 图例 ────────────────────────────────
+
+def test_mag_label_uses_genus_when_tax_provided(mh_inputs):
+    """上传 taxonomy 后 stats 里 label 列应包含 Genus（不是纯 Mx_All_XX）。"""
+    ab, tax, ks, md = mh_inputs
+    r = mag_heatmap.analyze(ab, tax, ks, md, params={"top_n": 30})
+    assert "label" in r.stats.columns
+    # 至少有一条 label 不等于 MAG id（即取到了 Genus）
+    not_equal = (r.stats["label"] != r.stats["MAG"]).sum()
+    assert not_equal >= 1, "上传 taxonomy 后应至少有一条 MAG 拿到 Genus 标签"
+
+
+def test_mag_label_falls_back_without_tax(mh_inputs):
+    """没 taxonomy 时 label == MAG id。"""
+    ab, _, _, _ = mh_inputs
+    r = mag_heatmap.analyze(ab, params={"top_n": 10})
+    assert (r.stats["label"] == r.stats["MAG"]).all()
+
+
+def test_phylum_legend_rendered(mh_inputs):
+    """右侧图例区应至少包含一个 'Phylum' 标题的 legend。"""
+    ab, tax, ks, md = mh_inputs
+    r = mag_heatmap.analyze(ab, tax, ks, md, params={"top_n": 30})
+    axes = r.figure.axes
+    # 第三个 Axes 是图例区，查找其 legend
+    legends = []
+    for a in axes:
+        for child in a.get_children():
+            if isinstance(child, plt.matplotlib.legend.Legend):
+                legends.append(child)
+    titles = [lg.get_title().get_text() for lg in legends]
+    assert any("Phylum" in t for t in titles), \
+        f"应有 Phylum 图例，实际 legend 标题：{titles}"

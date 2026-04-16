@@ -3,19 +3,25 @@
 核心：在长尾分布的 MAG × sample 丰度矩阵中突出 Top-N，提供门分组 + 关键物种
 标注 + 组顶彩条 + 三段非线性配色（适配少数极高 + 多数低值的场景）。
 
+布局（gridspec，从左到右）：
+    [门彩条 | 主热图 | 右侧图例区]
+    - 门彩条独立 Axes，不与 y-tick-label 重叠
+    - 右侧图例：Phylum + Group（可选）+ Keystone 说明
+
 输入：
     abundance_df: MAG × sample 宽表（首列 MAG / Genome / Name；其余为样本丰度，%）
-    taxonomy_df:  可选 MAG + GTDB classification（用于门彩条、门内聚类）
+    taxonomy_df:  可选 MAG + GTDB classification（用于门彩条、门内聚类、Genus 标签）
     keystone_df:  可选 MAG 列表（MAG + 可选 Genus），打 ★ 高亮
     metadata_df:  可选 SampleID + Group（用于组彩条 + 样本按组排序）
 
 输出：
     figure — 主热图 + 门色带 + 组色带 + 关键物种 ★ + 色标 + 图例
-    stats  — 合并表：MAG × sample 丰度百分比 + Phylum + is_keystone +
-             row_order（聚类后行序）+ selection_score（mean/sum/var 指标）
+    stats  — 合并表：MAG × sample 百分比 + Phylum + is_keystone +
+             row_order（聚类后行序）+ selection_score + label（显示标签）
 """
 from __future__ import annotations
 
+import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -41,13 +47,44 @@ DEFAULTS = {
     "show_phylum_bar": True,
     "show_group_bar": True,
     "highlight_keystones": True,
-    "width_mm": 180,
+    "width_mm": 240,                      # 加宽给右侧图例让位
     "height_mm": 220,
 }
 
 
-def _select_top_n(mat: np.ndarray, top_n: int, by: str) -> np.ndarray:
-    """返回按 mean/sum/variance 排序的行索引（降序，截取 Top-N）。"""
+def _extract_rank(cls: str, prefix: str) -> str:
+    """从 GTDB classification 字符串里取出某级分类（g__ / s__ / f__）。"""
+    if not isinstance(cls, str):
+        return ""
+    for part in cls.split(";"):
+        part = part.strip()
+        if part.startswith(prefix):
+            return part[len(prefix):].strip()
+    return ""
+
+
+def _mag_display_label(mag: str, genus: str, species: str) -> str:
+    """复用 inference.py:259 的 S2.5-13 规则：
+
+    - Genus + species 都有 → "Genus species"
+    - 只有 Genus        → "Genus sp. Mx_XX"（XX 是 MAG id 尾缀）
+    - 都没有            → 纯 MAG_id
+    """
+    g = (genus or "").strip()
+    s = (species or "").strip()
+    if g and s:
+        # 若 species 已经包含 genus 前缀（GTDB 的 "s__Gallionella rugosa" 风格），去重
+        if s.startswith(g + " "):
+            s = s[len(g) + 1:]
+        return f"{g} {s}".strip()
+    if g:
+        tail = str(mag).split("_")[-1] if "_" in str(mag) else str(mag)
+        return f"{g} sp. Mx_{tail}"
+    return str(mag)
+
+
+def _select_top_n(mat: np.ndarray, top_n: int, by: str) -> tuple[np.ndarray, np.ndarray]:
+    """返回按 mean/sum/variance 排序的行索引（降序，截取 Top-N）+ 全行分数。"""
     if by == "sum":
         score = mat.sum(axis=1)
     elif by == "variance":
@@ -60,17 +97,12 @@ def _select_top_n(mat: np.ndarray, top_n: int, by: str) -> np.ndarray:
 
 
 def _build_tricolor_cmap(mat: np.ndarray, breakpoints: tuple[float, float]):
-    """三段非线性配色：低段 Blues（频繁低值） → 中段 YlGn → 高段 YlOrRd。
-
-    目的：把视觉分辨率集中在"少数极高值"与"低值背景之上的中等值"两段上，
-    而非被一两个极值压缩到全图蓝灰。
-    """
+    """三段非线性配色：低段 Blues（频繁低值） → 中段 YlGn → 高段 YlOrRd。"""
     vmax = np.ceil(mat.max() * 10) / 10 if mat.size else 1.0
     lo_bp, hi_bp = breakpoints
     if vmax < hi_bp + 0.1:
         vmax = hi_bp + 0.1
 
-    # 低段细分，高段粗分
     bounds_lo = list(np.arange(0, lo_bp + 1e-9, 0.025))
     bounds_mid = list(np.arange(lo_bp, hi_bp + 1e-9, 0.05))
     bounds_hi = list(np.arange(hi_bp, min(vmax, 1.0) + 1e-9, 0.1))
@@ -138,7 +170,7 @@ def analyze(
     df["selection_score"] = scores[row_order]
     mat = df[sample_cols].to_numpy(dtype=float)
 
-    # ── 分类 ────────────────────────────────────────────────
+    # ── 分类（Phylum + Genus + Species）──────────────────────
     if taxonomy_df is not None and not taxonomy_df.empty:
         tax = taxonomy_df.copy()
         tax = tax.rename(columns={_mag_col(tax): "MAG"})
@@ -150,8 +182,15 @@ def analyze(
         )
         if cls_col is not None:
             tax["Phylum"] = tax[cls_col].apply(_extract_phylum)
-            df = df.merge(tax[["MAG", "Phylum"]], on="MAG", how="left")
+            tax["Genus"] = tax[cls_col].apply(lambda x: _extract_rank(x, "g__"))
+            tax["Species"] = tax[cls_col].apply(lambda x: _extract_rank(x, "s__"))
+            df = df.merge(tax[["MAG", "Phylum", "Genus", "Species"]],
+                          on="MAG", how="left")
     df["Phylum"] = df.get("Phylum", pd.Series(["Unknown"] * len(df))).fillna("Unknown")
+    df["Genus"] = df.get("Genus", pd.Series([""] * len(df))).fillna("")
+    df["Species"] = df.get("Species", pd.Series([""] * len(df))).fillna("")
+    df["label"] = df.apply(
+        lambda r: _mag_display_label(r["MAG"], r["Genus"], r["Species"]), axis=1)
 
     # ── keystone ────────────────────────────────────────────
     if keystone_df is not None and not keystone_df.empty:
@@ -165,11 +204,13 @@ def analyze(
     groups_per_sample: dict[str, str | None] = {s: None for s in sample_cols}
     if metadata_df is not None and not metadata_df.empty:
         md = metadata_df.copy()
-        sid_col = next((c for c in md.columns if c.lower() in ("sampleid", "sample", "sample_id")), md.columns[0])
+        sid_col = next((c for c in md.columns
+                        if c.lower() in ("sampleid", "sample", "sample_id")),
+                       md.columns[0])
         grp_col = next((c for c in md.columns if c.lower() == "group"), None)
         if grp_col is not None:
-            groups_per_sample = dict(zip(md[sid_col].astype(str), md[grp_col].astype(str)))
-            # 按组分组后保持原样本在组内的相对顺序
+            groups_per_sample = dict(zip(
+                md[sid_col].astype(str), md[grp_col].astype(str)))
             by_grp: dict[str, list[str]] = {}
             for s in sample_cols:
                 g = groups_per_sample.get(s)
@@ -185,7 +226,7 @@ def analyze(
                                                    if c not in {"MAG", *sample_cols}]]
                 mat = df[sample_cols].to_numpy(dtype=float)
 
-    # ── 行聚类（门内 or 全局）──────────────────────────────
+    # ── 行聚类 ──────────────────────────────────────────────
     if p["cluster_rows"]:
         mat_for_clust = np.log1p(mat) if p["log_transform"] else mat
         if p["cluster_within_phylum"] and "Phylum" in df.columns:
@@ -207,7 +248,6 @@ def analyze(
             mat = df[sample_cols].to_numpy(dtype=float)
     df["row_order"] = range(len(df))
 
-    # ── 列聚类（可选）──────────────────────────────────────
     if p["cluster_cols"]:
         mat_T = np.log1p(mat.T) if p["log_transform"] else mat.T
         col_leaf = _cluster_order(mat_T, p["linkage_method"])
@@ -218,23 +258,33 @@ def analyze(
 
     fig = _draw(df, sample_cols, mat, groups_per_sample, p)
 
-    stats_df = df[["MAG", "Phylum", "is_keystone", "row_order",
-                   "selection_score"] + sample_cols].copy()
+    stats_df = df[["MAG", "label", "Phylum", "Genus", "Species",
+                   "is_keystone", "row_order", "selection_score"]
+                  + sample_cols].copy()
     return AnalysisResult(figure=fig, stats=stats_df, params=p)
 
 
 def _draw(df, sample_cols, mat, groups_per_sample, p) -> plt.Figure:
     n_mag, n_sample = mat.shape
-    cmap, norm, bounds, vmax = _build_tricolor_cmap(mat, tuple(p["color_breakpoints"]))
+    cmap, norm, bounds, vmax = _build_tricolor_cmap(
+        mat, tuple(p["color_breakpoints"]))
 
-    fig, ax = plt.subplots(
+    fig = plt.figure(
         figsize=(p["width_mm"] / 25.4, p["height_mm"] / 25.4),
         constrained_layout=True,
     )
+    # 三列：[门彩条 | 主热图 | 图例]
+    show_phy = p["show_phylum_bar"]
+    width_ratios = [0.05, 1.0, 0.35] if show_phy else [0.0001, 1.0, 0.35]
+    gs = fig.add_gridspec(1, 3, width_ratios=width_ratios, wspace=0.02)
+    ax_phy = fig.add_subplot(gs[0, 0])
+    ax = fig.add_subplot(gs[0, 1])
+    ax_leg = fig.add_subplot(gs[0, 2])
+
     im = ax.imshow(mat, aspect="auto", cmap=cmap, norm=norm,
                    interpolation="nearest")
 
-    # 顶部组色带
+    # ── 顶部组色带（画在主热图 Axes 内，紧贴 y=-1）──────────
     if p["show_group_bar"] and any(groups_per_sample.values()):
         for j, s in enumerate(sample_cols):
             g = groups_per_sample.get(s)
@@ -244,7 +294,6 @@ def _draw(df, sample_cols, mat, groups_per_sample, p) -> plt.Figure:
                 facecolor=color, edgecolor="none",
                 clip_on=False, alpha=0.9, zorder=3,
             ))
-        # 组间竖线分隔
         prev = None
         for j, s in enumerate(sample_cols):
             g = groups_per_sample.get(s)
@@ -252,24 +301,28 @@ def _draw(df, sample_cols, mat, groups_per_sample, p) -> plt.Figure:
                 ax.axvline(j - 0.5, color="black", lw=1.2, zorder=4)
             prev = g
 
-    # 左侧门色带
-    if p["show_phylum_bar"]:
+    # ── 左侧门彩条（独立 Axes）──────────────────────────────
+    if show_phy:
         for i, phy in enumerate(df["Phylum"].tolist()):
-            ax.add_patch(Rectangle(
-                (-1.5, i - 0.5), 0.8, 1.0,
+            ax_phy.add_patch(Rectangle(
+                (0, i - 0.5), 1.0, 1.0,
                 facecolor=PHYLUM_COLORS.get(phy, "#888"),
-                edgecolor="none", clip_on=False, zorder=3,
+                edgecolor="none", zorder=3,
             ))
+        ax_phy.set_xlim(0, 1)
+        ax_phy.set_ylim(n_mag - 0.5, -0.5)
+    ax_phy.axis("off")
 
-    # 行标签（MAG + ★）
+    # ── 行标签（Genus / Genus sp. + 可选 ★ 前缀）───────────
     labels = []
     for _, r in df.iterrows():
         prefix = "★ " if (p["highlight_keystones"] and r["is_keystone"]) else ""
-        labels.append(prefix + r["MAG"])
+        labels.append(prefix + str(r.get("label", r["MAG"])))
     ax.set_yticks(range(n_mag))
-    ax.set_yticklabels(labels, fontsize=max(4, min(8, 260 // max(n_mag, 1))))
+    ax.set_yticklabels(labels,
+                       fontsize=max(4, min(8, 260 // max(n_mag, 1))),
+                       fontstyle="italic")
 
-    # 列标签
     ax.set_xticks(range(n_sample))
     ax.set_xticklabels(sample_cols, rotation=45, ha="right",
                        fontsize=max(5, min(9, 280 // max(n_sample, 1))))
@@ -286,9 +339,72 @@ def _draw(df, sample_cols, mat, groups_per_sample, p) -> plt.Figure:
         f" color = relative abundance %)",
         fontsize=10, fontweight="bold", pad=12,
     )
-    cbar = fig.colorbar(im, ax=ax, shrink=0.5,
-                        label="Relative abundance (%)")
-    cbar.ax.tick_params(labelsize=7)
     for spine in ("top", "right"):
         ax.spines[spine].set_visible(False)
+
+    # ── 右侧图例区：Phylum / Group / Keystone + colorbar ───
+    _draw_legends(fig, ax, ax_leg, im, df, groups_per_sample, p)
+
     return fig
+
+
+def _draw_legends(fig, ax_main, ax_leg, im, df, groups_per_sample, p) -> None:
+    """在右侧 ax_leg 上画 Phylum / Group / Keystone 三段图例 + 独立 colorbar。"""
+    ax_leg.axis("off")
+
+    # Phylum 图例（按出现顺序去重）
+    phy_seen: list[str] = []
+    for phy in df["Phylum"].tolist():
+        if phy not in phy_seen:
+            phy_seen.append(phy)
+    phy_handles = [
+        mpatches.Patch(facecolor=PHYLUM_COLORS.get(phy, "#888"),
+                       edgecolor="none",
+                       label=f"{phy} ({(df['Phylum'] == phy).sum()})")
+        for phy in phy_seen
+    ]
+    leg1 = ax_leg.legend(
+        handles=phy_handles,
+        loc="upper left", bbox_to_anchor=(0.0, 1.0),
+        fontsize=6, title="Phylum", title_fontsize=7,
+        frameon=False, handlelength=1.2, handleheight=0.8,
+        labelspacing=0.4,
+    )
+    ax_leg.add_artist(leg1)
+
+    # Group 图例
+    if p["show_group_bar"] and any(groups_per_sample.values()):
+        grp_seen = [g for g in ("CK", "A", "B")
+                    if g in set(groups_per_sample.values())]
+        extra_g = sorted({g for g in groups_per_sample.values()
+                          if g is not None and g not in ("CK", "A", "B")})
+        grp_handles = [
+            mpatches.Patch(facecolor=GROUP_COLORS.get(g, "#CCCCCC"),
+                           edgecolor="none", label=g)
+            for g in (grp_seen + extra_g)
+        ]
+        if grp_handles:
+            leg2 = ax_leg.legend(
+                handles=grp_handles,
+                loc="center left", bbox_to_anchor=(0.0, 0.38),
+                fontsize=6, title="Group", title_fontsize=7,
+                frameon=False, handlelength=1.2, handleheight=0.8,
+                labelspacing=0.4,
+            )
+            ax_leg.add_artist(leg2)
+
+    # Keystone 说明 + colorbar 放在底部
+    if p["highlight_keystones"] and df["is_keystone"].any():
+        ax_leg.text(
+            0.0, 0.22,
+            "★ = keystone species",
+            transform=ax_leg.transAxes,
+            fontsize=6.5, fontweight="bold",
+            va="center", ha="left",
+        )
+
+    # 独立 colorbar：用 inset_axes 在 ax_leg 底部画一条竖向色标
+    cax = ax_leg.inset_axes([0.1, 0.0, 0.22, 0.18])
+    cbar = fig.colorbar(im, cax=cax, orientation="vertical")
+    cbar.ax.tick_params(labelsize=6)
+    cbar.set_label("Rel. abundance (%)", fontsize=6.5)
