@@ -6,6 +6,8 @@
 子命令：
     kb-build              Build elements.json from KEGG snapshot + seed KO list
     hypothesis-validate   Validate hypothesis YAML against KB references (S3.5)
+    bundle-create         Create a Fork Bundle zip (KB + hypothesis + config) (S4)
+    bundle-inspect        Inspect a Fork Bundle zip (manifest + file list)     (S4)
 """
 from __future__ import annotations
 
@@ -22,9 +24,21 @@ def _hypothesis_validate(argv: list[str]) -> int:
     return v_main(argv)
 
 
+def _bundle_create(argv: list[str]) -> int:
+    from envmeta.tools.bundle import cli_create
+    return cli_create(argv)
+
+
+def _bundle_inspect(argv: list[str]) -> int:
+    from envmeta.tools.bundle import cli_inspect
+    return cli_inspect(argv)
+
+
 _COMMANDS = {
     "kb-build": _kb_build,
     "hypothesis-validate": _hypothesis_validate,
+    "bundle-create": _bundle_create,
+    "bundle-inspect": _bundle_inspect,
 }
 
 

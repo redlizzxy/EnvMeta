@@ -282,6 +282,34 @@ S8 插件框架推迟到论文接收后再做。完整计划见 `C:\Users\REDLIZ
 
 > 每次 session 结束前更新此区块。新对话开始时 Claude Code 自动读取，了解当前进度。
 
+### 2026-04-19（S4 — Fork Bundle 导出 ⭐ L4 层落地）
+
+- **目标**：把 CLAUDE.md 承诺的"论文-EnvMeta 绑定发布协议"做成实际工具。
+  读者/审稿人 fork 一个 zip 即可完整复现一篇论文的 EnvMeta 分析配置
+- **Bundle 结构**：manifest + kb (elements.json + 可选 kegg_snapshot) +
+  hypotheses (可多个 YAML) + config + 可选 README
+- **不打包原始数据**：manifest 里留 paper_doi 指针
+- **交付**：
+  - `envmeta/tools/bundle.py` (~370 行): `create_bundle / load_bundle /
+    inspect_bundle` + `BundleContents` dataclass + manifest schema 校验
+  - 2 个新 CLI: `envmeta bundle-create` + `envmeta bundle-inspect`
+  - app.py 循环图页 "📦 Fork Bundle" expander：左列加载 + 右列导出当前状态
+  - `paper/bundles/arsenic_steel_slag_bundle.zip` (14.6 KB) —— 真实示例
+  - `paper/bundles/README.md` —— "如何为你的论文打 bundle" 手册
+  - +10 tests（round-trip / 多 hypothesis / 注释保真 / manifest 校验 /
+    inspect / version mismatch / 错误路径）
+- **版本兼容策略**：记录 envmeta_version；加载时 mismatch 只 warning 不 fail
+  （向后容忍让老 bundle 可用）
+- **注释保真**：hypothesis YAML 用 `zip.write()` 保留原文（含 S3.5-doc 写入的
+  理论说明 + DOI 文献），不是 parse 后重 dump
+- **与 S3/S3.5 衔接**：bundle 里的 YAML 可以直接拿到假说评分器里跑；
+  "paper-bundled EnvMeta" 叙事完整闭环（L1-L2-L4）
+- **测试**：204 → **214 全绿**（+10 bundle）
+- **下一步**：S6 mag_heatmap（~3h 补 Phase 2）或 S4.5 HTML 交互导出（~10-15h
+  SI 杀手锏）
+
+---
+
 ### 2026-04-19（S3.5 — 假说评分器 v2：null 检验 + weight 敏感度 + required + validate CLI + group_contrast）
 
 - **目标**：回应 reviewer 两大核心质疑（加权和是 ad-hoc / 阈值武断），把 S3 从

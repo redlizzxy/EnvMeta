@@ -1304,6 +1304,140 @@ elif page == "生物地球化学循环图":
                                    "top_mag", "robust"]],
                              use_container_width=True)
 
+        # —— 📦 Fork Bundle (论文复现包, S4) ——————————————————
+        with st.expander("📦 Fork Bundle — 论文复现包", expanded=False):
+            st.caption(
+                "把当前 KB + 假说 YAML + 分析参数打包成单个 .zip，"
+                "读者/审稿人一键加载即可复现本论文。"
+                "论文-EnvMeta 绑定发布协议的落地实现（L4 层）。"
+            )
+            bcols = st.columns(2)
+
+            # ── 加载 Bundle（左列）
+            with bcols[0]:
+                st.markdown("**📂 加载 Bundle**")
+                bundle_upload = st.file_uploader(
+                    "选择 .zip Bundle", type=None, key="bundle_upload",
+                    help="上传别人发布的 Bundle → 自动解包 KB + 假说",
+                )
+                if bundle_upload is not None and st.button(
+                        "加载 Bundle", key="bundle_load_go"):
+                    from envmeta.tools.bundle import (
+                        inspect_bundle as _inspect_bundle,
+                        load_bundle as _load_bundle,
+                    )
+                    import tempfile
+                    with tempfile.NamedTemporaryFile(
+                            suffix=".zip", delete=False) as tf:
+                        tf.write(bundle_upload.read())
+                        tpath = Path(tf.name)
+                    try:
+                        info = _inspect_bundle(tpath)
+                        b = _load_bundle(tpath)
+                        st.session_state["_bundle_last"] = {
+                            "info": info,
+                            "hypothesis_texts": b.hypothesis_texts,
+                            "config": b.config,
+                            "manifest": b.manifest,
+                            "readme": b.readme,
+                        }
+                        st.success(
+                            f"已加载 {info['manifest'].get('name', '?')}"
+                        )
+                    except Exception as e:  # noqa: BLE001
+                        st.error(f"Bundle 加载失败：{e}")
+                    finally:
+                        tpath.unlink(missing_ok=True)
+
+            # ── 导出 Bundle（右列）
+            with bcols[1]:
+                st.markdown("**⬇️ 导出当前状态为 Bundle**")
+                bundle_name = st.text_input(
+                    "Bundle 名", value="my_paper", key="bundle_name",
+                )
+                bundle_author = st.text_input(
+                    "作者", value="", key="bundle_author",
+                )
+                bundle_doi = st.text_input(
+                    "论文 DOI（可选）", value="", key="bundle_doi",
+                )
+                if st.button("创建 Bundle", key="bundle_create_go"):
+                    from envmeta.tools.bundle import create_bundle as _create_bundle
+                    import tempfile
+                    # 收集当前状态：KB（内置）+ 假说（若已上传）+ 分析参数
+                    kb_default = Path(
+                        "envmeta/geocycle/knowledge_base/elements.json"
+                    )
+                    hyp_paths: list[Path] = []
+                    # 把 session 里上传的 YAML 临时落地
+                    hyp_up = st.session_state.get("hyp_upload")
+                    if hyp_up is not None:
+                        th = Path(tempfile.gettempdir()) / hyp_up.name
+                        th.write_bytes(hyp_up.getvalue())
+                        hyp_paths.append(th)
+                    # 当前循环图参数
+                    current_cfg = {
+                        "completeness_threshold": float(comp_thresh),
+                        "top_n_contributors": top_n,
+                        "env_rho_min": rho_min,
+                        "env_p_max": p_max,
+                        "contributor_ranking": ranking,
+                        "max_cells_per_element": max_cells,
+                        "hide_regulator_only_cells": hide_regulator,
+                    }
+                    out_tmp = Path(tempfile.gettempdir()) / f"{bundle_name}.zip"
+                    try:
+                        _create_bundle(
+                            out_tmp,
+                            kb_path=kb_default,
+                            hypothesis_paths=hyp_paths,
+                            config=current_cfg,
+                            name=bundle_name,
+                            author=bundle_author,
+                            paper_doi=bundle_doi,
+                            description="Created via EnvMeta app UI",
+                        )
+                        st.session_state["_bundle_out_bytes"] = out_tmp.read_bytes()
+                        st.session_state["_bundle_out_name"] = f"{bundle_name}.zip"
+                        st.success(
+                            f"Bundle 创建成功（{out_tmp.stat().st_size} bytes）"
+                        )
+                    except Exception as e:  # noqa: BLE001
+                        st.error(f"创建失败：{e}")
+                if st.session_state.get("_bundle_out_bytes"):
+                    st.download_button(
+                        "⬇️ 下载 Bundle",
+                        data=st.session_state["_bundle_out_bytes"],
+                        file_name=st.session_state.get(
+                            "_bundle_out_name", "bundle.zip",
+                        ),
+                        mime="application/zip",
+                        key="bundle_download",
+                    )
+
+            # 展示已加载 bundle 的 summary
+            _bundle_last = st.session_state.get("_bundle_last")
+            if _bundle_last is not None:
+                st.markdown("---\n**已加载 Bundle**")
+                m = _bundle_last["manifest"]
+                info = _bundle_last["info"]
+                st.json({
+                    "name": m.get("name"),
+                    "author": m.get("author"),
+                    "paper_doi": m.get("paper_doi"),
+                    "created": m.get("created"),
+                    "envmeta_version_bundle": m.get("envmeta_version"),
+                    "envmeta_version_runtime": info["envmeta_version_runtime"],
+                    "version_mismatch": info["version_mismatch"],
+                    "hypotheses": [n for n, _ in _bundle_last["hypothesis_texts"]],
+                    "config": _bundle_last["config"],
+                })
+                if info["version_mismatch"]:
+                    st.warning(
+                        "⚠️ Bundle 的 envmeta_version 与当前运行时不一致；"
+                        "加载仍可用，但部分字段可能含未知扩展。"
+                    )
+
         # —— 机制假说 YAML 评分器（S3）——————————————————
         with st.expander("🧪 假说评分 (可选) — 上传机制 YAML", expanded=False):
             st.caption(
