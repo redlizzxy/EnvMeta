@@ -115,6 +115,15 @@ def annotate_taxonomy(
     """
     out = df.copy()
     out["MAG"] = out["MAG"].astype(str)
+
+    # 防止 merge 产生 _x/_y 后缀：先 drop df 里已有的同名列
+    # （nodes CSV 可能自带 Phylum/Family/Genus/Species，merge taxonomy_df
+    #  的同名列时会冲突 → Phylum_x/Phylum_y → 后续 fillna 拿不到 → label 空）
+    tax_cols = {"Phylum", "Family", "Genus", "Species", "label"}
+    existing_tax = [c for c in out.columns if c in tax_cols]
+    if taxonomy_df is not None and not taxonomy_df.empty and existing_tax:
+        out = out.drop(columns=existing_tax)
+
     if taxonomy_df is not None and not taxonomy_df.empty:
         tax = taxonomy_df.copy()
         tax = tax.rename(columns={mag_col(tax): "MAG"})
