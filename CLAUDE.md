@@ -246,40 +246,26 @@ S8 插件框架推迟到论文接收后再做。完整计划见 `C:\Users\REDLIZ
 
 ## 下次 session 计划（2026-04-17 末次更新）
 
-**当前进度**（2026-04-17 收工，S6 系列 4 commit 连击）：
+**当前进度**（2026-04-17 收工，S6+S7 系列 10 commit）：
 - Phase 1 Reads-based **7/7 完成**
-- Phase 2 MAG-based **4/5 完成**（mag_quality / pathway / gene_profile /
-  mag_heatmap）—— 全部按**统一 4 层参数**重构，network 待做
+- Phase 2 MAG-based **5/5 完成**（mag_quality / pathway / gene_profile /
+  mag_heatmap / **network**）—— 全部按**统一 4 层参数**重构
 - Phase 3 循环图 **S1→S4 全部完成**
-- 测试 **235/235 全绿**（+8 over S6 base）
-- 分析图表累计 **12 种**（7 Reads + 4 MAG + 1 Cycle）——「12 图完整」达成
-- **4 张 MAG 图完全视觉统一**：Genus 标签规则（含 Family fallback）/ 门彩条
+- 测试 **245/245 全绿**
+- 分析图表累计 **12 种**（7 Reads + 4 MAG + 1 Cycle）+ 网络 Gephi 辅助
+- **5 张 MAG 图完全视觉统一**：Genus 标签规则（含 Family fallback）/ 门彩条
   位置 / 门图例 / 共享参数（filter_mode / row_order / top_n_by / max_mags）
-
----
-
-### 下次做：S7 `network` — 共现网络图 Gephi-prep 导出（~4h）
-
-**移植来源**：`scripts/python/09_cooccurrence_network.py`
-
-**关键功能**：
-- SparCC / Spearman 相关网络（|r| 阈值 + p 阈值过滤）
-- Keystone 候选识别（degree / betweenness 双标准）
-- **Gephi 导出**：nodes.csv + edges.csv（支持 modularity / force-atlas 排版）
-- matplotlib 静态预览（力导向 + keystone 高亮）
-- stats：节点表（degree / betweenness / phylum / keystone）+ 边表（from/to/r/p）
-
-**交付后**：Phase 2 **4/5 → 5/5 全完** → v0.5 内部测试版就绪
+- **v0.5 内部测试版就绪**
 
 ---
 
 ### 备选路径（按优先级）
 
-1. **S7 network Gephi-prep（~4h）** — Phase 2 最后一张，共现网络 Gephi 兼容导出。完成后 Phase 2 **5/5 全完**
-2. **S4.5 HTML 交互导出（~10-15h, 论文 SI 杀手锏）** — D3.js 独立 HTML 嵌入 cycle_data + hypothesis_score JSON，审稿人可交互
-3. **S8-ui 导出中心统一重构（~3-4h）** — Phase 2 + S4.5 完成后再做，把所有导出（bundle / 图表 / .py 脚本）汇集到"导出中心"页
-4. **装 R 做 EnvMeta vs 原脚本侧侧对比** — 论文 Methods 关键证据，独立时间做（需装 R 环境）
-5. **S9 论文 Methods 起草** — 素材已齐（S1 去偏 + S2 置换 + S3+S3.5 评分器 + S4 Bundle）
+1. **S4.5 HTML 交互导出（~10-15h, 论文 SI 杀手锏）** — D3.js 独立 HTML 嵌入 cycle_data + hypothesis_score JSON，审稿人可交互
+2. **S8-ui 导出中心统一重构（~3-4h）** — 把所有导出（bundle / 图表 / .py 脚本）汇集到"导出中心"页
+3. **装 R 做 EnvMeta vs 原脚本侧侧对比** — 论文 Methods 关键证据，独立时间做（需装 R 环境）
+4. **English README** — iMeta 要求，~2h
+5. **S9 论文 Methods 起草** — 素材已齐（S1 去偏 + S2 置换 + S3+S3.5 评分器 + S4 Bundle + S6/S7 全 12 图）
 
 ### 已推迟（明确）
 
@@ -289,13 +275,40 @@ S8 插件框架推迟到论文接收后再做。完整计划见 `C:\Users\REDLIZ
 
 ### 里程碑
 
-- ✅ Phase 1 + Phase 3 核心功能全部完成
-- ⏳ Phase 2：S6 + S7 补齐 → **v0.5 内部测试版**
-- 📄 论文 Methods 可起草节点：S6 + S7 完成后
+- ✅ Phase 1 全部完成（7/7 Reads-based）
+- ✅ Phase 2 全部完成（5/5 MAG-based）
+- ✅ Phase 3 核心功能全部完成（循环图 + 假说评分 + Bundle）
+- ✅ **v0.5 内部测试版就绪**
+- 📄 论文 Methods 可起草
 
 ## 开发日志
 
 > 每次 session 结束前更新此区块。新对话开始时 Claude Code 自动读取，了解当前进度。
+
+### 2026-04-17（S7 — 共现网络 Gephi-prep 辅助 ⭐ Phase 2 5/5 全完）
+
+- **目标**：Phase 2 最后一张"共现网络图"。不在 matplotlib 里画网络（Gephi
+  更专业），EnvMeta = **Gephi 辅助工具**
+- **三项交付**：
+  1. **Degree vs Betweenness 散点图**（`envmeta/analysis/network.py` ~180 行）：
+     keystone 深蓝 #1B3A5C + Genus 标注 + 可调阈值线
+  2. **Gephi CSV 预处理**（`envmeta/tools/gephi_prep.py` ~120 行）：
+     - `label_mode="keystone_only"` → 非 keystone Label 自动清空
+       （省去用户在 Gephi 里一个个删标签）
+     - `validate_gephi_format()` 校验必需列 / 引用完整性 / 重复边
+  3. **Gephi 推荐参数指南**（app.py expander）：
+     - 从用户 `.gephi` 项目提取：Fruchterman Reingold 区=10000/重力=10/速度=1
+     - 节点大小 Degree 1-4 / 颜色 is_keystone 分区 / 标签 Arial Italic 32
+- **S7-fix 4 轮**：
+  - TYPE_BADGES 缺 GEPHI_NODES/EDGES → KeyError
+  - detector.py 加 Gephi 文件识别规则（排在 KEYSTONE 之后避免误匹配）
+  - gephi_prep 输出列名 `_x/_y` 冲突 → 直接用 nodes 自带 Genus 列
+  - `annotate_taxonomy` 根治：merge 前 drop 已有列（一处改 5 模块受益）
+  - 散点图标签截断 18→30 字符
+- **测试**：235 → **245 全绿**（+8 network + 2 code_generator auto-parametrize）
+- **里程碑**：**Phase 2 MAG-based 5/5 全完 → v0.5 内部测试版就绪**
+
+---
 
 ### 2026-04-17（S6 系列收口 — S6-fix + S6-fix2 + S6-fix3 三轮用户反馈打磨）
 
