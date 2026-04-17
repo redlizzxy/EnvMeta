@@ -193,6 +193,8 @@ TYPE_BADGES = {
     FileType.KO_ANNOTATION_LONG: "🔬 KO 注释（长表）",
     FileType.KEYSTONE_SPECIES: "⭐ keystone species",
     FileType.MAG_TAXONOMY: "🌳 MAG taxonomy",
+    FileType.GEPHI_NODES: "🔗 Gephi nodes",
+    FileType.GEPHI_EDGES: "🔗 Gephi edges",
     FileType.UNKNOWN: "❓ unknown",
 }
 TYPE_OPTIONS = [ft.value for ft in FileType]
