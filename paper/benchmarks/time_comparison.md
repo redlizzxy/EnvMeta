@@ -13,7 +13,7 @@
 | MAG丰度热图 | 544 (py, 07_MAG_abundance_heatmap.py) | 6+（argparse + 硬编码样本组 + 三段配色设计 + bac120/ar53 合并）| ~90 min | ✅ pip install（metadata 驱动组色带）| 3（上传 1-4 文件 + 调 Top-N + 点生成）| ~5 s | 2026-04-20 |
 | 通路完整度 | 970 (py, 08_pathway_completeness.py) | 7+（argparse + bac120/ar53 合并 + 3 张图硬编码布局）| ~120 min | ✅ pip install（KB 自动读 18 通路）| 3（上传 2-4 文件 + 样式切换 + 点生成）| ~3 s | 2026-04-17 |
 | 基因谱 | 1080 (py, 06_MAG_gene_profile.py) | 7+（argparse + iTOL 解析 + 两语言版 + 4 张子图）| ~150 min | ✅ pip install（KB 自动提供 KO 顺序）| 3（上传 2-4 文件 + 点生成）| ~3 s | 2026-04-17 |
-| 共现网络 | | | | | | | |
+| 共现网络（Gephi 辅助） | 415 (py, 09_cooccurrence_network.py) + Gephi 手动调 | 7+（写脚本 + Gephi 布局 + 手动删标签 + 调参 + 导出）| ~120 min（含 Gephi 反复调）| ✅ pip install + gephi_nodes/edges CSV | 3（上传 2 CSV + 点生成散点 + 一键导出 Gephi 就绪 CSV）| ~3 s（散点图） + 推荐参数省 30 min Gephi 调参 | 2026-04-17 |
 | 循环图 | **无现成脚本**（首次实现）| N/A — 需手工画 | ~数小时手工概念图 | ✅ pip install（全自动推断）| 3（上传 + 点生成）| ~5 s | 2026-04-17 |
 
 > **一键复现**列：记录"他人拿到代码/项目后能否一键复现该图"（是/否/需配置环境）。

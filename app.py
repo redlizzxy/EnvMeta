@@ -15,9 +15,11 @@ from envmeta.analysis import (
     lefse as lefse_mod,
     mag_heatmap as mag_heatmap_mod,
     mag_quality as mag_quality_mod,
+    network as network_mod,
     pathway as pathway_mod,
     pcoa, rda as rda_mod, stackplot,
 )
+from envmeta.tools.gephi_prep import prepare_gephi_csv, validate_gephi_format
 from envmeta.export.code_generator import generate as generate_code
 from envmeta.export.figure_export import export_to_bytes
 from envmeta.file_manager.detector import FileType, detect, read_table
@@ -1273,6 +1275,191 @@ elif page == "MAG-based 分析":
             _reproduce_button("gene_profile", files_map, last.params, key="gp_code")
             with st.expander("查看统计表"):
                 st.dataframe(last.stats, use_container_width=True)
+    elif analysis_type == "共现网络图":
+        st.caption("Gephi 辅助工具 — 散点图 + CSV 预处理 + 参数指南（不画网络图本体，交给 Gephi）")
+        file_names = list(st.session_state.files.keys())
+        if not file_names:
+            st.warning("请先在「文件管理」上传 Gephi nodes CSV + edges CSV。")
+            st.stop()
+        n_name = st.selectbox("Gephi Nodes CSV（必需：Id + Degree + Betweenness）",
+                              file_names, key="nw_nodes")
+        e_name = st.selectbox("Gephi Edges CSV（必需：Source + Target + Weight）",
+                              [n for n in file_names if n != n_name], key="nw_edges")
+        t_default = _first_of(FileType.MAG_TAXONOMY)
+        t_options = ["（无）"] + [n for n in file_names if n not in (n_name, e_name)]
+        t_name = st.selectbox("GTDB 分类表（可选，补 Genus 标签）",
+                              t_options, key="nw_tax",
+                              index=_idx_or_default(t_options, t_default))
+        k_default = _first_of(FileType.KEYSTONE_SPECIES)
+        k_options = ["（无）"] + [n for n in file_names if n not in (n_name, e_name, t_name)]
+        k_name = st.selectbox("Keystone 物种列表（可选）",
+                              k_options, key="nw_ks",
+                              index=_idx_or_default(k_options, k_default))
+
+        with st.sidebar:
+            st.subheader("网络辅助参数")
+            l1 = render_mag_layer1_filter("nw", default_max_mags=0)
+            # 网络默认 all
+            l1["filter_mode"] = st.selectbox(
+                "（覆盖）MAG 子集",
+                ["all", "top_n", "keystone_only", "top_plus_keystone"],
+                index=0, key="nw_fm_override",
+                help="网络图默认 all（保持拓扑完整性）；选 keystone_only 只看 keystone 散点。",
+            )
+            l2 = render_mag_layer2_visual("nw", 260, 200, show_phylum_bar=False)
+            st.markdown("**网络特有**")
+            deg_thr = st.slider("Degree 阈值线", 1, 30, 10, key="nw_deg")
+            bet_thr = st.slider("Betweenness 阈值线", 50, 1000, 200,
+                                step=50, key="nw_bet")
+            color_by = st.selectbox("节点着色",
+                                    ["keystone", "phylum"], key="nw_clr")
+
+        # ── 散点图 ──────────────────────────────────────────
+        if st.button("生成 Degree vs Betweenness 散点图",
+                     type="primary", key="nw_go"):
+            nodes = st.session_state.files[n_name]["df"]
+            edges = st.session_state.files[e_name]["df"]
+            t = _load_mag_df(t_name if t_name != "（无）" else None)
+            k = st.session_state.files[k_name]["df"] if k_name != "（无）" else None
+            params = {
+                **l1, **l2,
+                "degree_threshold": deg_thr,
+                "betweenness_threshold": bet_thr,
+                "node_color_by": color_by,
+            }
+            try:
+                result = network_mod.analyze(nodes, edges, t, k, params=params)
+            except ValueError as e:
+                st.error(str(e))
+                st.stop()
+            st.session_state["_nw_last"] = result
+
+        last = st.session_state.get("_nw_last")
+        if last is not None:
+            st.pyplot(last.figure, use_container_width=False)
+            d1, d2, d3 = st.columns(3)
+            with d1:
+                st.download_button("⬇️ PNG", data=export_to_bytes(last.figure, "png"),
+                                   file_name="network_scatter.png",
+                                   mime="image/png", key="nw_png")
+            with d2:
+                st.download_button("⬇️ PDF",
+                                   data=export_to_bytes(last.figure, "pdf"),
+                                   file_name="network_scatter.pdf",
+                                   mime="application/pdf", key="nw_pdf")
+            with d3:
+                st.download_button("⬇️ 节点表 TSV",
+                                   data=last.stats.to_csv(sep="\t", index=False).encode("utf-8"),
+                                   file_name="network_node_stats.tsv",
+                                   mime="text/tab-separated-values", key="nw_tsv")
+            files_map = {"nodes": n_name, "edges": e_name}
+            if t_name != "（无）": files_map["taxonomy"] = t_name
+            if k_name != "（无）": files_map["keystone"] = k_name
+            _vector_downloads(last.figure, "network", "nw")
+            _reproduce_button("network", files_map, last.params, key="nw_code")
+            with st.expander("查看节点统计表"):
+                st.dataframe(last.stats, use_container_width=True)
+
+        # ── Gephi 预处理导出 ────────────────────────────────
+        st.markdown("---")
+        st.subheader("Gephi 预处理导出")
+        st.caption("帮你清理 CSV 标签 → 导入 Gephi 后 keystone 直接有标签、其余无标签")
+        label_mode = st.selectbox(
+            "标签模式",
+            ["keystone_only", "all", "none"],
+            index=0, key="nw_labmode",
+            help=(
+                "• keystone_only（推荐）: 只有 keystone 的 Label 有值\n"
+                "  → 导入 Gephi 后只显 keystone 标签，不用手动一个个删\n"
+                "• all: 所有节点加 Genus 标签\n"
+                "• none: Label 列全空"
+            ),
+        )
+        if st.button("校验 + 导出 Gephi 就绪 CSV", key="nw_gephi"):
+            nodes = st.session_state.files[n_name]["df"]
+            edges = st.session_state.files[e_name]["df"]
+            t = _load_mag_df(t_name if t_name != "（无）" else None)
+            k = st.session_state.files[k_name]["df"] if k_name != "（无）" else None
+            # 校验
+            issues = validate_gephi_format(nodes, edges)
+            if issues:
+                for iss in issues:
+                    if "[ERROR]" in iss:
+                        st.error(iss)
+                    else:
+                        st.warning(iss)
+                if any("[ERROR]" in i for i in issues):
+                    st.stop()
+            else:
+                st.success("格式校验通过 — 可安全导入 Gephi")
+            # 预处理
+            out_n, out_e = prepare_gephi_csv(
+                nodes, edges, taxonomy_df=t, keystone_df=k,
+                label_mode=label_mode,
+            )
+            c1, c2 = st.columns(2)
+            with c1:
+                st.download_button(
+                    "⬇️ nodes_gephi.csv",
+                    data=out_n.to_csv(index=False).encode("utf-8"),
+                    file_name="nodes_gephi.csv", mime="text/csv",
+                    key="nw_gn",
+                )
+            with c2:
+                st.download_button(
+                    "⬇️ edges_gephi.csv",
+                    data=out_e.to_csv(index=False).encode("utf-8"),
+                    file_name="edges_gephi.csv", mime="text/csv",
+                    key="nw_ge",
+                )
+            with st.expander("预览 nodes_gephi.csv"):
+                st.dataframe(out_n.head(20), use_container_width=True)
+
+        # ── Gephi 推荐参数指南 ──────────────────────────────
+        with st.expander("Gephi 操作指南（推荐参数）"):
+            st.markdown("""
+### 1. 导入 CSV
+
+1. 打开 Gephi → **File → Import spreadsheet**
+2. 先导入 `nodes_gephi.csv`（as **Nodes Table**）
+3. 再导入 `edges_gephi.csv`（as **Edges Table**, Undirected）
+
+### 2. 布局
+
+| 布局算法 | 参数 | 推荐值 | 说明 |
+|---|---|---|---|
+| **Fruchterman Reingold** | 区 | 10000 | 控制节点间距 |
+|  | 重力 | 10.0 | 中心吸引力 |
+|  | 速度 | 1.0 | 收敛速率 |
+| ForceAtlas2（备选） | Scaling | 100 | 全局缩放 |
+|  | Gravity | 1.0 | |
+|  | Edge Weight Influence | 1.0 | |
+
+运行布局直到节点位置稳定（~30s），点「停止」固定。
+
+### 3. 外观
+
+| 设置 | 位置 | 推荐值 |
+|---|---|---|
+| 节点大小 | 外观 → 节点 → 排名 → Degree | 最小=1, 最大=4 |
+| 节点颜色 | 外观 → 节点 → 分区 → is_keystone | false=`#B0D4E8` true=`#1B3A5C` |
+| 边颜色 | 外观 → 边 → 统一 | `#CCCCCC`（浅灰） |
+| 标签字体 | 底部工具栏 → 字体 | Arial Italic, 32 |
+| 标签显示 | 底部工具栏 → T 按钮 | 开启（Label 列已预处理，只有 keystone 有值） |
+
+### 4. 导出
+
+- **File → Export → SVG/PDF/PNG**
+- 推荐 **SVG**（矢量，论文投稿后可在 Illustrator 编辑）
+- PNG 分辨率 ≥ 300 dpi
+
+### 5. 网络统计参数参考
+
+本项目实测数据：
+- 节点 130 / 边 311 / 阈值 |Spearman r| > 0.9, p < 0.05
+- Modularity class 8 组
+- Keystone 14 个（Degree ≥ 10 或 Betweenness ≥ 200）
+""")
     else:
         st.info(f"「{analysis_type}」模块开发中 — Phase 2 继续。")
 
