@@ -146,8 +146,8 @@ def _draw_scatter(df, p) -> plt.Figure:
         if is_ks and p["highlight_keystones"]:
             for _, r in sub.iterrows():
                 label = str(r.get("label", r["MAG"]))
-                if len(label) > 18:
-                    label = label[:16] + ".."
+                if len(label) > 30:
+                    label = label[:28] + ".."
                 ax.annotate(
                     label, (r["Degree"], r["Betweenness"]),
                     fontsize=6, fontstyle="italic", fontweight="bold",
