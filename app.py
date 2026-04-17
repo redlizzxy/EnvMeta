@@ -254,6 +254,33 @@ def _goto_page_callback(target: str) -> None:
     st.session_state.page_radio = target
 
 
+# ── 导出中心注册表（T1 / S8-ui）─────────────────────────────
+# 每个分析生成结果后调用 `_register_export`，导出中心从中列出全部产物
+# 批量下载 / .py 复现脚本 / 单独下载 等操作都在这里集中
+
+def _register_export(
+    analysis_id: str, *, result, file_paths: dict[str, str],
+    params: dict, output_base: str | None = None,
+) -> None:
+    """把分析结果登记到 session_state._export_registry 供导出中心统一访问。
+
+    参数
+    -----
+    analysis_id: 与 ANALYSIS_INPUTS 一致的键（stackplot / pcoa / ...）
+    result: AnalysisResult（需有 .figure + .stats）
+    file_paths: 传给 code_generator 的输入文件映射
+    params: 分析参数字典
+    output_base: 下载文件基础名（默认 analysis_id）
+    """
+    reg = st.session_state.setdefault("_export_registry", {})
+    reg[analysis_id] = {
+        "result": result,
+        "file_paths": file_paths,
+        "params": params,
+        "output_base": output_base or analysis_id,
+    }
+
+
 def _jump_to_analysis(analysis_id: str, *, key: str) -> None:
     """渲染「跳转到分析」按钮。通过 on_click 回调安全修改 widget key。"""
     spec = ANALYSIS_INPUTS.get(analysis_id)
@@ -777,6 +804,12 @@ elif page == "Reads-based 分析":
                 result = stackplot.analyze(
                     abundance_files[ab_name]["df"], metadata_files[md_name]["df"], params)
                 st.session_state["last_stackplot"] = result
+                _register_export(
+                    "stackplot", result=result,
+                    file_paths={"abundance": ab_name, "metadata": md_name},
+                    params=result.params,
+                    output_base=f"stackplot_{result.params['style']}",
+                )
             except Exception as e:
                 st.error(f"生成失败：{e}")
 
@@ -843,6 +876,11 @@ elif page == "Reads-based 分析":
                 result = pcoa.analyze(
                     dist_files[dist_name]["df"], metadata_files[md_name]["df"], params)
                 st.session_state["last_pcoa"] = result
+                _register_export(
+                    "pcoa", result=result,
+                    file_paths={"distance": dist_name, "metadata": md_name},
+                    params=result.params,
+                )
             except Exception as e:
                 st.error(f"生成失败：{e}")
 
@@ -909,6 +947,11 @@ elif page == "Reads-based 分析":
                 result = gene_heatmap.analyze(
                     ko_files[ko_name]["df"], metadata_files[md_name]["df"], params)
                 st.session_state["last_heat"] = result
+                _register_export(
+                    "gene_heatmap", result=result,
+                    file_paths={"ko_abundance": ko_name, "metadata": md_name},
+                    params=result.params,
+                )
             except Exception as e:
                 st.error(f"生成失败：{e}")
 
@@ -980,6 +1023,11 @@ elif page == "Reads-based 分析":
                 from envmeta.analysis import alpha_boxplot
                 result = alpha_boxplot.analyze(alpha_df, metadata_files[md_name]["df"], params)
                 st.session_state["last_alpha"] = result
+                _register_export(
+                    "alpha_boxplot", result=result,
+                    file_paths={"alpha": alpha_name, "metadata": md_name},
+                    params=result.params,
+                )
             except Exception as e:
                 st.error(f"生成失败：{e}")
 
@@ -1054,6 +1102,12 @@ elif page == "Reads-based 分析":
                 result = log2fc.analyze(ko_files[ko_name]["df"],
                                          md_df, params)
                 st.session_state["last_log2fc"] = result
+                _register_export(
+                    "log2fc", result=result,
+                    file_paths={"ko_abundance": ko_name, "metadata": md_name},
+                    params=result.params,
+                    output_base=f"log2fc_{group_a}_vs_{group_b}",
+                )
             except Exception as e:
                 st.error(f"生成失败：{e}")
 
@@ -1130,6 +1184,11 @@ elif page == "Reads-based 分析":
                     params,
                 )
                 st.session_state["last_rda"] = result
+                _register_export(
+                    "rda", result=result,
+                    file_paths={"abundance": ab_name, "env_factors": env_name, "metadata": md_name},
+                    params=result.params,
+                )
             except Exception as e:
                 st.error(f"生成失败：{e}")
 
@@ -1201,6 +1260,11 @@ elif page == "Reads-based 分析":
                 st.error(str(e))
                 st.stop()
             st.session_state["_lefse_last"] = result
+            _register_export(
+                "lefse", result=result,
+                file_paths={"abundance": ab_name, "metadata": md_name},
+                params=result.params,
+            )
 
         last = st.session_state.get("_lefse_last")
         if last is not None:
@@ -1313,6 +1377,7 @@ elif page == "MAG-based 分析":
             files_map = {"quality": q_name}
             if t_name != "（无）": files_map["taxonomy"] = t_name
             if k_name != "（无）": files_map["keystone"] = k_name
+            _register_export("mag_quality", result=last, file_paths=files_map, params=last.params)
             _vector_downloads(last.figure, "mag_quality", "mq")
             _reproduce_button("mag_quality", files_map, last.params, key="mq_code")
             with st.expander("查看统计表"):
@@ -1379,6 +1444,7 @@ elif page == "MAG-based 分析":
                            ("metadata", sel["metadata"])]:
                 if v_:
                     files_map[k_] = v_
+            _register_export("mag_heatmap", result=last, file_paths=files_map, params=last.params)
             _vector_downloads(last.figure, "mag_heatmap", "mh")
             _reproduce_button("mag_heatmap", files_map, last.params, key="mh_code")
             with st.expander("查看统计表"):
@@ -1446,6 +1512,7 @@ elif page == "MAG-based 分析":
                            ("abundance", sel["abundance"])]:
                 if v_:
                     files_map[k_] = v_
+            _register_export("pathway", result=last, file_paths=files_map, params=last.params)
             _vector_downloads(last.figure, "pathway", "pw")
             _reproduce_button("pathway", files_map, last.params, key="pw_code")
             with st.expander("查看统计表"):
@@ -1532,6 +1599,7 @@ elif page == "MAG-based 分析":
                            ("abundance", sel["abundance"])]:
                 if v_:
                     files_map[k_] = v_
+            _register_export("gene_profile", result=last, file_paths=files_map, params=last.params)
             _vector_downloads(last.figure, "gene_profile", "gp")
             _reproduce_button("gene_profile", files_map, last.params, key="gp_code")
             with st.expander("查看统计表"):
@@ -1622,6 +1690,7 @@ elif page == "MAG-based 分析":
             files_map = {"nodes": n_name, "edges": e_name}
             if t_name != "（无）": files_map["taxonomy"] = t_name
             if k_name != "（无）": files_map["keystone"] = k_name
+            _register_export("network", result=last, file_paths=files_map, params=last.params)
             _vector_downloads(last.figure, "network", "nw")
             _reproduce_button("network", files_map, last.params, key="nw_code")
             with st.expander("查看节点统计表"):
@@ -1899,6 +1968,15 @@ elif page == "生物地球化学循环图":
             st.error(str(e))
             st.stop()
         st.session_state["_cy_last"] = result
+        # 登记循环图导出信息 — file_paths 用当前选中的文件
+        _cy_files = {"ko_annotation": ko_name}
+        if t_name != "（无）": _cy_files["taxonomy"] = t_name
+        if k_name != "（无）": _cy_files["keystone"] = k_name
+        if a_name != "（无）": _cy_files["abundance"] = a_name
+        if e_name != "（无）": _cy_files["env_factors"] = e_name
+        if m_name != "（无）": _cy_files["metadata"] = m_name
+        _register_export("cycle_diagram", result=result,
+                         file_paths=_cy_files, params=params)
 
     last = st.session_state.get("_cy_last")
     if last is not None:
@@ -2002,6 +2080,9 @@ elif page == "生物地球化学循环图":
                 "把当前 KB + 假说 YAML + 分析参数打包成单个 .zip，"
                 "读者/审稿人一键加载即可复现本论文。"
                 "论文-EnvMeta 绑定发布协议的落地实现（L4 层）。"
+            )
+            st.info(
+                "💡 图表 / 复现脚本 / 文档的批量下载请到「**导出中心**」（左侧导航）。"
             )
             bcols = st.columns(2)
 
@@ -2548,8 +2629,225 @@ overall_score 仍显示（透明度），但 label 被否决。
                     )
 
 elif page == "导出中心":
-    st.title("导出中心")
-    st.info("批量导出功能将在 Phase 2 实现。单图导出在各分析页面下方。")
+    st.title("📦 导出中心")
+    st.caption("所有生成物集中导出 · 图表 / Bundle / 复现脚本 / 文档 四合一")
+
+    registry = st.session_state.get("_export_registry", {})
+
+    tab_fig, tab_bundle, tab_code, tab_doc = st.tabs([
+        f"📊 图表 ({len(registry)})",
+        "📦 Fork Bundle",
+        f"🐍 复现脚本 ({len(registry)})",
+        "📚 文档下载",
+    ])
+
+    # ── tab 1: 图表 ─────────────────────────────────────────
+    with tab_fig:
+        if not registry:
+            st.info(
+                "🤔 还没有已生成的图表。\n\n"
+                "请先到**任意分析页**点「🎨 生成图表」按钮，然后回到这里批量下载。\n\n"
+                "💡 提示：示例数据可在「首页」一键加载。"
+            )
+        else:
+            st.markdown(f"**共 {len(registry)} 个已生成图表**")
+            # 批量 zip 下载（T1.3）
+            import io as _io
+            import zipfile as _zipfile
+
+            def _build_figures_zip() -> bytes:
+                buf = _io.BytesIO()
+                with _zipfile.ZipFile(buf, "w", _zipfile.ZIP_DEFLATED) as zf:
+                    for _aid, _entry in registry.items():
+                        _base = _entry["output_base"]
+                        _fig = _entry["result"].figure
+                        # PNG + PDF + SVG + TIFF 4 格式
+                        for _fmt, _ext in [("png", "png"), ("pdf", "pdf"),
+                                           ("svg", "svg"), ("tiff", "tiff")]:
+                            try:
+                                zf.writestr(
+                                    f"{_base}/{_base}.{_ext}",
+                                    export_to_bytes(_fig, _fmt),
+                                )
+                            except Exception:  # noqa: BLE001
+                                pass
+                        # stats TSV
+                        _stats = getattr(_entry["result"], "stats", None)
+                        if _stats is not None:
+                            try:
+                                if isinstance(_stats, pd.DataFrame):
+                                    zf.writestr(
+                                        f"{_base}/{_base}_stats.tsv",
+                                        _stats.to_csv(sep="\t", index=False).encode("utf-8"),
+                                    )
+                            except Exception:  # noqa: BLE001
+                                pass
+                return buf.getvalue()
+
+            st.download_button(
+                "📦 一键批量下载（ZIP — 所有图 × PNG/PDF/SVG/TIFF + TSV）",
+                data=_build_figures_zip(),
+                file_name="envmeta_figures_bundle.zip",
+                mime="application/zip",
+                key="export_all_zip",
+                type="primary",
+            )
+            st.markdown("---")
+            # 逐条展示
+            for aid, entry in registry.items():
+                name = ANALYSIS_INPUTS.get(aid, {}).get("name", aid)
+                base = entry["output_base"]
+                with st.expander(f"📊 {name}（{base}）", expanded=False):
+                    st.pyplot(entry["result"].figure, use_container_width=True)
+                    cs = st.columns(4)
+                    formats = [("PNG", "png", "image/png"),
+                               ("PDF", "pdf", "application/pdf"),
+                               ("SVG", "svg", "image/svg+xml"),
+                               ("TIFF", "tiff", "image/tiff")]
+                    for ci, (label, ext, mime) in enumerate(formats):
+                        with cs[ci]:
+                            try:
+                                st.download_button(
+                                    f"⬇️ {label}",
+                                    data=export_to_bytes(entry["result"].figure, ext),
+                                    file_name=f"{base}.{ext}",
+                                    mime=mime,
+                                    key=f"ec_{aid}_{ext}",
+                                )
+                            except Exception as e:  # noqa: BLE001
+                                st.caption(f"{label} 导出失败：{e}")
+                    _stats = getattr(entry["result"], "stats", None)
+                    if isinstance(_stats, pd.DataFrame):
+                        st.download_button(
+                            "⬇️ 统计表（TSV）",
+                            data=_stats.to_csv(sep="\t", index=False).encode("utf-8"),
+                            file_name=f"{base}_stats.tsv",
+                            mime="text/tab-separated-values",
+                            key=f"ec_{aid}_tsv",
+                        )
+
+    # ── tab 2: Fork Bundle ──────────────────────────────────
+    with tab_bundle:
+        st.markdown(
+            "**📦 Fork Bundle — 论文复现包**\n\n"
+            "把当前 KB + 假说 YAML + 分析参数打包成单个 .zip，"
+            "读者/审稿人一键加载即可复现本论文。"
+        )
+        st.caption(
+            "Bundle 的创建 / 加载功能完整版位于「生物地球化学循环图」页底部 "
+            "的 📦 Fork Bundle expander（因为需要循环图 + 假说评分上下文）。"
+        )
+        st.button(
+            "🚀 去「生物地球化学循环图」页操作 Bundle",
+            key="ec_goto_cycle",
+            on_click=_goto_page_callback, args=("生物地球化学循环图",),
+        )
+        # 若已加载过 bundle，这里也展示一下
+        _bundle_last = st.session_state.get("_bundle_last")
+        if _bundle_last:
+            st.success(
+                f"当前已加载 Bundle：**{_bundle_last['info']['manifest'].get('name', '?')}**"
+            )
+            st.caption(
+                f"hypotheses: {len(_bundle_last['hypothesis_texts'])} · "
+                f"config keys: {len(_bundle_last.get('config', {}))} · "
+                f"has readme: {_bundle_last.get('readme') is not None}"
+            )
+
+    # ── tab 3: 复现脚本 ──────────────────────────────────────
+    with tab_code:
+        if not registry:
+            st.info("还没有已生成的分析，无法生成复现脚本。")
+        else:
+            st.markdown(
+                f"**共 {len(registry)} 个分析可生成独立可运行的 Python 脚本**"
+            )
+            # 批量 zip 下载所有 .py 脚本
+            def _build_scripts_zip() -> bytes:
+                buf = _io.BytesIO()
+                with _zipfile.ZipFile(buf, "w", _zipfile.ZIP_DEFLATED) as zf:
+                    for _aid, _entry in registry.items():
+                        try:
+                            _src = generate_code(
+                                _aid, _entry["file_paths"], _entry["params"],
+                                output_base=_entry["output_base"],
+                            )
+                            zf.writestr(f"{_aid}_reproduce.py", _src)
+                        except Exception as e:  # noqa: BLE001
+                            zf.writestr(
+                                f"{_aid}_ERROR.txt",
+                                f"无法生成 {_aid} 的复现脚本：{e}",
+                            )
+                return buf.getvalue()
+
+            st.download_button(
+                "📦 一键批量下载（ZIP — 全部 .py 复现脚本）",
+                data=_build_scripts_zip(),
+                file_name="envmeta_scripts_bundle.zip",
+                mime="application/zip",
+                key="export_scripts_zip",
+                type="primary",
+            )
+            st.markdown("---")
+            for aid, entry in registry.items():
+                name = ANALYSIS_INPUTS.get(aid, {}).get("name", aid)
+                with st.expander(f"🐍 {name}", expanded=False):
+                    try:
+                        src = generate_code(
+                            aid, entry["file_paths"], entry["params"],
+                            output_base=entry["output_base"],
+                        )
+                        st.download_button(
+                            "⬇️ 下载 .py 脚本",
+                            data=src.encode("utf-8"),
+                            file_name=f"{aid}_reproduce.py",
+                            mime="text/x-python",
+                            key=f"ec_code_{aid}",
+                        )
+                        st.code(src[:1500] + ("\n# ... (truncated)" if len(src) > 1500 else ""),
+                                language="python")
+                    except Exception as e:  # noqa: BLE001
+                        st.caption(f"⚠️ 无法生成复现脚本：{e}")
+
+    # ── tab 4: 文档下载 ──────────────────────────────────────
+    with tab_doc:
+        st.markdown("**📚 项目文档一键下载**")
+        docs = [
+            ("docs/data_preparation_zh.md",
+             "📥 数据准备指南（中文）",
+             "11 种上游工具 → EnvMeta 映射 + 格式样板 + FAQ"),
+            ("paper/tool_comparison.md",
+             "🏆 工具对比表",
+             "EnvMeta vs Shiny-phyloseq / Anvi'o / plotmicrobiome / MicrobiomeAnalyst（18 维度）"),
+            ("paper/benchmarks/time_comparison.md",
+             "⏱️ 操作效率对比",
+             "14 图 × 传统脚本行数/步骤/耗时 vs EnvMeta"),
+            ("README.md",
+             "📖 README",
+             "项目说明 + 快速开始"),
+            ("CLAUDE.md",
+             "📜 开发日志 + 设计决策",
+             "Phase 0 → v0.6 完整演化记录（含产品定位与核心决策）"),
+        ]
+        for relpath, title, desc in docs:
+            fpath = Path(__file__).parent / relpath
+            with st.container(border=True):
+                c1, c2 = st.columns([3, 1])
+                with c1:
+                    st.markdown(f"**{title}**")
+                    st.caption(desc)
+                    st.caption(f"路径：`{relpath}`")
+                with c2:
+                    if fpath.exists():
+                        st.download_button(
+                            "⬇️ 下载",
+                            data=fpath.read_bytes(),
+                            file_name=fpath.name,
+                            mime="text/markdown",
+                            key=f"ec_doc_{relpath.replace('/', '_')}",
+                        )
+                    else:
+                        st.caption("❌ 未找到")
 
 # ── 页脚 ──────────────────────────────────────────────────
 st.sidebar.markdown("---")

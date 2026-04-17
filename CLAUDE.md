@@ -263,15 +263,16 @@ S8 插件框架推迟到论文接收后再做。完整计划见 `C:\Users\REDLIZ
 
 1. ✅ **S8-ux 新手落地包已完成**（2026-04-17，~11h）— 5 项交付 / 14 case
    / +1760 行 / 259/259 全绿。详见日志「2026-04-17 S8-ux」
-2. **🟥 装 R 做 EnvMeta vs 原脚本侧侧对比** — 论文 Methods 关键证据，独立时间
+2. ✅ **T1 导出中心统一重构已完成**（2026-04-17，~3h）— 4-tab 页（图表/Bundle/
+   脚本/文档）+ `_export_registry` 架构 + 批量 ZIP + 文档下载。详见日志
+   「2026-04-17 T1 导出中心」
+3. **🟥 Sunday Sprint 剩余：T2 S4.5 HTML 交互导出完整版**（周日汇报 +
+   师弟师妹测试用，~10-14h）+ T3 评测表电子版（腾讯问卷，~2-3h）
+4. **🟥 装 R 做 EnvMeta vs 原脚本侧侧对比** — 论文 Methods 关键证据，独立时间
    做（需装 R 环境，~1-2 天）
-3. **🟥 English README + LICENSE + Zenodo DOI** — iMeta 投稿硬指标，~4h
-4. **🟡 S4.5 HTML 交互导出（~10-15h, 论文 SI 杀手锏）** — D3.js 独立 HTML 嵌入
-   cycle_data + hypothesis_score JSON，审稿人可交互
-5. **🟡 S8-ui 导出中心统一重构（~3-4h）** — 把所有导出（bundle / 图表 / .py 脚本）
-   汇集到"导出中心"页
+5. **🟥 English README + LICENSE + Zenodo DOI** — iMeta 投稿硬指标，~4h
 6. **🟡 S9 论文 Methods 起草** — 素材已齐（S1 去偏 + S2 置换 + S3+S3.5 评分器 +
-   S4 Bundle + S6/S7 全 12 图 + S8-ux 新手可用性）
+   S4 Bundle + S6/S7 全 12 图 + S8-ux 新手可用性 + T1 导出中心）
 
 ### 已推迟（明确）
 
@@ -285,12 +286,111 @@ S8 插件框架推迟到论文接收后再做。完整计划见 `C:\Users\REDLIZ
 - ✅ Phase 2 全部完成（5/5 MAG-based）
 - ✅ Phase 3 核心功能全部完成（循环图 + 假说评分 + Bundle）
 - ✅ **S8-ux 新手落地包**（2026-04-17）— 非生信课题组可用门槛打通
-- ✅ **v0.6 用户可用版就绪**（v0.5 + S8-ux）
+- ✅ **T1 导出中心统一重构**（2026-04-17）— 批量 ZIP + 4-tab + 文档下载
+- ✅ **v0.7 Sunday Sprint 就绪**（v0.6 + T1 导出中心）
 - 📄 论文 Methods 可起草（含 user study 先决条件）
+- 🎯 **下周日汇报（2026-04-19）** — T2 S4.5 HTML 完整版 + T3 评测表发射 10 人测试
 
 ## 开发日志
 
 > 每次 session 结束前更新此区块。新对话开始时 Claude Code 自动读取，了解当前进度。
+
+### 2026-04-17（**T1 导出中心统一重构 ⭐** — Sunday Sprint 第一块）
+
+响应周日汇报 + 师弟师妹 10 人线上测试的迫切需求。重构前的导出口散落各分析
+页，测试用户"找不到批量下载"是 UX 黑洞。本 session ~3h 收口，让所有产物汇
+集到一个统一入口。
+
+#### 核心架构：`_export_registry` 单一数据源
+
+- 新增 helper `_register_export(analysis_id, *, result, file_paths, params, output_base)`
+  登记到 `st.session_state._export_registry`
+- 13 个分析页全部接入（stackplot / pcoa / gene_heatmap / alpha_boxplot / log2fc /
+  rda / lefse / mag_quality / mag_heatmap / pathway / gene_profile / network /
+  cycle_diagram）
+- 注册信息包含复现脚本所需的完整 `file_paths`，使得导出中心能独立重建 .py 脚本
+
+#### 「导出中心」4-tab 页
+
+1. **📊 图表 tab**：
+   - 「📦 一键批量下载（ZIP）」按钮 — 所有已生成图 × 4 格式（PNG/PDF/SVG/TIFF）
+     + stats TSV，打包成 `envmeta_figures_bundle.zip`
+   - 逐图 expander — 每张图独立预览 + 4 格式下载 + TSV 导出
+   - 标题显示已注册分析数（`图表 (N)`）
+
+2. **📦 Fork Bundle tab**：
+   - 简短说明 + 「🚀 去『生物地球化学循环图』页操作 Bundle」按钮
+     （on_click 回调切 sidebar）
+   - 显示当前 `_bundle_last` 状态（已加载 bundle 名 / hypotheses 数 /
+     config keys / 有无 readme）
+   - 保留循环图页原 Bundle expander 不动，避免破坏现有流畅操作
+   - 循环图页 Bundle 区块**加一行 info** 提示"批量下载到导出中心"
+
+3. **🐍 复现脚本 tab**：
+   - 「📦 一键批量下载（ZIP — 全部 .py 复现脚本）」
+   - 逐条 expander — 单独下载 + 代码预览（~1500 字符截断）
+   - 失败时 graceful fallback（错误信息进 zip 的 `*_ERROR.txt`）
+
+4. **📚 文档下载 tab**：
+   - 5 个文档：data_preparation_zh.md / tool_comparison.md / time_comparison.md
+     / README.md / CLAUDE.md
+   - 每条 bordered container 含标题 + 说明 + 路径 + 下载按钮
+   - 文件不存在时显示「❌ 未找到」
+
+#### 关键设计决策
+
+- **不迁移 Bundle Export 到导出中心**：Bundle 创建需要循环图 +
+  假说评分上下文，迁出风险大。导出中心只做入口按钮 + 状态显示；实际操作
+  仍在循环图页完成
+- **注册信息从 files_map 派生**：MAG 分析（pathway / gene_profile / network 等）
+  的 files_map 在 `if last is not None:` 块内构建，`_register_export` 放在
+  同位置；每次 rerun 都刷新 registry，保证与最新 UI 选择一致
+- **ZIP 按钮 = pre-computed bytes**：Streamlit `download_button` 需要 bytes
+  就绪才能点击。当前实现每次打开图表 tab 重新压缩所有 figure（14 个 × 4 格式
+  可能 10-15s）。用户测试反馈再优化（选项：`@st.cache_data` 或 button-gated 两步）
+- **on_click 回调复用**：「去循环图页」按钮用已有 `_goto_page_callback` 复用
+  S8-ux 的 sidebar 跳转模式，绕过 Streamlit widget key 限制
+
+#### 测试
+
+**259 → 259**（无新 case，只调 app.py；已有测试全绿 140s）；streamlit 冷启动
+无 runtime error；AST 校验通过。
+
+#### 交付文件清单
+
+| 文件 | 动作 | 行数 |
+|---|---|---|
+| `app.py` | +_register_export helper + 13 注册调用 + 导出中心 4-tab 重写 + 循环图页 info | +~220 |
+
+#### 论文 Methods 新素材
+
+> "To lower the export barrier for reviewer-driven reproduction, EnvMeta
+> centralizes all artifacts—figures (4 formats), .py reproduction scripts,
+> Fork Bundle, and curated documentation—into a single "Export Center"
+> page. A single ZIP download provides ready-to-include supplementary
+> materials for 14 analyses in <10 seconds."
+
+#### 关键学习
+
+1. **Streamlit on_click 回调**是解决"button 点击后改 widget key"的唯一干净
+   方案（前 session 踩过坑）。本 session 的「去循环图页」按钮直接复用 S8-ux
+   的 `_goto_page_callback`
+2. **Registry pattern vs 多个 session_state key**：之前 `last_stackplot` /
+   `_cy_last` 等命名风格混乱；新的 `_export_registry` 是单一数据源，新增分析
+   只需添加一次 `_register_export` 调用，导出中心自动显示
+3. **Bundle 不迁移的理由**：不是所有功能都要"完美重构"。Bundle 依赖循环图
+   结果 + 假说评分上下文，迁到没有这些上下文的页面反而增加使用复杂度。
+   导出中心做入口 + 状态显示即可
+
+#### 下一步（Sunday Sprint 第 2 / 3 块）
+
+**T2 — S4.5 HTML 交互导出完整版（~10-14h）**：周六主战场。循环图 + 假说评分
++ 跨组对比的独立 HTML 文件，D3.js 嵌入，离线可交互。见 plan 文件详细 scope。
+
+**T3 — 评测表电子版（~2-3h）**：周日上午做。10 任务腾讯问卷 + SUS 10 题中文
+版。发师弟师妹测试。
+
+---
 
 ### 2026-04-17（**S8-ux 新手落地包 ⭐** — 让非生信课题组真正能用）
 
