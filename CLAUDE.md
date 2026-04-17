@@ -261,11 +261,15 @@ S8 插件框架推迟到论文接收后再做。完整计划见 `C:\Users\REDLIZ
 
 ### 备选路径（按优先级）
 
-1. **S4.5 HTML 交互导出（~10-15h, 论文 SI 杀手锏）** — D3.js 独立 HTML 嵌入 cycle_data + hypothesis_score JSON，审稿人可交互
-2. **S8-ui 导出中心统一重构（~3-4h）** — 把所有导出（bundle / 图表 / .py 脚本）汇集到"导出中心"页
-3. **装 R 做 EnvMeta vs 原脚本侧侧对比** — 论文 Methods 关键证据，独立时间做（需装 R 环境）
-4. **English README** — iMeta 要求，~2h
-5. **S9 论文 Methods 起草** — 素材已齐（S1 去偏 + S2 置换 + S3+S3.5 评分器 + S4 Bundle + S6/S7 全 12 图）
+1. **🟥 S8-ux 新手落地包（~10h）⭐ 最高优先** — 数据准备指南（覆盖 MajorBio/
+   诺禾/BGI + CoverM/HUMAnN/eggNOG/GTDB-Tk/CheckM2/QIIME2 等上游工具） +
+   "我该用哪张图" 研究问题向导 + 每图"如何解读"expander + 文件→分析反向
+   索引（文件管理页一键提示可跑什么分析）。**详见 2026-04-17 阶段性自检 v2**
+2. **S4.5 HTML 交互导出（~10-15h, 论文 SI 杀手锏）** — D3.js 独立 HTML 嵌入 cycle_data + hypothesis_score JSON，审稿人可交互
+3. **S8-ui 导出中心统一重构（~3-4h）** — 把所有导出（bundle / 图表 / .py 脚本）汇集到"导出中心"页
+4. **装 R 做 EnvMeta vs 原脚本侧侧对比** — 论文 Methods 关键证据，独立时间做（需装 R 环境）
+5. **English README** — iMeta 要求，~2h
+6. **S9 论文 Methods 起草** — 素材已齐（S1 去偏 + S2 置换 + S3+S3.5 评分器 + S4 Bundle + S6/S7 全 12 图）
 
 ### 已推迟（明确）
 
@@ -284,6 +288,120 @@ S8 插件框架推迟到论文接收后再做。完整计划见 `C:\Users\REDLIZ
 ## 开发日志
 
 > 每次 session 结束前更新此区块。新对话开始时 Claude Code 自动读取，了解当前进度。
+
+### 2026-04-17（**阶段性自检 v2** — 新手用户视角 + 开源免费定位 + 上游工具映射）
+
+S7 后第二次全局自检。上次（2026-04-19 第一版自检）聚焦功能/竞争/审稿人
+三角，本次新增 **新手用户视角**（CLAUDE.md 原承诺但从未具体审视）+ 用户
+主动提的**开源免费定位** + **上游工具输出映射清单**，作为投稿前的补漏。
+
+#### 1. 功能 + 竞争 + 审稿人（与 v1 比较）
+
+- 功能：Phase 2 5/5 全完 + 12 图 + 循环图 + 假说评分 + Bundle；🟥 投稿
+  阻塞项未变（R 对照 / English README / Methods / Zenodo / 二数据集）
+- 竞争：三件套矩阵**升级为四件套**（新加"开源免费"列）—— 见下文
+- 审稿人：接收率估计未变（现在 30-40% → 补 🟥 60-75% → 加 🟨 75-85%）
+
+#### 2. 🆕 开源免费 vs 测序公司（用户新提）
+
+环境微生物课题组常见痛点：**测序公司小众分析要加钱 / 有些根本不给做**。
+价格现实（2026 年行情）：
+
+| 分析 | 诺禾 / 美吉 / BGI / 基迪奥 | EnvMeta |
+|---|---|---|
+| 宏基因组测序（基础）| ~4500 元/样本 | — |
+| α/β 多样性 / 堆叠图 / LEfSe 基础 | 含在基础套餐 | 免费 |
+| MAG 组装 + 注释 | 加钱 5k-30k 元/项目 | 免费（接入上游输出）|
+| 共现网络 + keystone 识别 | 个性化加价 or 不做 | 免费（Gephi 辅助）|
+| 通路完整度 / 元素循环推断 | **几乎无公司提供** | **独有** |
+| 假说评分 + Bundle 复现 | **无** | **独有** |
+| 任意参数调整 | ❌ 参数锁死 | ✅ 全可调 |
+
+**EnvMeta 四件套矩阵**：
+
+| 工具 | Cycle | 假说评分 | Bundle | **开源免费** |
+|---|---|---|---|---|
+| **EnvMeta** | ✅ | ✅ | ✅ | ✅✅ |
+| 测序公司云平台 | ❌ | ❌ | ❌ | ❌（付费）|
+| Shiny-phyloseq / plotmicrobiome | ❌ | ❌ | ❌ | ✅ |
+| Anvi'o | 部分 | ❌ | ❌ | ✅ |
+
+> **关键洞察**：真实对手不是 Shiny-phyloseq，是**测序公司云平台**（MajorBio /
+> 诺禾 / BGI / Wekemo）。云平台新手最好用但**结果质量不可控 + 小众分析要钱**。
+> EnvMeta 定位 = "**比云平台更灵活 + 比 Anvi'o 更易用**" 的中间层。
+
+#### 3. 🆕 新手用户视角（iMeta 论文核心叙事）
+
+**真实场景**：环境微生物博士生，送样到测序公司，收到一堆表格，打开 EnvMeta，
+然后……
+
+**✅ 当前给新手的帮助**（已落地）：
+- 自动文件识别（11 FileType + Gephi 刚加）
+- 默认参数即可出图（5 张 MAG 图共享）
+- 一键复现 `.py` 脚本 / Gephi 使用指南 / Help 悬停文字 / Genus 标签
+
+**❌ 新手还缺的**（按优先级）：
+
+- 🔴 **Tier 1 — 阻塞新手上手**：
+  1. **上游工具输出 → EnvMeta 格式映射指南**（覆盖测序公司包 + 自跑上游）
+  2. **"我应该用哪张图？" 决策向导**（研究问题 → 推荐分析）
+  3. **每图"如何解读"expander**（参考假说评分器的 9 档解读模式）
+- 🟡 **Tier 2**：样例数据一键加载 / 参数推荐对话（小样本时放宽阈值）/
+  中文术语词汇表 / 常见错误 FAQ
+- 🟢 **Tier 3**：云平台对比说明 / 预设方案（毕业论文版 / SCI 版）/ 视频教程
+
+#### 4. 🆕 上游工具输出映射清单（扩展 Tier 1-1）
+
+原来只想覆盖测序公司输出，实际要覆盖**两类用户**：
+- 类型 A（非生信）：测序公司压缩包 → 不知道哪个文件对应 EnvMeta 输入
+- 类型 B（半生信）：自己跑完上游分析 → 一堆输出不知道哪个接哪个
+
+→ `docs/data_preparation_zh.md` 应含：
+
+| 上游工具 | 典型输出 | EnvMeta 输入 |
+|---|---|---|
+| CoverM / Bowtie2 | abundance.tsv | `ABUNDANCE_WIDE` |
+| MetaPhlAn4 | `*_bugs_list.tsv` | `ABUNDANCE_WIDE` |
+| HUMAnN3 | `genefamilies.tsv` / `pathabundance.tsv` | `KO_ABUNDANCE_WIDE` |
+| eggNOG-mapper | `*.emapper.annotations` | `KO_ANNOTATION_LONG` |
+| DRAM | `annotations.tsv` / `distill/metabolism.tsv` | `KO_ANNOTATION_LONG` |
+| GTDB-Tk | `gtdbtk.bac120.summary.tsv` | `MAG_TAXONOMY` |
+| CheckM2 | `quality_report.tsv` | `CHECKM_QUALITY` |
+| KofamScan | `*.mapper.tsv` | `KO_ANNOTATION_LONG` |
+| QIIME2 | `alpha.tsv` / `beta-distance.tsv` | 多种 |
+| Kraken2 + Bracken | `*_bracken.tsv` | `ABUNDANCE_WIDE` |
+| iCAMP / SpiecEasi | 共现矩阵 | `GEPHI_NODES/EDGES` |
+
+#### 5. 🆕 产品核心叙事（用户一句话点题）
+
+> **"文件识别功能 = 解决 '文件到手不知道能干什么' 的痛点"**
+
+这句话是 EnvMeta **跨越生信门槛的核心卖点**。建议写进：
+- README 首段
+- 论文 Abstract / Introduction
+- 官网 hero slogan（以后有的话）
+
+对应 UX 增强：文件管理页标完文件类型后，**反向提示可跑哪些分析**（~1h 工作量）：
+```
+📄 abundance.tsv — 📊 abundance (wide)
+   → 可用于：堆叠图 / PCoA / RDA / MAG 丰度热图 / 共现网络
+```
+
+#### 6. 🆕 推荐路线（S8-ux 作为下一个 session 优先）
+
+| 优先级 | 任务 | 工时 | 受众 |
+|---|---|---|---|
+| 🟥 **S8-ux 新手落地包** | 数据准备指南 + 问题向导 + 解读 expander | ~10h | 课题组非生信 |
+| 🟥 文件→分析反向索引 | 文件管理页一键提示"可跑什么分析" | 1h | 所有用户 |
+| 🟡 S4.5 HTML 交互导出 | SI 杀手锏 | 10-15h | 审稿人 |
+| 🟡 R 侧侧对比 + English README | 投稿 🟥 清单 | ~1.5 天 | 审稿人 |
+| 🟢 S9 论文 Methods 起草 | 素材已齐 | 1-2 周 | 审稿人 |
+
+**核心判断**：**S8-ux 应插队到 S4.5 之前**。10h 就能把 EnvMeta 从
+"开源工具"升级到"**非生信课题组真正能用的开源工具**"。这个定位差距比任何
+新功能都值钱 —— 是 iMeta 论文 Results 里 user study 的先决条件。
+
+---
 
 ### 2026-04-17（S7 — 共现网络 Gephi-prep 辅助 ⭐ Phase 2 5/5 全完）
 
