@@ -1281,10 +1281,15 @@ elif page == "MAG-based 分析":
         if not file_names:
             st.warning("请先在「文件管理」上传 Gephi nodes CSV + edges CSV。")
             st.stop()
+        n_default = _first_of(FileType.GEPHI_NODES)
         n_name = st.selectbox("Gephi Nodes CSV（必需：Id + Degree + Betweenness）",
-                              file_names, key="nw_nodes")
+                              file_names, key="nw_nodes",
+                              index=_idx_or_default(file_names, n_default))
+        e_default = _first_of(FileType.GEPHI_EDGES)
+        e_options = [n for n in file_names if n != n_name]
         e_name = st.selectbox("Gephi Edges CSV（必需：Source + Target + Weight）",
-                              [n for n in file_names if n != n_name], key="nw_edges")
+                              e_options, key="nw_edges",
+                              index=_idx_or_default(e_options, e_default))
         t_default = _first_of(FileType.MAG_TAXONOMY)
         t_options = ["（无）"] + [n for n in file_names if n not in (n_name, e_name)]
         t_name = st.selectbox("GTDB 分类表（可选，补 Genus 标签）",

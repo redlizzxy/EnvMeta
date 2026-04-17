@@ -111,31 +111,68 @@ def prepare_gephi_csv(
     nodes = nodes.rename(columns={id_col: "Id"})
     nodes["Id"] = nodes["Id"].astype(str)
 
-    # 补 taxonomy → Genus 标签
-    nodes_for_tax = nodes.rename(columns={"Id": "MAG"})
-    nodes_for_tax = _mc.annotate_taxonomy(nodes_for_tax, taxonomy_df)
+    # --- 生成 Genus 标签 ---
+    # 优先用 nodes CSV 自带的 Genus/Family 列（避免依赖外部 taxonomy_df）
+    # 只有 nodes 里没 Genus 时才 fallback 到 taxonomy_df
+    nodes_has_genus = any(c.lower() == "genus" for c in nodes.columns)
+    nodes_has_family = any(c.lower() == "family" for c in nodes.columns)
+
+    if nodes_has_genus or nodes_has_family:
+        # 直接从 nodes 已有列生成 label
+        genus_col = next((c for c in nodes.columns if c.lower() == "genus"), None)
+        family_col = next((c for c in nodes.columns if c.lower() == "family"), None)
+        species_col = next((c for c in nodes.columns if c.lower() == "species"), None)
+        phylum_col = next((c for c in nodes.columns if c.lower() == "phylum"), None)
+        nodes["_genus"] = nodes[genus_col].fillna("").astype(str) if genus_col else ""
+        nodes["_family"] = nodes[family_col].fillna("").astype(str) if family_col else ""
+        nodes["_species"] = nodes[species_col].fillna("").astype(str) if species_col else ""
+        nodes["_label"] = nodes.apply(
+            lambda r: _mc.mag_display_label(
+                r["Id"], r["_genus"], r["_species"], r["_family"]),
+            axis=1,
+        )
+    elif taxonomy_df is not None and not taxonomy_df.empty:
+        # fallback: 用外部 taxonomy_df 解析
+        tmp = nodes[["Id"]].rename(columns={"Id": "MAG"})
+        tmp = _mc.annotate_taxonomy(tmp, taxonomy_df)
+        nodes["_label"] = tmp["label"].values
+    else:
+        nodes["_label"] = nodes["Id"]
+
     # keystone 标注
     if keystone_df is not None and not keystone_df.empty:
-        nodes_for_tax = _mc.annotate_keystone(nodes_for_tax, keystone_df)
+        ks = keystone_df.copy()
+        ks = ks.rename(columns={_mc.mag_col(ks): "MAG"})
+        ks_set = set(ks["MAG"].astype(str))
+        nodes["is_keystone"] = nodes["Id"].isin(ks_set)
     elif "is_keystone" in nodes.columns:
         ks_col = nodes["is_keystone"]
         if ks_col.dtype == object:
-            ks_col = ks_col.str.lower().isin(("true", "1", "yes"))
-        nodes_for_tax["is_keystone"] = ks_col.values
+            nodes["is_keystone"] = ks_col.str.lower().isin(("true", "1", "yes"))
 
-    # Label 列
+    # Label 列（Gephi 大小写不敏感，只保留一个 Label）
     if label_mode == "none":
-        nodes_for_tax["Label"] = ""
+        nodes["Label"] = ""
     elif label_mode == "all":
-        nodes_for_tax["Label"] = nodes_for_tax["label"]
+        nodes["Label"] = nodes["_label"]
     else:  # keystone_only
-        nodes_for_tax["Label"] = nodes_for_tax.apply(
-            lambda r: r["label"] if r.get("is_keystone", False) else "",
+        nodes["Label"] = nodes.apply(
+            lambda r: r["_label"] if r.get("is_keystone", False) else "",
             axis=1,
         )
 
-    # 拼回 Id + 保留原有列 + 新增列
-    out_nodes = nodes_for_tax.rename(columns={"MAG": "Id"})
+    # 清理：删除中间列 + 避免 Gephi "repeated column" 报错
+    # 删除所有临时列和可能与 Label 重复的 label 列
+    drop_cols = {"_genus", "_family", "_species", "_label"}
+    # 删除原始的小写 label 列（若存在）避免与 Label 冲突
+    if "label" in nodes.columns and "Label" in nodes.columns:
+        drop_cols.add("label")
+    # 删除 _x / _y 后缀列（merge 产物）
+    for c in list(nodes.columns):
+        if c.endswith("_x") or c.endswith("_y"):
+            drop_cols.add(c)
+    out_nodes = nodes.drop(columns=[c for c in drop_cols if c in nodes.columns])
+
     # 确保 is_keystone 可被 Gephi 识别（Boolean → string）
     if "is_keystone" in out_nodes.columns:
         out_nodes["is_keystone"] = out_nodes["is_keystone"].map(

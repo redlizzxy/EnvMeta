@@ -27,6 +27,8 @@ class FileType(str, Enum):
     KO_ANNOTATION_LONG = "ko_annotation_long"
     KEYSTONE_SPECIES = "keystone_species"
     MAG_TAXONOMY = "mag_taxonomy"
+    GEPHI_NODES = "gephi_nodes"
+    GEPHI_EDGES = "gephi_edges"
     UNKNOWN = "unknown"
 
 
@@ -252,6 +254,27 @@ def _rule_abundance_wide(df: pd.DataFrame, filename: str) -> tuple[bool, float, 
     return False, 0.0, ""
 
 
+def _rule_gephi_nodes(df: pd.DataFrame, filename: str) -> tuple[bool, float, str]:
+    """Gephi 节点表：有 Id/MAG + Degree + Betweenness。"""
+    cols_lower = {c.lower() for c in df.columns}
+    has_id = bool(cols_lower & {"id", "mag", "name", "genome"})
+    has_degree = "degree" in cols_lower
+    has_between = bool(cols_lower & {"betweenness", "betweenness centrality"})
+    if has_id and has_degree and has_between:
+        return True, 0.95, "Gephi 节点表（Id + Degree + Betweenness）"
+    return False, 0.0, ""
+
+
+def _rule_gephi_edges(df: pd.DataFrame, filename: str) -> tuple[bool, float, str]:
+    """Gephi 边表：有 Source + Target（+ 可选 Weight）。"""
+    cols_lower = {c.lower() for c in df.columns}
+    has_src = bool(cols_lower & {"source", "from", "mag1"})
+    has_tgt = bool(cols_lower & {"target", "to", "mag2"})
+    if has_src and has_tgt:
+        return True, 0.95, "Gephi 边表（Source + Target）"
+    return False, 0.0, ""
+
+
 # 规则顺序：更严格/更独特的先匹配。metadata 和 env_factors 都要 SampleID+Group，
 # env_factors 更严格（需要额外数值列），所以它应先于 metadata 优先级考察。
 _RULES: list[tuple[FileType, Rule]] = [
@@ -261,6 +284,9 @@ _RULES: list[tuple[FileType, Rule]] = [
     (FileType.DISTANCE_MATRIX, _rule_distance_matrix),
     # Keystone / MAG 分类 / KO 长表要排在通用 KO 宽表和丰度宽表之前
     (FileType.KEYSTONE_SPECIES, _rule_keystone_species),
+    # Gephi 在 keystone 之后（keystone 表也有 Degree+Betweenness 列）
+    (FileType.GEPHI_NODES, _rule_gephi_nodes),
+    (FileType.GEPHI_EDGES, _rule_gephi_edges),
     (FileType.KO_ANNOTATION_LONG, _rule_ko_annotation_long),
     (FileType.MAG_TAXONOMY, _rule_mag_taxonomy),
     (FileType.KO_ABUNDANCE_WIDE, _rule_ko_abundance_wide),
