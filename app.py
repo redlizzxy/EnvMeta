@@ -23,6 +23,10 @@ from envmeta.tools.gephi_prep import prepare_gephi_csv, validate_gephi_format
 from envmeta.export.code_generator import generate as generate_code
 from envmeta.export.figure_export import export_to_bytes
 from envmeta.file_manager.detector import FileType, detect, read_table
+from envmeta.help import (
+    ANALYSIS_INPUTS, FILE_TO_ANALYSIS, INTERPRETATIONS, NAVIGATOR,
+)
+from envmeta.help.file_analysis_map import analyses_ready
 from envmeta.params.common import render_figure_size, render_font_controls
 
 
@@ -170,17 +174,21 @@ if "files" not in st.session_state:
 st.sidebar.title("EnvMeta")
 st.sidebar.caption(f"v{__version__} · 环境微生物宏基因组可视化分析平台")
 
-page = st.sidebar.radio(
-    "功能模块",
-    [
-        "首页",
-        "文件管理",
-        "Reads-based 分析",
-        "MAG-based 分析",
-        "生物地球化学循环图",
-        "导出中心",
-    ],
-)
+# 跳转支持：其他页的按钮改 session_state.page_radio（widget key）即可控制 radio
+_PAGES = [
+    "首页",
+    "数据准备指南",
+    "文件管理",
+    "图表选择向导",
+    "Reads-based 分析",
+    "MAG-based 分析",
+    "生物地球化学循环图",
+    "导出中心",
+]
+if "page_radio" not in st.session_state:
+    st.session_state.page_radio = "首页"
+
+page = st.sidebar.radio("功能模块", _PAGES, key="page_radio")
 
 TYPE_BADGES = {
     FileType.METADATA: "🗂️ metadata",
@@ -202,6 +210,110 @@ TYPE_OPTIONS = [ft.value for ft in FileType]
 
 def _files_of(*types: FileType) -> dict[str, dict]:
     return {n: info for n, info in st.session_state.files.items() if info["type"] in types}
+
+
+# ══════════════════════════════════════════════════════════
+# S8-ux 新手落地包辅助
+# ══════════════════════════════════════════════════════════
+
+def _render_interpretation_expander(analysis_id: str, *, key: str | None = None) -> None:
+    """渲染「如何解读」expander。数据源：envmeta/help/interpretations.py。
+
+    用法：在每个分析页分支的**开头**调用一次，让用户生成图之前就看到解读指南。
+    """
+    content = INTERPRETATIONS.get(analysis_id)
+    if not content:
+        return
+    with st.expander(f"📖 {content['title']}", expanded=False):
+        st.markdown(f"**这张图回答什么？**  \n{content['what_it_shows']}")
+        st.markdown("**怎么看？**")
+        for bullet in content["how_to_read"]:
+            st.markdown(f"- {bullet}")
+        st.success(f"✅ **正面证据**：{content['good_signal']}")
+        st.warning(f"⚠️ **常见误判**：{content['warning']}")
+        st.info(f"ℹ️ **方法学局限**：{content['caveats']}")
+
+
+def _jump_callback(analysis_id: str) -> None:
+    """on_click 回调 — 在 rerun 前改 widget session_state，避开
+    "cannot be modified after widget instantiated" 限制。"""
+    spec = ANALYSIS_INPUTS.get(analysis_id)
+    if not spec:
+        return
+    st.session_state.page_radio = spec["page"]
+    atype = spec.get("analysis_type")
+    if atype:
+        if spec["page"] == "Reads-based 分析":
+            st.session_state.reads_analysis_type = atype
+        elif spec["page"] == "MAG-based 分析":
+            st.session_state.mag_analysis_type = atype
+
+
+def _goto_page_callback(target: str) -> None:
+    """on_click 回调 — 切到指定 sidebar page。"""
+    st.session_state.page_radio = target
+
+
+def _jump_to_analysis(analysis_id: str, *, key: str) -> None:
+    """渲染「跳转到分析」按钮。通过 on_click 回调安全修改 widget key。"""
+    spec = ANALYSIS_INPUTS.get(analysis_id)
+    if not spec:
+        return
+    st.button(
+        f"🚀 去跑「{spec['name']}」",
+        key=key,
+        on_click=_jump_callback,
+        args=(analysis_id,),
+    )
+
+
+def _render_file_reverse_index(file_type: FileType, *, key_prefix: str) -> None:
+    """文件管理页 — 每个文件卡片下方的「可跑什么分析」区块。"""
+    entries = FILE_TO_ANALYSIS.get(file_type, [])
+    if not entries:
+        st.caption("这个文件类型暂无对应分析。")
+        return
+    st.markdown("**🎯 这个文件可以跑什么分析**")
+    # 已上传的 FileType 集合，用于高亮"全部 required 已齐全"
+    have_types = {info["type"] for info in st.session_state.files.values()}
+    ready = set(analyses_ready(have_types))
+    for aid, name, role in entries:
+        role_badge = "🔴 required" if role == "required" else "🟢 optional"
+        ready_badge = " ✅ 已齐全" if aid in ready else ""
+        c1, c2 = st.columns([4, 1])
+        with c1:
+            st.markdown(f"- **{name}** · {role_badge}{ready_badge}")
+        with c2:
+            _jump_to_analysis(aid, key=f"{key_prefix}_jump_{aid}")
+
+
+def _load_sample_data() -> tuple[int, int]:
+    """加载 tests/sample_data/ 里的全部文件到 session_state。
+
+    返回 (成功加载数, 跳过/失败数)。复用现有 detect() 逻辑。
+    """
+    sample_dir = Path(__file__).parent / "tests" / "sample_data"
+    if not sample_dir.exists():
+        st.error(f"样例数据目录不存在：{sample_dir}")
+        return (0, 0)
+    loaded = 0
+    skipped = 0
+    for fpath in sorted(sample_dir.iterdir()):
+        if fpath.suffix.lower() not in (".txt", ".tsv", ".csv", ".spf"):
+            continue
+        if fpath.name in st.session_state.files:
+            skipped += 1
+            continue
+        try:
+            df, enc, sep = read_table(fpath)
+            result = detect(fpath, filename=fpath.name)
+            st.session_state.files[fpath.name] = {
+                "df": df, "type": result.file_type, "result": result,
+            }
+            loaded += 1
+        except Exception:
+            skipped += 1
+    return loaded, skipped
 
 
 # ══════════════════════════════════════════════════════════
@@ -412,15 +524,78 @@ if page == "首页":
         3. 调整图形参数，实时预览
         4. 一键导出高质量图形（PNG / PDF）和可复现数据
 
-        #### 当前可用功能（Phase 1 迭代 2）
+        #### 当前可用功能（v0.5 — Phase 1/2 全通）
         | 模块 | 支持内容 |
         |------|---------|
-        | 文件识别 | metadata、abundance（宽表）、distance matrix、alpha diversity、CheckM、env factors、KO abundance |
-        | Reads-based 分析 | 物种组成堆叠图、PCoA + PERMANOVA、元素循环基因热图 |
-        | 调参 | 画布尺寸、字号、排序方式、元素过滤等 |
-        | 导出 | PNG（300 DPI）/ PDF（矢量）/ 统计 TSV |
+        | 文件识别 | metadata / abundance / distance / alpha / CheckM / env factors / KO 宽长表 / Keystone / MAG taxonomy / Gephi nodes+edges |
+        | Reads-based 分析 | 堆叠图 / PCoA / 基因热图 / α 多样性 / log2FC / RDA / LEfSe |
+        | MAG-based 分析 | MAG 质量 / 丰度热图 / 通路完整度 / 元素循环基因谱 / 共现网络 Gephi-prep |
+        | 生物地球化学循环图 | 4 元素推断 + 假说评分 + 跨组对比 + Fork Bundle |
+        | 导出 | PNG / PDF / SVG / TIFF 600dpi / TSV / 复现 .py 脚本 |
         """
     )
+    st.markdown("---")
+
+    # ── S8-ux 新手落地包入口 ────────────────────────────────
+    c_home1, c_home2 = st.columns([1, 1])
+    with c_home1:
+        with st.expander("🚀 快速体验（一键加载示例数据）", expanded=True):
+            st.markdown(
+                "没有数据？点击下方按钮加载砷渣-钢渣修复示例数据"
+                "（168 MAG / 10 样本 / 3 组），即可跑通全部 14 个分析。"
+            )
+            if st.button("📦 加载砷渣修复示例数据", key="home_load_sample"):
+                loaded, skipped = _load_sample_data()
+                if loaded:
+                    st.success(
+                        f"已加载 {loaded} 个样例文件（跳过 {skipped} 个）。"
+                        "切换到左侧「文件管理」或「图表选择向导」继续。"
+                    )
+                    st.toast("示例数据就绪 ✅", icon="📦")
+                else:
+                    st.warning(
+                        f"没有加载任何新文件（已跳过 {skipped} 个，可能已加载过）。"
+                    )
+            if st.session_state.files:
+                st.caption(f"📂 当前已加载 {len(st.session_state.files)} 个文件。")
+    with c_home2:
+        with st.expander("🧭 不知道用哪张图？", expanded=True):
+            st.markdown(
+                "「**图表选择向导**」按研究问题推荐分析（组间差异 / 多样性 / 网络 / "
+                "元素循环 / 环境因子关系 等 8 大类）。"
+            )
+            st.button(
+                "📊 打开图表选择向导", key="home_open_nav",
+                on_click=_goto_page_callback, args=("图表选择向导",),
+            )
+            st.button(
+                "📚 查看数据准备指南", key="home_open_guide",
+                on_click=_goto_page_callback, args=("数据准备指南",),
+            )
+
+# ══════════════════════════════════════════════════════════
+# 数据准备指南（S8-ux）—— 内嵌 docs/data_preparation_zh.md
+# ══════════════════════════════════════════════════════════
+elif page == "数据准备指南":
+    st.title("📚 数据准备指南")
+    st.caption("上游工具 → EnvMeta 输入格式映射 · 覆盖 11 种常见流程")
+    guide_path = Path(__file__).parent / "docs" / "data_preparation_zh.md"
+    if guide_path.exists():
+        # 下载按钮
+        guide_bytes = guide_path.read_bytes()
+        st.download_button(
+            "⬇️ 下载指南（Markdown）",
+            data=guide_bytes,
+            file_name="data_preparation_zh.md",
+            mime="text/markdown",
+            key="guide_dl",
+        )
+        st.markdown("---")
+        # 内嵌渲染
+        st.markdown(guide_path.read_text(encoding="utf-8"), unsafe_allow_html=False)
+    else:
+        st.error(f"指南文件未找到：{guide_path}")
+        st.info("请确认项目根目录下存在 `docs/data_preparation_zh.md`。")
 
 # ══════════════════════════════════════════════════════════
 # 文件管理（模块 A）
@@ -474,6 +649,77 @@ elif page == "文件管理":
                         del st.session_state.files[fname]
                         st.rerun()
                 st.dataframe(info["result"].preview_df, use_container_width=True, height=180)
+                # S8-ux 反向索引 —— 这个文件可以跑什么分析
+                st.markdown("---")
+                _render_file_reverse_index(info["type"], key_prefix=f"rev_{fname}")
+
+        # 汇总：当前文件组合可直接跑的分析
+        have_types = {info["type"] for info in st.session_state.files.values()}
+        ready_ids = analyses_ready(have_types)
+        if ready_ids:
+            st.success(
+                f"✅ 当前文件组合可**直接运行**的分析："
+                + "、".join(ANALYSIS_INPUTS[aid]["name"] for aid in ready_ids)
+            )
+
+# ══════════════════════════════════════════════════════════
+# 图表选择向导（S8-ux）
+# ══════════════════════════════════════════════════════════
+elif page == "图表选择向导":
+    st.title("📊 图表选择向导")
+    st.caption("按研究问题推荐分析类型。两步 radio → 推荐卡片 → 一键跳转。")
+
+    # 步骤 1 — 选大类
+    categories = [f"{cat['icon']} {cat['category']}" for cat in NAVIGATOR]
+    cat_idx = st.radio(
+        "**第一步 · 你想回答什么研究问题？**",
+        list(range(len(NAVIGATOR))),
+        format_func=lambda i: categories[i],
+        key="nav_cat",
+    )
+    cat = NAVIGATOR[cat_idx]
+    st.caption(f"*{cat['description']}*")
+    st.markdown("---")
+
+    # 步骤 2 — 选具体子问题
+    sub_opts = [sq["q"] for sq in cat["subquestions"]]
+    sub_idx = st.radio(
+        "**第二步 · 更具体一点…**",
+        list(range(len(sub_opts))),
+        format_func=lambda i: sub_opts[i],
+        key=f"nav_sub_{cat_idx}",
+    )
+    sq = cat["subquestions"][sub_idx]
+    st.markdown("---")
+
+    # 步骤 3 — 推荐卡片
+    st.subheader("🎯 推荐分析")
+    have_types = {info["type"] for info in st.session_state.files.values()}
+    ready = set(analyses_ready(have_types))
+    for i, rec in enumerate(sorted(sq["recommended"], key=lambda r: r["priority"])):
+        aid = rec["analysis_id"]
+        spec = ANALYSIS_INPUTS.get(aid, {"name": aid})
+        priority_label = {1: "🥇 首选", 2: "🥈 次选", 3: "🥉 补充"}.get(rec["priority"], "")
+        ready_badge = " ✅ 文件已齐全" if aid in ready else ""
+        with st.container(border=True):
+            c1, c2 = st.columns([4, 1])
+            with c1:
+                st.markdown(f"### {priority_label} {spec['name']}{ready_badge}")
+                st.markdown(f"**推荐理由**：{rec['reason']}")
+                # 需要的文件类型
+                req_badges = [TYPE_BADGES.get(ft, ft.value)
+                              for ft in ANALYSIS_INPUTS.get(aid, {}).get("required", [])]
+                opt_badges = [TYPE_BADGES.get(ft, ft.value)
+                              for ft in ANALYSIS_INPUTS.get(aid, {}).get("optional", [])]
+                if req_badges:
+                    st.caption("**必需文件**：" + " · ".join(req_badges))
+                if opt_badges:
+                    st.caption("**可选文件**：" + " · ".join(opt_badges))
+            with c2:
+                _jump_to_analysis(aid, key=f"nav_jump_{cat_idx}_{sub_idx}_{i}")
+
+    if sq.get("tip"):
+        st.info(f"💡 **提示**：{sq['tip']}")
 
 # ══════════════════════════════════════════════════════════
 # Reads-based 分析（模块 B1）
@@ -491,10 +737,12 @@ elif page == "Reads-based 分析":
             "LEfSe 差异分析",
             "基因差异分析 (log2FC)",
         ],
+        key="reads_analysis_type",
     )
 
     # ── 堆叠图 ───────────────────────────────────────────
     if analysis_type == "物种组成堆叠图":
+        _render_interpretation_expander("stackplot", key="interp_stackplot")
         abundance_files = _files_of(FileType.ABUNDANCE_WIDE)
         metadata_files = _files_of(FileType.METADATA)
         if not abundance_files or not metadata_files:
@@ -559,6 +807,7 @@ elif page == "Reads-based 分析":
 
     # ── PCoA ────────────────────────────────────────────
     elif analysis_type == "β多样性 PCoA":
+        _render_interpretation_expander("pcoa", key="interp_pcoa")
         dist_files = _files_of(FileType.DISTANCE_MATRIX)
         metadata_files = _files_of(FileType.METADATA)
         if not dist_files or not metadata_files:
@@ -622,6 +871,7 @@ elif page == "Reads-based 分析":
 
     # ── 元素循环基因热图 ───────────────────────────────
     elif analysis_type == "功能基因热图":
+        _render_interpretation_expander("gene_heatmap", key="interp_gene_heatmap")
         ko_files = _files_of(FileType.KO_ABUNDANCE_WIDE)
         metadata_files = _files_of(FileType.METADATA)
         if not ko_files or not metadata_files:
@@ -688,6 +938,7 @@ elif page == "Reads-based 分析":
 
     # ── α 多样性箱线图 ─────────────────────────────────
     elif analysis_type == "α多样性":
+        _render_interpretation_expander("alpha_boxplot", key="interp_alpha_boxplot")
         alpha_files = _files_of(FileType.ALPHA_DIVERSITY)
         metadata_files = _files_of(FileType.METADATA)
         if not alpha_files or not metadata_files:
@@ -756,6 +1007,7 @@ elif page == "Reads-based 分析":
 
     # ── 基因差异分析 log2FC ─────────────────────────────
     elif analysis_type == "基因差异分析 (log2FC)":
+        _render_interpretation_expander("log2fc", key="interp_log2fc")
         ko_files = _files_of(FileType.KO_ABUNDANCE_WIDE)
         metadata_files = _files_of(FileType.METADATA)
         if not ko_files or not metadata_files:
@@ -834,6 +1086,7 @@ elif page == "Reads-based 分析":
 
     # ── RDA 排序图 ─────────────────────────────────
     elif analysis_type == "RDA/CCA 排序":
+        _render_interpretation_expander("rda", key="interp_rda")
         abundance_files = _files_of(FileType.ABUNDANCE_WIDE)
         env_files = _files_of(FileType.ENV_FACTORS)
         metadata_files = _files_of(FileType.METADATA)
@@ -904,6 +1157,7 @@ elif page == "Reads-based 分析":
 
     # ── LEfSe 差异分析 ──────────────────────────────────
     elif analysis_type == "LEfSe 差异分析":
+        _render_interpretation_expander("lefse", key="interp_lefse")
         abundance_files = _files_of(FileType.ABUNDANCE_WIDE)
         metadata_files = _files_of(FileType.METADATA)
         if not abundance_files or not metadata_files:
@@ -982,9 +1236,11 @@ elif page == "MAG-based 分析":
     analysis_type = st.selectbox(
         "选择分析类型",
         ["MAG 质量评估", "MAG 丰度热图", "代谢通路完整度", "MAG 元素循环基因谱", "共现网络图"],
+        key="mag_analysis_type",
     )
 
     if analysis_type == "MAG 质量评估":
+        _render_interpretation_expander("mag_quality", key="interp_mag_quality")
         checkm_files = _files_of(FileType.CHECKM_QUALITY)
         if not checkm_files:
             st.warning("需要 1 个 CheckM / CheckM2 质量表（含 Completeness/Contamination/Genome_Size 列）。")
@@ -1062,6 +1318,7 @@ elif page == "MAG-based 分析":
             with st.expander("查看统计表"):
                 st.dataframe(last.stats, use_container_width=True)
     elif analysis_type == "MAG 丰度热图":
+        _render_interpretation_expander("mag_heatmap", key="interp_mag_heatmap")
         sel = _mag_file_selectors("mh", require_abundance=True)
         ab_name = sel["abundance"]
 
@@ -1127,6 +1384,7 @@ elif page == "MAG-based 分析":
             with st.expander("查看统计表"):
                 st.dataframe(last.stats, use_container_width=True)
     elif analysis_type == "代谢通路完整度":
+        _render_interpretation_expander("pathway", key="interp_pathway")
         sel = _mag_file_selectors("pw", ko_type=FileType.KO_ANNOTATION_LONG)
         ko_name = sel["_ko"]
 
@@ -1193,6 +1451,7 @@ elif page == "MAG-based 分析":
             with st.expander("查看统计表"):
                 st.dataframe(last.stats, use_container_width=True)
     elif analysis_type == "MAG 元素循环基因谱":
+        _render_interpretation_expander("gene_profile", key="interp_gene_profile")
         sel = _mag_file_selectors("gp", ko_type=FileType.KO_ANNOTATION_LONG)
         ko_name = sel["_ko"]
 
@@ -1278,6 +1537,7 @@ elif page == "MAG-based 分析":
             with st.expander("查看统计表"):
                 st.dataframe(last.stats, use_container_width=True)
     elif analysis_type == "共现网络图":
+        _render_interpretation_expander("network", key="interp_network")
         st.caption("Gephi 辅助工具 — 散点图 + CSV 预处理 + 参数指南（不画网络图本体，交给 Gephi）")
         file_names = list(st.session_state.files.keys())
         if not file_names:
@@ -1473,6 +1733,7 @@ elif page == "MAG-based 分析":
 elif page == "生物地球化学循环图":
     st.title("生物地球化学循环图生成器")
     st.caption("Phase 3 v1 — 从 MAG × KO + 环境因子自动推断活跃元素循环通路")
+    _render_interpretation_expander("cycle_diagram", key="interp_cycle_diagram")
 
     file_names = list(st.session_state.files.keys())
     if not file_names:
@@ -1955,6 +2216,7 @@ elif page == "生物地球化学循环图":
                 "评分是**描述性证据加权**，不是因果证实。"
                 "Schema 说明见 `paper/hypotheses/README.md`。"
             )
+            _render_interpretation_expander("hypothesis_score", key="interp_hypothesis_score")
             _tmpl = (Path("paper") / "hypotheses" / "arsenic_steel_slag.yaml")
             if _tmpl.exists():
                 st.download_button(

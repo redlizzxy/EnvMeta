@@ -261,15 +261,17 @@ S8 插件框架推迟到论文接收后再做。完整计划见 `C:\Users\REDLIZ
 
 ### 备选路径（按优先级）
 
-1. **🟥 S8-ux 新手落地包（~10h）⭐ 最高优先** — 数据准备指南（覆盖 MajorBio/
-   诺禾/BGI + CoverM/HUMAnN/eggNOG/GTDB-Tk/CheckM2/QIIME2 等上游工具） +
-   "我该用哪张图" 研究问题向导 + 每图"如何解读"expander + 文件→分析反向
-   索引（文件管理页一键提示可跑什么分析）。**详见 2026-04-17 阶段性自检 v2**
-2. **S4.5 HTML 交互导出（~10-15h, 论文 SI 杀手锏）** — D3.js 独立 HTML 嵌入 cycle_data + hypothesis_score JSON，审稿人可交互
-3. **S8-ui 导出中心统一重构（~3-4h）** — 把所有导出（bundle / 图表 / .py 脚本）汇集到"导出中心"页
-4. **装 R 做 EnvMeta vs 原脚本侧侧对比** — 论文 Methods 关键证据，独立时间做（需装 R 环境）
-5. **English README** — iMeta 要求，~2h
-6. **S9 论文 Methods 起草** — 素材已齐（S1 去偏 + S2 置换 + S3+S3.5 评分器 + S4 Bundle + S6/S7 全 12 图）
+1. ✅ **S8-ux 新手落地包已完成**（2026-04-17，~11h）— 5 项交付 / 14 case
+   / +1760 行 / 259/259 全绿。详见日志「2026-04-17 S8-ux」
+2. **🟥 装 R 做 EnvMeta vs 原脚本侧侧对比** — 论文 Methods 关键证据，独立时间
+   做（需装 R 环境，~1-2 天）
+3. **🟥 English README + LICENSE + Zenodo DOI** — iMeta 投稿硬指标，~4h
+4. **🟡 S4.5 HTML 交互导出（~10-15h, 论文 SI 杀手锏）** — D3.js 独立 HTML 嵌入
+   cycle_data + hypothesis_score JSON，审稿人可交互
+5. **🟡 S8-ui 导出中心统一重构（~3-4h）** — 把所有导出（bundle / 图表 / .py 脚本）
+   汇集到"导出中心"页
+6. **🟡 S9 论文 Methods 起草** — 素材已齐（S1 去偏 + S2 置换 + S3+S3.5 评分器 +
+   S4 Bundle + S6/S7 全 12 图 + S8-ux 新手可用性）
 
 ### 已推迟（明确）
 
@@ -282,12 +284,120 @@ S8 插件框架推迟到论文接收后再做。完整计划见 `C:\Users\REDLIZ
 - ✅ Phase 1 全部完成（7/7 Reads-based）
 - ✅ Phase 2 全部完成（5/5 MAG-based）
 - ✅ Phase 3 核心功能全部完成（循环图 + 假说评分 + Bundle）
-- ✅ **v0.5 内部测试版就绪**
-- 📄 论文 Methods 可起草
+- ✅ **S8-ux 新手落地包**（2026-04-17）— 非生信课题组可用门槛打通
+- ✅ **v0.6 用户可用版就绪**（v0.5 + S8-ux）
+- 📄 论文 Methods 可起草（含 user study 先决条件）
 
 ## 开发日志
 
 > 每次 session 结束前更新此区块。新对话开始时 Claude Code 自动读取，了解当前进度。
+
+### 2026-04-17（**S8-ux 新手落地包 ⭐** — 让非生信课题组真正能用）
+
+响应自检 v2 的 🟥 最高优先项：把 EnvMeta 从"开源工具"升级到"**非生信课题组
+真正能用的开源工具**"。一个 session 收口 5 项交付 ~11h。
+
+#### 核心叙事（用户原话）
+
+> **"文件识别功能 = 解决'文件到手不知道能干什么'的痛点"**
+
+此前只做了一半（识别文件），本 session 补另一半（告诉用户识别了能干什么）。
+
+#### 五项交付
+
+1. **`docs/data_preparation_zh.md`**（~550 行）— 上游工具 → EnvMeta 映射指南：
+   - §1 测序公司包解压指南（MajorBio/诺禾/BGI/基迪奥/Wekemo 目录结构）
+   - §2 11 个上游工具完整映射表（CoverM/HUMAnN3/eggNOG/DRAM/GTDB-Tk/
+     CheckM2/KofamScan/QIIME2/Kraken2+Bracken/MetaPhlAn4/iCAMP）+ 5 个最常见
+     工具详解（含 eggNOG 提取 KEGG_ko 的 awk 一行 + HUMAnN regroup 命令）
+   - §3 11 种 EnvMeta 输入格式标准样板（METADATA / ABUNDANCE_WIDE / ...）
+   - §4 FAQ（编码 / 分隔符 / 样本 ID 对齐 / 缺失值 / 大文件 / 中文路径）
+   - §5 R 共现网络 → Gephi CSV 附录脚本
+
+2. **「图表选择向导」新页面**（`envmeta/help/research_navigator.py` + app.py）：
+   - 8 大研究问题 × 每类 2-3 子问题 = 19 决策节点
+   - 两步 radio（大类 → 子问题）→ 推荐卡片（🥇/🥈/🥉 优先级 + reason +
+     需要文件 + 「✅ 文件已齐全」标记）+ 一键跳转分析页
+   - 覆盖 14 个分析全部（组间差异 / 群落结构 / 多样性 / 通路活性 / 网络 /
+     元素循环 / MAG 质量 / 环境因子关系）
+
+3. **「如何解读」expander 全 14 图覆盖**（`envmeta/help/interpretations.py` ~420 行）：
+   - 每图 6 字段：title / what_it_shows / how_to_read (3-4 bullets) /
+     good_signal / warning / caveats
+   - 文案参考 hypothesis.py 9 档解读模式，UI 用 success/warning/info 三色块
+   - 渲染函数 `_render_interpretation_expander(aid, key)` 放在每个分析页开头
+
+4. **文件→分析反向索引**（`envmeta/help/file_analysis_map.py` ~150 行）：
+   - `ANALYSIS_INPUTS`: 每分析的 required / optional FileType 清单
+   - `FILE_TO_ANALYSIS`: 自动派生的反向索引
+   - `analyses_ready(have_types)`: 已上传集合 → 可跑分析列表
+   - 文件管理页每个文件卡片展开后显示「🎯 可跑什么分析」+ 跳转按钮
+   - 汇总栏显示「✅ 当前文件组合可直接运行的分析」
+
+5. **样例数据一键加载**（app.py 首页 + `_load_sample_data()` ~20 行）：
+   - 首页两栏 expander：「🚀 快速体验」+「🧭 不知道用哪张图？」
+   - 按钮「📦 加载砷渣修复示例数据」遍历 tests/sample_data/ 18 个文件 → 
+     自动识别类型 → 存入 session_state.files
+   - 非生信零门槛试跑所有 14 个分析 + 验证「新手可用性」论文证据先决条件
+
+#### 架构决策
+
+- **`envmeta/help/` 独立模块**：3 个纯数据字典 + 1 个 `__init__.py` 聚合导入。
+  新增分析时**只需改 3 个字典各加一行**，不用改 app.py
+- **数据结构交叉验证**：`tests/test_help.py` 14 case 校验三字典交叉引用完整
+  性（NAVIGATOR 引用的 analysis_id 都在 ANALYSIS_INPUTS / 反向索引和正向
+  索引严格一致 / 14 个分析 INTERPRETATIONS 全覆盖）
+- **跳转机制**：`st.session_state.page` + `st.rerun()` —— 无需 URL 路由
+- **首页重构**：从"平铺表格介绍"→ "两栏 expander 引导"（样例加载 + 问题向导）
+
+#### 测试累积
+
+**245 → 259（+14）**：test_help.py 全绿，全套 259 passed in 149s。
+app.py syntax 校验通过；streamlit run 无报错。
+
+#### 论文 Methods 新素材
+
+> "EnvMeta provides three layers of newbie-facing scaffolding: (1) a curated
+> upstream tool mapping guide covering 11 common metagenomic pipelines; (2) an
+> interactive research-question navigator mapping 8 scientific inquiry types
+> to recommended analyses across 14 charts; (3) per-chart interpretation
+> panels guiding users from visual to biological conclusion. Combined with
+> the one-click sample dataset loader, a non-bioinformatician user can
+> reproduce the full 12-figure paper analysis in **< 10 minutes from zero
+> installation context**."
+
+#### 交付文件清单
+
+| 文件 | 动作 | 行数 |
+|---|---|---|
+| `envmeta/help/__init__.py` | 新建 | ~15 |
+| `envmeta/help/research_navigator.py` | 新建 | ~240 |
+| `envmeta/help/interpretations.py` | 新建 | ~420 |
+| `envmeta/help/file_analysis_map.py` | 新建 | ~150 |
+| `docs/data_preparation_zh.md` | 新建 | ~550 |
+| `app.py` | 新页面 + 14 expander + 反向索引 + 样例加载 + 首页重构 | +250 |
+| `tests/test_help.py` | 新建 | ~130 |
+| `paper/benchmarks/time_comparison.md` | 新增新手学习曲线行 | +5 |
+
+**合计**：+1760 行（markdown 为主，代码 ~600 行）
+
+#### 关键学习
+
+1. **Python 字符串里的 ASCII 引号会炸**：interpretations.py 一开始在字符串
+   里用了 ASCII 双引号（如 `"strong 但不特异"` 表示术语），Python 直接报
+   SyntaxError。改成 Chinese「...」括号或转义。后续文档类字典必须注意
+2. **Streamlit session_state 翻页**：`st.session_state.page = X; st.rerun()`
+   是最简洁的页面跳转，不需要 URL 路由。sidebar radio 的 `index=` 参数要
+   绑定到 session_state 才能程序化控制
+3. **FileType 反向索引简洁优雅**：`ANALYSIS_INPUTS` 是正向声明，
+   `FILE_TO_ANALYSIS` 由 `_build_file_to_analysis()` 从前者派生，
+   测试用 `test_file_to_analysis_entries_consistent` 严格校验双向一致。
+   新增分析只要改 ANALYSIS_INPUTS 一处，反向索引自动更新
+4. **「14 张图全覆盖」可以是组合的**：Reads 7 + MAG 5 + cycle_diagram 1 +
+   hypothesis_score 1 = 14。hypothesis_score 不是独立分析页但有独立解读
+   价值（MCDA vs 假设检验的误区需要专门澄清）
+
+---
 
 ### 2026-04-17（**阶段性自检 v2** — 新手用户视角 + 开源免费定位 + 上游工具映射）
 
