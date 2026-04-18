@@ -182,6 +182,52 @@ def test_cycle_to_json_hypothesis_by_group_df(cycle_data):
     assert payload["hypothesis_by_group_summary"][0]["group"] == "CK"
 
 
+# ═══════════════════════════════════════════════════════════════
+# T2-ε 精调：节点筛选标准 / env panel / 耦合精确锚点 / 布局反转
+# ═══════════════════════════════════════════════════════════════
+
+def test_meta_block_shows_node_selection_standard(cycle_data):
+    """ε.1: meta 块应明示筛选标准（completeness 阈值 / top N / ranking）。"""
+    html = build_interactive_html(cycle_data).decode("utf-8")
+    assert "节点筛选标准" in html
+    assert "completeness ≥" in html
+
+
+def test_html_contains_render_env_panel(cycle_data):
+    """ε.2: env panel 实际渲染函数存在（非占位符）。"""
+    html = build_interactive_html(cycle_data).decode("utf-8")
+    assert "renderEnvPanel" in html
+    assert "__em_jumpToEnv" in html  # claim 点击穿透到 env tab 的入口
+    # 旧占位符文本消失
+    assert "T2-β 实现" not in html
+
+
+def test_html_coupling_precise_anchor_logic(cycle_data):
+    """ε.3: HTML 含 chemicalToPathway 函数 + 产物节点渲染。"""
+    html = build_interactive_html(cycle_data).decode("utf-8")
+    assert "chemicalToPathway" in html
+    assert "chemicalAnchors" in html
+    assert "em-coupling-product" in html
+
+
+def test_html_cross_group_overview_first(cycle_data):
+    """ε.4: 有分组时跨组概览逻辑存在（renderCrossGroupOverview）。"""
+    html = build_interactive_html(cycle_data).decode("utf-8")
+    assert "renderCrossGroupOverview" in html
+    assert "跨组评分概览" in html
+    assert "组间 label 差异" in html  # 差异警告横幅
+
+
+def test_html_compare_tab_renamed_and_enhanced(cycle_data):
+    """ε.5: compare tab 改名 + 承载者切换高亮 + 排序控件。"""
+    html = build_interactive_html(cycle_data).decode("utf-8")
+    assert "通路 × 组对比" in html  # 改名
+    assert "em-cmp-sort" in html    # 排序 select
+    assert "em-cmp-elem" in html    # 元素 filter
+    assert "em-cmp-changed-only" in html  # 承载者切换过滤 checkbox
+    assert "承载者切换" in html or "承载者跨组变化" in html
+
+
 def test_build_html_with_hypothesis_by_group(cycle_data):
     """score_by_groups 格式的 dict 能正确嵌入。"""
     # 构造最小 fake HypothesisScore dict (不走真实 score 流程加速测试)

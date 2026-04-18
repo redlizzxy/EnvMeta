@@ -247,6 +247,27 @@ def _build_meta_html(payload: dict, *, title: str) -> str:
         f'completeness ≥ {params.get("completeness_threshold", "?")}%'
     )
     lines.append(f'  </div>')
+    # T2-ε.1: 节点筛选标准明示（用户一眼看到 HTML 展示的是怎么选出来的）
+    comp_thr = params.get("completeness_threshold", "?")
+    top_n = params.get("top_contributors_per_pathway", params.get("top_n_contributors", "all"))
+    ranking = params.get("contributor_ranking", "abundance × completeness")
+    min_abund = params.get("min_abundance_mean", None)
+    parts = [
+        f"completeness ≥ <b>{comp_thr}%</b>",
+        f"每通路 Top <b>{top_n}</b> contributors" if top_n != "all" else "展示所有活跃 MAG",
+        f"排序 = <b>{ranking}</b>",
+    ]
+    if min_abund is not None:
+        parts.append(f"abundance ≥ <b>{min_abund}</b>")
+    lines.append(
+        f'  <div class="em-audit" style="margin-top:4px;'
+        f'padding-top:6px;border-top:1px dashed #c8d4e3">'
+    )
+    lines.append(
+        f'    <span style="color:#1a365d;font-weight:600">🔍 节点筛选标准：</span>'
+        f' {" · ".join(parts)}'
+    )
+    lines.append(f'  </div>')
     lines.append(f'</div>')
     return "\n".join(lines)
 
