@@ -244,18 +244,18 @@ S8 插件框架推迟到论文接收后再做。完整计划见 `C:\Users\REDLIZ
 3. **截图留档**：每个模块完成后截一张 EnvMeta 的界面截图，保存到 `paper/figures/screenshot_模块名.png`。
 4. **开发日志量化**：每次开发日志除了记录做了什么，加一行量化数据（代码行数、验证结果、耗时对比）。
 
-## 下次 session 计划（2026-04-17 末次更新）
+## 下次 session 计划（2026-04-18 末次更新）
 
-**当前进度**（2026-04-17 收工，S6+S7 系列 10 commit）：
+**当前进度**（2026-04-18 收工，T2 HTML 全部完结）：
 - Phase 1 Reads-based **7/7 完成**
-- Phase 2 MAG-based **5/5 完成**（mag_quality / pathway / gene_profile /
-  mag_heatmap / **network**）—— 全部按**统一 4 层参数**重构
+- Phase 2 MAG-based **5/5 完成**
 - Phase 3 循环图 **S1→S4 全部完成**
-- 测试 **245/245 全绿**
-- 分析图表累计 **12 种**（7 Reads + 4 MAG + 1 Cycle）+ 网络 Gephi 辅助
-- **5 张 MAG 图完全视觉统一**：Genus 标签规则（含 Family fallback）/ 门彩条
-  位置 / 门图例 / 共享参数（filter_mode / row_order / top_n_by / max_mags）
-- **v0.5 内部测试版就绪**
+- 测试 **290/290 全绿**（S8-ux 259 → T2 v1 273 → T2-ε 5 feedback 282 →
+  Q1-Q4 二轮 285 → Q1-Q6 v1.2 287 → env full-sample 290）
+- 分析图表累计 **12 种**（7 Reads + 4 MAG + 1 Cycle）
+- **T2 HTML 交互导出已彻底收口**：5 tab + per-group 切换 + 化学物耦合
+  精确锚点 + 持久虚线 + 化学式上下标 + **env 面板独立于循环图筛选**
+- **v0.8 Sunday Sprint v1 就绪**
 
 ---
 
@@ -269,28 +269,29 @@ S8 插件框架推迟到论文接收后再做。完整计划见 `C:\Users\REDLIZ
 3. ✅ **T2 S4.5 HTML 交互导出完整版已完成**（2026-04-17，~5h）— α 骨架 + β
    循环图交互 + γ 假说评分交互 + δ SVG/JSON 导出 + 点击穿透。400 KB 独立 HTML
    离线可用。详见日志「2026-04-17 T2 HTML 交互导出」
-4. **🟥 T2-ε HTML v1 实测反馈精调**（~4-5h / 周六下午）— 用户提 5 条具体反馈：
-   - **Q1 节点选择标准 UI 可见**（~30 min）：HTML meta 块加"completeness ≥ X
-     / top N / ranking=Y"说明，让读者一眼看到筛选标准
-   - **Q2 环境相关 tab 完整实现**（~1-1.5h，🔴 功能遗漏）：现为空 placeholder，
-     补 env_correlations 排序表 + confidence 彩色徽章 + full_corr_matrix 折叠
-     + sensitivity 折叠 + claim 点击穿透（env_factor 可跳转高亮）
-   - **Q3 耦合锚点精确到 pathway 集群**（~1.5-2h）：当前锚到象限中心（粗粒），
-     改为锚到含 species 的 pathway 集群中心 + 中点加产物节点（如 `As₂S₃`）
-   - **Q4 假说评分布局反转**（~30-45 min）：有分组时跨组概览卡片组（CK/A/B
-     三并排）应在最上，单组"全组合并"退至可折叠；加"组间 label 差异"警告条
-   - **Q5 跨组对比 tab 增强**（~45 min）：Tab 改名「🆚 通路 × 组对比」+
-     顶部说明 + top_mag 跨组变化行黄底 + 按"组间差值降序"排序 + "只看承载者
-     切换通路" checkbox 过滤
-   - 降级策略（超时从后砍）：先砍 Q3（耦合精确化，留 v2），再砍 Q5；必保 Q2
-     (功能遗漏) + Q4 (UX 大)
-   - 详见 plan 文件「T2-ε HTML v1 实测反馈精调」
-5. **🟥 Sunday Sprint 剩余：T3 评测表电子版**（腾讯问卷，~2-3h）
-6. **🟥 装 R 做 EnvMeta vs 原脚本侧侧对比** — 论文 Methods 关键证据，独立时间
+4. ✅ **T2-ε HTML v1 实测反馈精调已完成**（2026-04-17，~4h）— 5 条反馈全部落地：
+   Q1 节点筛选标准可见 / Q2 env panel 完整实现 / Q3 耦合精确锚点 / Q4 跨组
+   假说优先 / Q5 跨组对比 tab 增强
+5. ✅ **T2 二轮反馈 Q1-Q4 + Q1-Q6 v1.2 + v1.3 已完成**（2026-04-17/18，~3h）—
+   app 导出修复（`AnalysisResult.data` 载 CycleData）/ env panel 每组切换 /
+   化学物独立双节点（substrate 虚线 + product 实线）/ 同名化学物角色不覆盖 /
+   耦合 product-preferred + substrate fallback / 化学物-通路虚线默认持久
+   （opacity 0.18 → hover 0.85）/ `formatChemName` Unicode 上下标（SO4-2 → SO₄²⁻）
+6. ✅ **env 面板独立于循环图筛选已完成**（2026-04-18，~45 min）— 用户实测发现
+   group_filter=B (n=3) 导致 env 相关 0 条（统计功效不足）。决议：**除循环图
+   外全面板用全样本数据**（无选项）。改造：`html_exporter.cycle_to_json` 加
+   `full_sample_cycle_data` 参数 / app.py 条件性跑 `infer(group_filter=None)` /
+   >10 组软 warning / 顺便修 `meta.get("n_samples")` → `"n_samples_used"` 既有
+   bug（以前一直显示 "?  samples"）。测试 +3 case / 290/290 全绿。详见日志
+   「2026-04-18 env 全样本 baseline」
+7. **🟥 Sunday Sprint 剩余：T3 评测表电子版**（腾讯问卷，~2-3h）
+8. **🟡 Q7 新手 UX 可选**（~1h）：HTML 控件分组 + SVG/JSON 下拉 + 3 步
+   onboarding（localStorage）+ tab 重排 + 参数 tab debug mode。不阻塞周日汇报
+9. **🟥 装 R 做 EnvMeta vs 原脚本侧侧对比** — 论文 Methods 关键证据，独立时间
    做（需装 R 环境，~1-2 天）
-7. **🟥 English README + LICENSE + Zenodo DOI** — iMeta 投稿硬指标，~4h
-8. **🟡 S9 论文 Methods 起草** — 素材已齐（S1 去偏 + S2 置换 + S3+S3.5 评分器 +
-   S4 Bundle + S6/S7 全 12 图 + S8-ux 新手可用性 + T1 导出中心）
+10. **🟥 English README + LICENSE + Zenodo DOI** — iMeta 投稿硬指标，~4h
+11. **🟡 S9 论文 Methods 起草** — 素材已齐（S1 去偏 + S2 置换 + S3+S3.5 评分器 +
+    S4 Bundle + S6/S7 全 12 图 + S8-ux 新手可用性 + T1 导出中心 + T2 HTML）
 
 ### 已推迟（明确）
 
@@ -308,13 +309,91 @@ S8 插件框架推迟到论文接收后再做。完整计划见 `C:\Users\REDLIZ
 - ✅ **T2 S4.5 HTML 交互导出 v1**（2026-04-17）— 400 KB 独立离线 HTML
   含 D3.js 嵌入：循环图 4 象限力导向 + 节点交互 + 跨元素耦合虚线 + 假说评分
   交互 + 跨组对比 + SVG/JSON 导出。**EnvMeta 论文 SI 杀手锏 + 差异化独家能力**
-- ✅ **v0.8 Sunday Sprint v1 就绪**（v0.7 + T1 导出中心 + T2 HTML 交互导出）
+- ✅ **T2-ε + 二轮 Q1-Q6 + env 全样本 baseline**（2026-04-17/18）—
+  HTML 548 KB，per-group 切换 + 化学物精确锚点 + 化学式上下标 +
+  env 面板独立于循环图筛选
+- ✅ **v0.8 Sunday Sprint v1 就绪**（v0.7 + T1 导出中心 + T2 HTML 交互导出 v1.3）
 - 📄 论文 Methods 可起草（含 user study 先决条件 + SI HTML 独立附件）
 - 🎯 **周日汇报（2026-04-19）** — 仅剩 T3 评测表问卷（2-3h），余量充足
 
 ## 开发日志
 
 > 每次 session 结束前更新此区块。新对话开始时 Claude Code 自动读取，了解当前进度。
+
+### 2026-04-18（**env 全样本 baseline ⭐** — 循环图筛选与环境相关面板解耦）
+
+**背景**：T2 v1.3 用户对比两份 HTML（自己下载的 vs paper/bundles v1）发现
+环境相关面板数据不一致，以为是 `contributor_ranking=keystone_only` 造成的。
+诊断后确认是 **`group_filter="B"` 把样本从 10 砍到 3** 导致 Spearman 统计
+功效不足（n=3 置换最小 p ≈ 0.17，所有相关 < 阈值被过滤掉）。
+
+**决议**（经用户对话确认）：
+> HTML 导出 = 除循环图外全面板用全样本数据（无选项）。循环图视图响应
+> 用户当前 group_filter / ranking / keystone_only。per_group_cycles 无组数
+> 上限，只加软 warning。
+
+**核心理由**：
+- **环境相关本质是跨样本统计**（Spearman × n），group_filter 把 n 砍小
+  让统计失效是伪信号。HTML 里展示 B 组 env panel 反而误导读者
+- **HTML 独立 SI 的核心卖点** = "自包含完整分析包"（reviewer 一文件看全
+  CK/A/B 差异 + 切换对比）。单组 HTML 等于退化为"PDF + TSV 的旧世界"
+- 1-10 组典型设计，算法 O(G) 线性（168 MAG × 57 KO × 10 samples 单组约
+  1.5s → 10 组约 15s 导出）；体积每组 ~100 KB / 10 组约 1 MB，仍在 SI
+  可接受范围
+
+#### 交付
+
+**1. `envmeta/geocycle/html_exporter.py`**（+40 行）
+- `cycle_to_json` / `build_interactive_html` 加 `full_sample_cycle_data`
+  参数（Optional CycleData）
+- 提供时 `env_correlations` / `full_corr_matrix` / `sensitivity` 来自全样本；
+  未提供时回退 cycle_data（向后兼容）
+- `elements` / `meta` / `params` 始终来自 cycle_data（循环图视图仍按
+  用户筛选）
+- 新增 `env_scope` 字段（source / n_samples / cycle_n_samples /
+  cycle_group_filter）供前端和审计使用
+- meta 块自动追加"环境面板范围：全样本 n=10（循环图视图筛选到组 B
+  n=3；环境相关为保统计功效仍用全样本）"
+
+**2. `app.py`**（+35 行）
+- 循环图页点「生成循环图」时：若 `params.group_filter` 非 None/All 则
+  额外跑一次 `infer(group_filter=None)` 存入 `st.session_state._cy_full_sample_last`
+- 两处 HTML 导出按钮（循环图页 + 导出中心）都传入 `full_sample_cycle_data`
+- 状态透明面板加一行 env 来源提示
+  （"🌐 env 基于全样本 n=10（循环图视图 group=B n=3）"）
+- **>10 组软 warning**：`st.warning("检测到 N 组，预计 HTML +N×100 KB /
+  +N×2s，建议按生态梯度 / 时间点分批导出")`，不阻止导出
+- 顺手修既有 bug：`meta.get("n_samples")` 实际字段是 `n_samples_used`，
+  既有代码一直走 `"?"` fallback 渲染"? samples"
+
+**3. `tests/test_html_exporter.py`** +3 case
+- `test_cycle_to_json_full_sample_overrides_env`：filtered (group=B) +
+  full_sample → env/full_corr/sensitivity 用 full，elements 用 filtered
+- `test_cycle_to_json_no_full_sample_falls_back`：env_scope.source="cycle_view"
+- `test_build_html_full_sample_meta_block`：HTML meta 块含"环境面板范围"
+  + "组 <b>B</b>" + "<b>n=10</b>"
+
+**4. `paper/bundles/envmeta_cycle_interactive_v1.html` 再生成**
+- 548 KB（全样本，无过滤）；含 per_group_cycles 3 组切换
+
+#### 测试
+
+287 → **290**（+3），142s 跑完。
+
+#### 关键学习
+
+1. **"全样本"与"循环图视图"的语义分离**是 T2 HTML 最关键的架构决策之一。
+   一开始 `cycle_to_json` 只接受一个 CycleData，默认 cycle_data 同时喂循环图
+   + env 面板。现在拆成两个独立角色：cycle_data = 视图（可过滤），
+   full_sample_cycle_data = 统计基准（永远全样本）。前端不需要改动
+2. **软 warning 比 hard cap 更尊重用户**：给 50 组硬拒绝违反"工具应服从用户
+   专业判断"。10 组阈值来自环境微生物研究经验（2-5 组主流，10 组已是长期
+   观测高端），超过给量化提示（+N×100 KB / +N×2s）但不阻止
+3. **既有 bug 搭便车修**：`meta.get("n_samples", "?")` 一直渲染 "? samples"
+   而没人抱怨，说明用户很少看这个 badge。但今天因为新代码也用到 n_samples
+   字段，才暴露出实际键名是 `n_samples_used`。把两处都改了
+
+---
 
 ### 2026-04-17（**T2 S4.5 HTML 交互导出 v1 ⭐** — Sunday Sprint 最大杀手锏）
 

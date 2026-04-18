@@ -1987,6 +1987,14 @@ elif page == "生物地球化学循环图":
             try:
                 from envmeta.geocycle.inference import infer as _infer_one
                 _groups = sorted(set(_md["Group"].astype(str)))
+                # 软 warning：>10 组时量化提示体积 / 导出时间（不阻止）
+                if len(_groups) > 10:
+                    st.warning(
+                        f"检测到 **{len(_groups)} 组**。per_group_cycles 预计"
+                        f"增加 HTML 体积 ~{len(_groups) * 100} KB / 导出时间 "
+                        f"+{len(_groups) * 2}s。环境微生物研究通常 ≤ 10 组，"
+                        f"建议按生态梯度 / 时间点分批导出 HTML。"
+                    )
                 if len(_groups) >= 2:
                     _inf_params = {k: v for k, v in params.items()
                                    if k != "group_filter"}
@@ -2000,6 +2008,28 @@ elif page == "生物地球化学循环图":
             except Exception as _e:  # noqa: BLE001
                 st.caption(f"⚠️ 按组跑 infer 失败（不影响主循环图）：{_e}")
         st.session_state["_cy_per_group_last"] = _per_group or None
+
+        # HTML 导出：全样本 CycleData（env / full_corr / sensitivity 用它，
+        # 不受循环图 group_filter 影响）。仅当用户当前参数过滤到单组时才
+        # 额外跑一次；否则 last 就是全样本
+        _full_sample_cd = None
+        _cur_gf = params.get("group_filter")
+        if _cur_gf and str(_cur_gf).lower() not in ("none", "all", ""):
+            try:
+                from envmeta.geocycle.inference import (
+                    infer as _infer_full_one,
+                )
+                _full_p = {**params, "group_filter": None}
+                _full_sample_cd = _infer_full_one(
+                    ko, t, _get(k_name), _get(a_name),
+                    _get(e_name), _md, params=_full_p,
+                )
+            except Exception as _e:  # noqa: BLE001
+                st.caption(
+                    f"⚠️ 全样本 baseline infer 失败（env 面板将退化为"
+                    f"当前过滤视图）：{_e}"
+                )
+        st.session_state["_cy_full_sample_last"] = _full_sample_cd
 
     last = st.session_state.get("_cy_last")
     if last is not None:
@@ -2031,6 +2061,8 @@ elif page == "生物地球化学循环图":
             _hyp_groups = st.session_state.get("_hyp_multi_last")  # DataFrame or None
             # Q3: per-group 切换所需的每组 CycleData
             _per_group = st.session_state.get("_cy_per_group_last")
+            # env / full_corr / sensitivity 面板的全样本 baseline
+            _full_sample = st.session_state.get("_cy_full_sample_last")
 
             _html_bytes = _build_html(
                 _cycle_data,
@@ -2038,6 +2070,7 @@ elif page == "生物地球化学循环图":
                 compare_df=_cmp,
                 hypothesis_by_group=_hyp_groups,
                 per_group_cycles=_per_group,
+                full_sample_cycle_data=_full_sample,
             )
             st.download_button(
                 "📦 导出交互 HTML（独立 SI · D3.js 嵌入）",
@@ -2060,13 +2093,27 @@ elif page == "生物地球化学循环图":
             if _hyp_groups is not None:
                 try: _hyp_multi_n = len(_hyp_groups)
                 except Exception: _hyp_multi_n = 0
+            # env 面板数据源提示（full_sample 生效时展示循环图过滤 vs env 全样本）
+            _cycle_n = _cycle_data.meta.get(
+                "n_samples_used", _cycle_data.meta.get("n_samples", "?"))
+            _cur_gf = _cycle_data.params.get("group_filter")
+            if _full_sample is not None:
+                _full_n = _full_sample.meta.get(
+                    "n_samples_used", _full_sample.meta.get("n_samples", "?"))
+                _env_src_note = (
+                    f"🌐 env 基于全样本 n={_full_n}（循环图视图 "
+                    f"group={_cur_gf} n={_cycle_n}）"
+                )
+            else:
+                _env_src_note = f"🌐 env 基于全样本 n={_cycle_n}（循环图视图未过滤）"
             st.caption(
                 f"📋 **HTML 已注入数据**：  "
-                f"{_chk(_cycle_data)} 循环图（全样本）  ·  "
+                f"{_chk(_cycle_data)} 循环图视图  ·  "
                 f"{_chk(_per_group)} per-group 循环（{_n_groups} 组）  ·  "
                 f"{_chk(_hyp)} 单组假说  ·  "
                 f"{_chk(_hyp_groups)} 跨组假说（{_hyp_multi_n} 行）  ·  "
-                f"{_chk(_cmp)} 通路×组对比"
+                f"{_chk(_cmp)} 通路×组对比  ·  "
+                f"{_env_src_note}"
             )
             _missing = []
             if _hyp is None:
@@ -2832,6 +2879,7 @@ elif page == "导出中心":
                                     compare_df=st.session_state.get("_cy_compare_last"),
                                     hypothesis_by_group=st.session_state.get("_hyp_multi_last"),
                                     per_group_cycles=st.session_state.get("_cy_per_group_last"),
+                                    full_sample_cycle_data=st.session_state.get("_cy_full_sample_last"),
                                 )
                                 st.download_button(
                                     f"📦 导出交互 HTML（~{len(_html) // 1024} KB）",

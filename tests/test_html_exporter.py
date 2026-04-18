@@ -357,3 +357,72 @@ def test_build_html_with_hypothesis_by_group(cycle_data):
     assert "hypothesis_by_group" in payload
     assert set(payload["hypothesis_by_group"].keys()) == {"CK", "B"}
     assert payload["hypothesis_by_group"]["CK"]["label"] == "strong"
+
+
+# ═══════════════════════════════════════════════════════════════
+# 全样本 env baseline（循环图按组筛选时，env 仍基于全样本）
+# ═══════════════════════════════════════════════════════════════
+
+@pytest.fixture(scope="module")
+def filtered_cycle_data():
+    """按 group_filter='B' 过滤的 CycleData（模拟 cycle 视图 n=3）。"""
+    ko = pd.read_csv(SAMPLE / "kegg_target_only.tsv", sep="\t")
+    tax = pd.read_csv(SAMPLE / "mag_taxonomy_labels.tsv", sep="\t",
+                      header=None, names=["MAG", "Taxonomy"])
+    ks = pd.read_csv(SAMPLE / "keystone_species.txt", sep="\t")
+    ab = pd.read_csv(SAMPLE / "abundance.tsv", sep="\t")
+    env = pd.read_csv(SAMPLE / "env_factors.txt", sep="\t")
+    md = pd.read_csv(SAMPLE / "metadata.txt", sep="\t")
+    return infer(ko, tax, ks, ab, env, md,
+                 params={**FAST_PARAMS, "group_filter": "B"})
+
+
+def test_cycle_to_json_full_sample_overrides_env(
+    cycle_data, filtered_cycle_data,
+):
+    """当提供 full_sample_cycle_data 时：env_correlations / full_corr_matrix
+    / sensitivity 来自全样本，elements 仍来自 filtered cycle_data。"""
+    payload = cycle_to_json(
+        filtered_cycle_data,
+        full_sample_cycle_data=cycle_data,
+    )
+    # env / full_corr / sensitivity 应等于全样本版本（不是 filtered）
+    assert len(payload["env_correlations"]) == len(cycle_data.env_correlations)
+    assert len(payload["full_corr_matrix"]) == len(cycle_data.full_corr_matrix)
+    assert len(payload["sensitivity"]) == len(cycle_data.sensitivity)
+    # 过滤版本应至少在某维度小于全样本（group_filter=B 样品 n=3）
+    full_n = cycle_data.meta.get("n_samples_used")
+    filtered_n = filtered_cycle_data.meta.get("n_samples_used")
+    assert filtered_n < full_n, f"group_filter=B 应缩减样本：{filtered_n} vs {full_n}"
+    # elements 仍用 filtered（循环图视图）
+    assert len(payload["elements"]) == len(filtered_cycle_data.elements)
+    # env_scope 记录全样本来源
+    scope = payload.get("env_scope", {})
+    assert scope.get("source") == "full_sample"
+    assert scope.get("n_samples") == full_n
+    assert scope.get("cycle_n_samples") == filtered_n
+    assert scope.get("cycle_group_filter") == "B"
+
+
+def test_cycle_to_json_no_full_sample_falls_back(cycle_data):
+    """未提供 full_sample_cycle_data 时：env 字段仍来自 cycle_data（向后兼容）。"""
+    payload = cycle_to_json(cycle_data)
+    scope = payload.get("env_scope", {})
+    assert scope.get("source") == "cycle_view"
+    assert scope.get("n_samples") == cycle_data.meta.get("n_samples_used")
+
+
+def test_build_html_full_sample_meta_block(
+    cycle_data, filtered_cycle_data,
+):
+    """HTML meta 块应展示环境面板范围说明（当 cycle 有 group_filter 时）。"""
+    html = build_interactive_html(
+        filtered_cycle_data,
+        full_sample_cycle_data=cycle_data,
+    ).decode("utf-8")
+    assert "环境面板范围" in html
+    # 组 B 应出现在 meta 块（文案「筛选到组 <b>B</b>」）
+    assert "组 <b>B</b>" in html
+    full_n = cycle_data.meta.get("n_samples_used")
+    # 全样本 n=10 渲染为 `<b>n=10</b>`
+    assert f"<b>n={full_n}</b>" in html

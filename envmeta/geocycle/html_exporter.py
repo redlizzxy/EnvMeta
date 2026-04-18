@@ -72,6 +72,7 @@ def cycle_to_json(
     compare_df: Optional["pd.DataFrame"] = None,
     hypothesis_by_group: Optional[dict[str, "HypothesisScore"]] = None,
     per_group_cycles: Optional[dict[str, "CycleData"]] = None,
+    full_sample_cycle_data: Optional["CycleData"] = None,
 ) -> dict:
     """把 CycleData (+ 可选 HypothesisScore / 跨组对比 DataFrame) 扁平为
     JSON-serializable dict，供前端 D3 消费。
@@ -89,30 +90,64 @@ def cycle_to_json(
     - `hypothesis`: dict | None — HypothesisScore asdict（含 null_p / 权重敏感度 / veto）
     - `hypothesis_by_group`: dict[str, dict] | None — 跨组假说评分
     - `compare_groups`: list[dict] | None — DataFrame.to_dict(orient='records')
+    - `env_scope`: dict | None — 环境相关数据来源（full_sample 时补上，帮助
+      前端标记"n=10 全样本"）
 
     参数
     -----
-    cycle_data: 必需
+    cycle_data: 必需 — 提供循环图视图（elements） + params + meta
     hypothesis: 可选 — 单组假说评分
     hypothesis_by_group: 可选 — 跨组假说评分（score_by_groups 返回）
     compare_df: 可选 — cycle_compare.compare_groups 返回的 DataFrame
+    full_sample_cycle_data: 可选 — **全样本**（group_filter=None）的 CycleData。
+      提供时：`env_correlations` / `full_corr_matrix` / `sensitivity` 来自它，
+      而非 `cycle_data`。设计动机：循环图视图可以按组筛选（如 group_filter=B,
+      n=3），但环境相关本质是跨样本统计，用 n=3 做 Spearman 功效不足。
+      把二者分离后循环图仍按用户选择渲染，env 面板始终基于全样本。
     """
     # 延迟导入避免 envmeta.__init__ 慢 startup
     from envmeta import __version__ as _env_version
     from envmeta.geocycle.knowledge_base import couplings as _kb_couplings
+
+    # Env 面板数据源：full_sample_cycle_data 优先，否则回退 cycle_data（向后兼容）
+    _env_src = full_sample_cycle_data if full_sample_cycle_data is not None else cycle_data
 
     payload: dict = {
         "version": "1.0",
         "generated_at": _dt.datetime.utcnow().isoformat(timespec="seconds") + "Z",
         "envmeta_version": _env_version,
         "elements": [asdict(el) for el in cycle_data.elements],
-        "env_correlations": [asdict(ec) for ec in cycle_data.env_correlations],
-        "full_corr_matrix": [asdict(ec) for ec in cycle_data.full_corr_matrix],
-        "sensitivity": [asdict(sr) for sr in cycle_data.sensitivity],
+        "env_correlations": [asdict(ec) for ec in _env_src.env_correlations],
+        "full_corr_matrix": [asdict(ec) for ec in _env_src.full_corr_matrix],
+        "sensitivity": [asdict(sr) for sr in _env_src.sensitivity],
         "couplings": list(_kb_couplings()),  # T2-β: 跨元素化学物耦合（KB 定义）
         "params": dict(cycle_data.params),
         "meta": dict(cycle_data.meta),
     }
+
+    # 暴露 env 面板数据来源（前端可显示「环境相关基于全样本 n=10（循环图
+    # 当前筛选到 B 组 n=3）」这类解释，消除用户对"为什么两个 HTML env 不同"
+    # 的困惑）
+    def _n_samples(cd):
+        # CycleData.meta 实际键名是 n_samples_used；保留对旧 n_samples 兼容
+        return cd.meta.get("n_samples_used", cd.meta.get("n_samples"))
+
+    if full_sample_cycle_data is not None:
+        payload["env_scope"] = {
+            "source": "full_sample",
+            "n_samples": _n_samples(full_sample_cycle_data),
+            "n_mags": full_sample_cycle_data.meta.get("n_mags"),
+            "cycle_n_samples": _n_samples(cycle_data),
+            "cycle_group_filter": cycle_data.params.get("group_filter"),
+        }
+    else:
+        payload["env_scope"] = {
+            "source": "cycle_view",
+            "n_samples": _n_samples(cycle_data),
+            "n_mags": cycle_data.meta.get("n_mags"),
+            "cycle_n_samples": _n_samples(cycle_data),
+            "cycle_group_filter": cycle_data.params.get("group_filter"),
+        }
 
     if hypothesis is not None:
         payload["hypothesis"] = asdict(hypothesis)
@@ -173,6 +208,7 @@ def build_interactive_html(
     compare_df: Optional["pd.DataFrame"] = None,
     hypothesis_by_group: Optional[dict[str, "HypothesisScore"]] = None,
     per_group_cycles: Optional[dict[str, "CycleData"]] = None,
+    full_sample_cycle_data: Optional["CycleData"] = None,
     title: str = "EnvMeta — Interactive Biogeochemical Cycle",
 ) -> bytes:
     """把 CycleData 渲染成独立可交互 HTML（bytes）。
@@ -200,6 +236,7 @@ def build_interactive_html(
         compare_df=compare_df,
         hypothesis_by_group=hypothesis_by_group,
         per_group_cycles=per_group_cycles,
+        full_sample_cycle_data=full_sample_cycle_data,
     )
     # 前端消费的 JSON 字符串。用 ensure_ascii=False 保留中文。
     # 不用 indent — 压缩体积 ~30%
@@ -259,7 +296,7 @@ def _build_meta_html(payload: dict, *, title: str) -> str:
     lines.append(f'  <div class="em-audit">')
     lines.append(f'    生成时间 {_escape_html(payload.get("generated_at", "?"))}  ·  ')
     n_mags = meta.get("n_mags", "?")
-    n_samples = meta.get("n_samples", "?")
+    n_samples = meta.get("n_samples_used", meta.get("n_samples", "?"))
     lines.append(
         f'    {n_mags} MAG × {n_samples} samples  ·  '
         f'completeness ≥ {params.get("completeness_threshold", "?")}%'
@@ -286,6 +323,26 @@ def _build_meta_html(payload: dict, *, title: str) -> str:
         f' {" · ".join(parts)}'
     )
     lines.append(f'  </div>')
+
+    # Env 面板范围说明（当 cycle 视图被 group_filter 过滤时，明示 env 面板
+    # 仍基于全样本）
+    env_scope = payload.get("env_scope") or {}
+    if env_scope.get("source") == "full_sample":
+        _cyc_gf = env_scope.get("cycle_group_filter")
+        _full_n = env_scope.get("n_samples", "?")
+        _cyc_n = env_scope.get("cycle_n_samples", "?")
+        if _cyc_gf and str(_cyc_gf).lower() not in ("none", "all", ""):
+            lines.append(
+                f'  <div class="em-audit" style="margin-top:4px;'
+                f'padding-top:6px;border-top:1px dashed #c8d4e3;color:#1a365d">'
+            )
+            lines.append(
+                f'    <span style="font-weight:600">🌐 环境面板范围：</span>'
+                f' 全样本 <b>n={_escape_html(_full_n)}</b>'
+                f' （循环图视图当前筛选到组 <b>{_escape_html(_cyc_gf)}</b>'
+                f' n={_escape_html(_cyc_n)}；环境相关为保统计功效仍用全样本）'
+            )
+            lines.append(f'  </div>')
     lines.append(f'</div>')
     return "\n".join(lines)
 
