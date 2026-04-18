@@ -266,11 +266,11 @@ def test_per_group_cycles_include_full_corr_and_sensitivity(cycle_data):
 
 
 def test_html_chemical_hover_link_and_coupling_fallback(cycle_data):
-    """Q2 + Q4: 化学物 hover 画关联虚线（em-chem-links）+ 耦合 fallback 到 substrate。"""
+    """Q2 + Q4: chem-links 常驻容器 + 耦合 fallback 到 substrate。"""
     html = build_interactive_html(cycle_data).decode("utf-8")
-    # Q2: chem-links 容器
+    # Q2: chem-links 容器（v1.3 改为常驻 linkSel）
     assert 'id="em-chem-links"' in html
-    assert "linkGroup.selectAll" in html
+    assert "em-chem-link" in html
     # Q4: computeCouplings 不再强制 product-only
     assert "product || hit.substrate" in html
 
@@ -281,6 +281,27 @@ def test_html_env_panel_supports_per_group_selector(cycle_data):
     assert "_renderEnvForSource" in html
     # wrapper 里对 cycles_by_group 的判断
     assert "data.cycles_by_group" in html
+
+
+def test_html_chem_links_default_persistent(cycle_data):
+    """v1.3: 化学物 → pathway 常驻连接线（default opacity 0.18）+ toggle。"""
+    html = build_interactive_html(cycle_data).decode("utf-8")
+    # 常驻 linkSel 渲染（低透明度）
+    assert "chemLinkData" in html
+    assert "em-chem-link" in html
+    # 顶部 toggle 按钮
+    assert 'id="em-toggle-chem-links"' in html
+    # 拖拽时 updateChemLinks 同步
+    assert "updateChemLinks" in html
+
+
+def test_html_has_formatChemName_subsuper(cycle_data):
+    """v1.3: formatChemName 格式化化学式下标/上标。"""
+    html = build_interactive_html(cycle_data).decode("utf-8")
+    assert "formatChemName" in html
+    # Unicode 下标/上标数字常量数组
+    assert "₀" in html and "₉" in html
+    assert "⁰" in html and "⁹" in html
 
 
 def test_html_coupling_uses_custom_tooltip(cycle_data):

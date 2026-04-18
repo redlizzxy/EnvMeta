@@ -397,6 +397,7 @@
         <button class="em-btn active" id="em-toggle-couplings">🔗 显示耦合</button>
         <button class="em-btn active" id="em-toggle-labels">🏷️ 通路名</button>
         <button class="em-btn active" id="em-toggle-chemicals">⚗️ 化学物节点</button>
+        <button class="em-btn active" id="em-toggle-chem-links">↔ 化学物→通路</button>
         <button class="em-btn" id="em-export-svg">💾 SVG</button>
         <button class="em-btn" id="em-export-json">📥 JSON</button>
         <span id="em-click-info" style="color:#667; font-size:11px;"></span>
@@ -502,6 +503,24 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
   function normSpecies(s) {
     return (s || '').toLowerCase().trim()
       .replace(/[\s₀₁₂₃₄₅₆₇₈₉⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻\(\)\[\]-]/g, '');
+  }
+  // 化学式上下标规范化
+  //   SO4-2 → SO₄²⁻   S-2 → S²⁻   NO3- → NO₃⁻   NH2OH → NH₂OH
+  //   N2 → N₂  N2O → N₂O  Fe(II) → Fe(II)（保留罗马数字）
+  const _SUB = ['₀','₁','₂','₃','₄','₅','₆','₇','₈','₉'];
+  const _SUP = ['⁰','¹','²','³','⁴','⁵','⁶','⁷','⁸','⁹'];
+  function formatChemName(raw) {
+    if (!raw) return '';
+    let s = String(raw);
+    // 结尾电荷：-2 / +3 → ²⁻ / ³⁺（先数字再符号，化学惯例）
+    s = s.replace(/([+\-])(\d)$/, (_, sign, d) =>
+      _SUP[+d] + (sign === '-' ? '⁻' : '⁺'));
+    // 单纯结尾 - / + → ⁻ / ⁺（如 NO3-）
+    s = s.replace(/([+\-])$/, m => m === '-' ? '⁻' : '⁺');
+    // 字母或右括号后紧跟数字 → 下标
+    s = s.replace(/([a-zA-Z\)])(\d+)/g, (_, c, d) =>
+      c + [...d].map(x => _SUB[+x]).join(''));
+    return s;
   }
   function speciesToElement(sp) {
     if (!sp) return null;
@@ -742,6 +761,35 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
       .attr('x', d => d.cx).attr('y', d => d.cy - 32)
       .text(d => d.display_name);
 
+    // Q2+: 化学物 → pathway cluster 默认常驻连接线（低透明度，hover 提亮）
+    const chemLinkData = [];
+    chemicals.forEach(c => {
+      (c.pathway_ids || []).forEach(pid => {
+        const pw = pathways.find(p => p.pathway_id === pid);
+        if (pw) chemLinkData.push({
+          chem_id: c.id, chemical: c,
+          pathway_id: pid, pathway: pw,
+        });
+      });
+    });
+    const linkSel = d3.select('#em-chem-links').selectAll('line')
+      .data(chemLinkData, d => `${d.chem_id}::${d.pathway_id}`)
+      .enter().append('line')
+      .attr('class', 'em-chem-link')
+      .attr('x1', d => d.chemical.x).attr('y1', d => d.chemical.y)
+      .attr('x2', d => d.pathway.cx).attr('y2', d => d.pathway.cy)
+      .attr('stroke', d => d.chemical.quad.color)
+      .attr('stroke-width', 1)
+      .attr('stroke-dasharray', '2 4')
+      .attr('opacity', 0.18)
+      .attr('pointer-events', 'none');
+
+    function updateChemLinks() {
+      linkSel
+        .attr('x1', d => d.chemical.x).attr('y1', d => d.chemical.y)
+        .attr('x2', d => d.pathway.cx).attr('y2', d => d.pathway.cy);
+    }
+
     // 化学物节点（先画，避免 MAG 遮挡）
     const chemSel = d3.select('#em-chemicals').selectAll('g')
       .data(chemicals, d => d.id)
@@ -752,8 +800,10 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
 
     chemSel.each(function(d) {
       const g = d3.select(this);
-      const label = d.name;
-      const w = Math.max(44, label.length * 8 + 16);
+      const label = formatChemName(d.name);
+      // 原始长度决定宽度（下标上标字符宽度接近但不同，用原名避免裁切）
+      const raw = String(d.name || '');
+      const w = Math.max(44, raw.length * 7.5 + 18);
       const h = 22;
       const quadColor = d.quad.color;
       g.append('rect')
@@ -773,12 +823,12 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
         d.x = Math.max(q.x + 30, Math.min(q.x + q.w - 30, event.x));
         d.y = Math.max(q.y + 40, Math.min(q.y + q.h - 30, event.y));
         d3.select(this).attr('transform', `translate(${d.x},${d.y})`);
-        // 耦合线跟随
+        // 耦合线 + chem-link 跟随
         updateCouplings();
+        updateChemLinks();
       }));
 
-    // Q2: 化学物 hover — 画连接线到相关 pathway cluster + 高亮 + tooltip
-    const linkGroup = d3.select('#em-chem-links');
+    // Q2: 化学物 hover — 提亮该化学物的常驻连接线 + 高亮相关 MAG + tooltip
     chemSel
       .on('mouseenter', function(event, d) {
         const role = d.role === 'product' ? '产物（可耦合）' : '底物（由微生物捕获转化）';
@@ -791,7 +841,7 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
           ? pwNames.map(n => `<div style="font-size:11px;margin-left:8px">↳ ${n}</div>`).join('')
           : '<div style="font-size:11px;color:#aaa">（无关联通路）</div>';
         showTooltip(
-          `<div style="font-size:13px;margin-bottom:4px"><b>${d.name}</b></div>` +
+          `<div style="font-size:13px;margin-bottom:4px"><b>${formatChemName(d.name)}</b></div>` +
           `<div>角色：${role}</div>` +
           `<div>出现在 ${d.occurs} 个 gene 记录中</div>` +
           `<div style="margin-top:4px;font-size:11px;color:#aaf">关联通路：</div>` +
@@ -799,19 +849,11 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
           `<div style="margin-top:4px;font-size:11px;color:#ccc">拖拽可调整位置</div>`,
           event,
         );
-        // 画临时关联线（chem → 每条 pathway cluster 中心）
-        linkGroup.selectAll('*').remove();
+        // 提亮该化学物对应的常驻连接线；其他 dim
+        linkSel.attr('opacity', ld => ld.chem_id === d.id ? 0.85 : 0.06)
+               .attr('stroke-width', ld => ld.chem_id === d.id ? 2 : 1);
+        // 相关 MAG 节点高亮；其他 dim
         const relPwIds = new Set(d.pathway_ids || []);
-        const relPws = state.pathways.filter(p => relPwIds.has(p.pathway_id));
-        linkGroup.selectAll('line').data(relPws).enter().append('line')
-          .attr('x1', d.x).attr('y1', d.y)
-          .attr('x2', p => p.cx).attr('y2', p => p.cy)
-          .attr('stroke', d.quad.color)
-          .attr('stroke-width', 1.5)
-          .attr('stroke-dasharray', '3 3')
-          .attr('opacity', 0.55)
-          .attr('pointer-events', 'none');
-        // 相关 MAG 节点 + pathway label 高亮；其他 dim
         if (renderCycle._sels && renderCycle._sels.nodeSel) {
           renderCycle._sels.nodeSel
             .classed('dimmed', n => !relPwIds.has(n.pathway_id))
@@ -819,17 +861,15 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
         }
         d3.selectAll('.em-pathway-label')
           .classed('dimmed', function() { return !relPwIds.has(this.dataset.pathway); });
-        // 其他化学物节点 dim（但当前 hover 保持高亮）
         chemSel.classed('dimmed', cd => cd.id !== d.id && !cd.pathway_ids.some(pid => relPwIds.has(pid)));
       })
       .on('mousemove', moveTooltip)
       .on('mouseleave', function() {
         hideTooltip();
-        linkGroup.selectAll('*').remove();
-        // 只在未选中具体 pathway 时恢复
-        if (!selectedPathway) {
-          clearHighlight();
-        }
+        // 还原常驻连接线
+        linkSel.attr('opacity', 0.18).attr('stroke-width', 1);
+        // 只在未选中具体 pathway 时恢复 MAG 高亮
+        if (!selectedPathway) clearHighlight();
       });
 
     // MAG 节点
@@ -902,12 +942,12 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
       .on('mouseenter', function(event, d) {
         showTooltip(
           `<div style="font-size:13px;margin-bottom:4px">
-             <b>${d.species_a}</b> ↔ <b>${d.species_b}</b> → <b>${d.product}</b></div>` +
+             <b>${formatChemName(d.species_a)}</b> ↔ <b>${formatChemName(d.species_b)}</b> → <b>${formatChemName(d.product)}</b></div>` +
           `<div>类型：${d.type}</div>` +
           `<div style="color:#ddd;margin:4px 0">${d.description || ''}</div>` +
           `<div style="font-size:11px;color:#aaf">锚点：</div>` +
-          `<div style="font-size:11px">  ↳ <b>${d.nodeA.name}</b>（${d.nodeA.element} · ${roleZh(d.roleA)}）</div>` +
-          `<div style="font-size:11px">  ↳ <b>${d.nodeB.name}</b>（${d.nodeB.element} · ${roleZh(d.roleB)}）</div>`,
+          `<div style="font-size:11px">  ↳ <b>${formatChemName(d.nodeA.name)}</b>（${d.nodeA.element} · ${roleZh(d.roleA)}）</div>` +
+          `<div style="font-size:11px">  ↳ <b>${formatChemName(d.nodeB.name)}</b>（${d.nodeB.element} · ${roleZh(d.roleB)}）</div>`,
           event,
         );
       })
@@ -1089,6 +1129,12 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
     const show = !chemBtn.classList.contains('active');
     chemBtn.classList.toggle('active', show);
     d3.select('#em-chemicals').style('display', show ? null : 'none');
+  });
+  const chemLinksBtn = document.getElementById('em-toggle-chem-links');
+  chemLinksBtn.addEventListener('click', () => {
+    const show = !chemLinksBtn.classList.contains('active');
+    chemLinksBtn.classList.toggle('active', show);
+    d3.select('#em-chem-links').style('display', show ? null : 'none');
   });
 
   // ═══════════════════════════════════════════════════════
