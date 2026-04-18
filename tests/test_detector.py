@@ -35,3 +35,21 @@ def test_detect_confidence_for_known():
     assert r.confidence >= 0.9
     assert r.preview_df is not None
     assert r.preview_df.shape[0] <= 5
+
+
+def test_abundance_wide_confidence_split_mag_vs_taxon():
+    """回归测试：MAG 级丰度表 conf=0.95，TAXON 级 conf=0.88。
+
+    用于 `_first_mag_abundance()` / `_first_taxon_abundance()` 的语义判定。
+    跨平台一致性（Windows / Linux）不依赖 session_state 插入顺序。
+    """
+    mag = detect(SAMPLE / "abundance.tsv")
+    assert mag.file_type == FileType.ABUNDANCE_WIDE
+    assert mag.confidence >= 0.92, f"MAG 级 conf 应 ≥0.92，实际 {mag.confidence}"
+
+    for taxon_file in ("Genus.txt", "Phylum.txt", "Species.txt"):
+        t = detect(SAMPLE / taxon_file)
+        assert t.file_type == FileType.ABUNDANCE_WIDE
+        assert t.confidence < 0.92, (
+            f"{taxon_file} 应为 TAXON 级 (conf<0.92)，实际 {t.confidence}"
+        )

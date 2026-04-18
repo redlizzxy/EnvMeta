@@ -354,35 +354,62 @@ def _first_of(*ftypes: FileType) -> str | None:
     return None
 
 
+def _abundance_candidates() -> list[tuple[float, str]]:
+    """返回所有 ABUNDANCE_WIDE 文件 [(confidence, name)]，按 detector 置信度降序。"""
+    out: list[tuple[float, str]] = []
+    for n, info in st.session_state.files.items():
+        if info["type"] != FileType.ABUNDANCE_WIDE:
+            continue
+        conf = getattr(info.get("result"), "confidence", 0.0) or 0.0
+        out.append((conf, n))
+    out.sort(key=lambda t: -t[0])
+    return out
+
+
 def _first_mag_abundance() -> str | None:
-    """优先选 MAG 级丰度表（首列 = Genome/MAG/Bin/... 或行值像 Mx_*/MAG_*）。
+    """优先选 MAG 级丰度表（detector conf=0.95）。
 
     修复 2026-04-19：Genus.txt / Phylum.txt / Species.txt 也会被识别为
     ABUNDANCE_WIDE，`_first_of` 按插入顺序选到 Genus.txt → MAG 分析里
     abundance_mean 全部为 0 → Top-N 退化为 tiebreaker 顺序（bug）。
     """
     mag_headers = {"genome", "mag", "bin", "mag_id", "genome_id"}
-    # 第一轮：按 detector 置信度（MAG 级 conf=0.95）
-    candidates: list[tuple[float, str]] = []
-    for n, info in st.session_state.files.items():
-        if info["type"] != FileType.ABUNDANCE_WIDE:
-            continue
-        conf = getattr(info.get("result"), "confidence", 0.0) or 0.0
-        candidates.append((conf, n))
+    candidates = _abundance_candidates()
     if not candidates:
         return None
-    # 置信度降序
-    candidates.sort(key=lambda t: -t[0])
-    # 置信度高（MAG 级 ≥0.92）优先
     top_conf, top_name = candidates[0]
     if top_conf >= 0.92:
         return top_name
-    # 回退：找首列匹配 Genome/MAG/... 的文件
     for _, n in candidates:
         df = st.session_state.files[n]["df"]
         if df.shape[1] > 0 and df.columns[0].strip().lower() in mag_headers:
             return n
-    # 都不像 MAG 级 → 退回第一个（向后兼容）
+    return candidates[0][1]
+
+
+def _first_taxon_abundance() -> str | None:
+    """优先选 TAXON 级丰度表（detector conf=0.88，首列 = Taxonomy/OTU）。
+
+    修复 2026-04-19：堆叠图 / PCoA / RDA / LEfSe 等"物种组成"语义分析
+    需要 TAXON 级（Genus/Phylum/Species），而非 MAG 级（abundance.tsv）。
+    跨平台一致：不依赖 session_state.files 插入顺序（Windows/Linux 各异），
+    改用 detector 置信度（0.88 = TAXON，0.95 = MAG）判定。
+    """
+    taxon_headers = {"taxonomy", "#otu id", "#otuid", "taxon"}
+    candidates = _abundance_candidates()
+    if not candidates:
+        return None
+    # 优先选 TAXON 级（conf ≈ 0.88，即 conf < 0.92）
+    taxon_like = [(c, n) for c, n in candidates if c < 0.92]
+    if taxon_like:
+        # 同为 TAXON 级时，按文件名字母序稳定选择（Windows/Linux 一致）
+        taxon_like.sort(key=lambda t: t[1].lower())
+        return taxon_like[0][1]
+    # 回退：首列匹配 taxonomy/otu
+    for _, n in candidates:
+        df = st.session_state.files[n]["df"]
+        if df.shape[1] > 0 and df.columns[0].strip().lower() in taxon_headers:
+            return n
     return candidates[0][1]
 
 
@@ -811,10 +838,15 @@ elif page == "Reads-based 分析":
             st.stop()
 
         c1, c2 = st.columns(2)
+        ab_options = list(abundance_files.keys())
+        ab_default = _first_taxon_abundance()
+        md_options = list(metadata_files.keys())
         with c1:
-            ab_name = st.selectbox("丰度表", list(abundance_files.keys()))
+            ab_name = st.selectbox("丰度表", ab_options,
+                                   index=_idx_or_default(ab_options, ab_default),
+                                   key="stack_ab")
         with c2:
-            md_name = st.selectbox("Metadata", list(metadata_files.keys()), key="stack_md")
+            md_name = st.selectbox("Metadata", md_options, key="stack_md")
 
         st.sidebar.markdown("---")
         st.sidebar.subheader("参数")
@@ -1184,8 +1216,12 @@ elif page == "Reads-based 分析":
             st.stop()
 
         c1, c2, c3 = st.columns(3)
+        ab_options = list(abundance_files.keys())
+        ab_default = _first_taxon_abundance()
         with c1:
-            ab_name = st.selectbox("丰度表", list(abundance_files.keys()), key="rda_ab")
+            ab_name = st.selectbox("丰度表", ab_options,
+                                   index=_idx_or_default(ab_options, ab_default),
+                                   key="rda_ab")
         with c2:
             env_name = st.selectbox("环境因子表", list(env_files.keys()), key="rda_env")
         with c3:
@@ -1257,7 +1293,11 @@ elif page == "Reads-based 分析":
                 f"当前：丰度表 {len(abundance_files)}，metadata {len(metadata_files)}。"
             )
             st.stop()
-        ab_name = st.selectbox("丰度表", list(abundance_files.keys()), key="lefse_ab")
+        ab_options = list(abundance_files.keys())
+        ab_default = _first_taxon_abundance()
+        ab_name = st.selectbox("丰度表", ab_options,
+                               index=_idx_or_default(ab_options, ab_default),
+                               key="lefse_ab")
         md_name = st.selectbox("Metadata", list(metadata_files.keys()), key="lefse_md")
 
         with st.sidebar:
@@ -1875,7 +1915,9 @@ elif page == "生物地球化学循环图":
         index=_idx_or_default(k_options, k_default),
     )
 
-    a_default = _first_of(FileType.ABUNDANCE_WIDE)
+    # 循环图丰度加权是 MAG 级语义 —— 避开 Genus.txt/Phylum.txt/Species.txt
+    # （detector 同样标为 ABUNDANCE_WIDE 但 conf=0.88，MAG 级 conf=0.95）
+    a_default = _first_mag_abundance()
     a_options = ["（无）"] + [n for n in file_names
                              if n not in (ko_name, t_name, k_name)]
     a_name = st.selectbox(
