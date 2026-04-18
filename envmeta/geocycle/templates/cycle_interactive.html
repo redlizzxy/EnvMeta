@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EnvMeta Interactive Cycle</title>
+  <style>
+    /* ───── Reset + 主题 ───── */
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+                   "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: #222;
+      background: #fafbfc;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .em-app { max-width: 1400px; margin: 0 auto; padding: 20px; }
+
+    /* ───── 顶部 Meta 块 ───── */
+    .em-meta-block {
+      background: linear-gradient(135deg, #e8f4ff 0%, #fff 100%);
+      border: 1px solid #d0e3f5;
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 16px;
+    }
+    .em-title {
+      margin: 0 0 8px 0;
+      font-size: 20px;
+      color: #1a365d;
+    }
+    .em-badges { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+    .em-badge {
+      display: inline-block;
+      background: #fff;
+      border: 1px solid #ccd6e4;
+      color: #334;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .em-badge-hyp { border-color: #7ab36c; background: #f0f8ed; color: #2d5020; }
+    .em-badge-cmp { border-color: #d99c5c; background: #fcf4ea; color: #663f10; }
+    .em-audit { font-size: 12px; color: #556; margin-top: 6px; }
+
+    /* ───── Tab 导航 ───── */
+    .em-tabs {
+      display: flex;
+      gap: 4px;
+      border-bottom: 2px solid #d0d7e1;
+      margin-bottom: 16px;
+    }
+    .em-tab {
+      padding: 8px 16px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      font-size: 14px;
+      color: #556;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      transition: all .15s;
+    }
+    .em-tab:hover { color: #1a365d; background: #f0f4fa; }
+    .em-tab.active {
+      color: #1a365d;
+      border-bottom-color: #2c7fb8;
+      font-weight: 600;
+    }
+
+    .em-panel { display: none; }
+    .em-panel.active { display: block; }
+
+    /* ───── 循环图画布 ───── */
+    #em-cycle-canvas {
+      width: 100%;
+      height: 700px;
+      background: #fff;
+      border: 1px solid #e0e4ea;
+      border-radius: 8px;
+      position: relative;
+    }
+    .em-quadrant-label {
+      font-size: 16px;
+      font-weight: 700;
+      fill: #334;
+      text-anchor: middle;
+      pointer-events: none;
+    }
+    .em-quadrant-bg {
+      fill-opacity: 0.05;
+    }
+    .em-quadrant-divider {
+      stroke: #ccd6e4;
+      stroke-width: 1;
+      stroke-dasharray: 4 4;
+    }
+
+    /* ───── Placeholder（无数据时）───── */
+    .em-placeholder {
+      text-align: center;
+      padding: 40px 20px;
+      color: #888;
+    }
+    .em-placeholder h3 { margin: 0 0 8px 0; color: #334; }
+
+    /* ───── 页脚 ───── */
+    .em-footer {
+      margin-top: 24px;
+      padding: 16px 0;
+      border-top: 1px solid #d0d7e1;
+      font-size: 12px;
+      color: #778;
+      text-align: center;
+    }
+    .em-footer a { color: #2c7fb8; }
+  </style>
+</head>
+<body>
+
+<div class="em-app">
+
+  <!-- ═══════ 顶部 Meta 块（Python 侧注入）═══════ -->
+  {{META_HTML}}
+
+  <!-- ═══════ Tab 导航 ═══════ -->
+  <div class="em-tabs" role="tablist">
+    <button class="em-tab active" data-panel="cycle">🔄 循环图</button>
+    <button class="em-tab" data-panel="env">🌡️ 环境相关</button>
+    <button class="em-tab" data-panel="hypothesis">🧪 假说评分</button>
+    <button class="em-tab" data-panel="compare">🆚 跨组对比</button>
+    <button class="em-tab" data-panel="meta">📋 参数 / 数据</button>
+  </div>
+
+  <!-- ═══════ Panel 1: 循环图 ═══════ -->
+  <div class="em-panel active" data-panel="cycle" id="panel-cycle">
+    <svg id="em-cycle-canvas" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid meet">
+      <!-- 4 象限布局（T2-α 骨架：占位背景 + label） -->
+      <g id="em-quadrants"></g>
+      <g id="em-nodes"></g>
+      <g id="em-couplings"></g>
+    </svg>
+  </div>
+
+  <!-- ═══════ Panel 2: 环境相关性 ═══════ -->
+  <div class="em-panel" data-panel="env" id="panel-env">
+    <div id="em-env-container" class="em-placeholder">
+      <h3>环境相关性（T2-β 实现）</h3>
+      <p>这里将显示 env_correlations + 置换检验可信度 + 完整相关矩阵。</p>
+    </div>
+  </div>
+
+  <!-- ═══════ Panel 3: 假说评分 ═══════ -->
+  <div class="em-panel" data-panel="hypothesis" id="panel-hypothesis">
+    <div id="em-hyp-container" class="em-placeholder">
+      <h3>假说评分（T2-γ 实现）</h3>
+      <p>这里将显示 overall / label / null_p 直方图 / 权重敏感度 / claim 表。</p>
+    </div>
+  </div>
+
+  <!-- ═══════ Panel 4: 跨组对比 ═══════ -->
+  <div class="em-panel" data-panel="compare" id="panel-compare">
+    <div id="em-compare-container" class="em-placeholder">
+      <h3>跨组对比（T2-γ 实现）</h3>
+      <p>这里将显示 compare_groups DataFrame + CK/A/B 切换。</p>
+    </div>
+  </div>
+
+  <!-- ═══════ Panel 5: 元信息 ═══════ -->
+  <div class="em-panel" data-panel="meta" id="panel-meta">
+    <h3>分析参数</h3>
+    <pre id="em-params-dump" style="background:#f5f7fa;padding:12px;border-radius:4px;overflow:auto;font-size:12px;"></pre>
+    <h3>数据集 Meta</h3>
+    <pre id="em-meta-dump" style="background:#f5f7fa;padding:12px;border-radius:4px;overflow:auto;font-size:12px;"></pre>
+  </div>
+
+  <div class="em-footer">
+    由 <a href="https://github.com/redlizzxy/EnvMeta" target="_blank">EnvMeta</a>
+    生成 · 独立 HTML / 离线可用 / 无外部依赖
+  </div>
+
+</div>
+
+<!-- ═══════ D3.js v7 inline ═══════ -->
+<script>
+{{D3_JS_INLINE}}
+</script>
+
+<!-- ═══════ 应用数据（Python 注入 JSON）═══════ -->
+<script>
+const EM_DATA = {{CYCLE_DATA_JSON}};
+</script>
+
+<!-- ═══════ 应用 JS ═══════ -->
+<script>
+(function() {
+  'use strict';
+
+  // ───── Tab 切换 ─────
+  const tabs = document.querySelectorAll('.em-tab');
+  const panels = document.querySelectorAll('.em-panel');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const target = tab.dataset.panel;
+      tabs.forEach(t => t.classList.toggle('active', t === tab));
+      panels.forEach(p => p.classList.toggle('active', p.dataset.panel === target));
+    });
+  });
+
+  // ───── T2-α 骨架：渲染 4 象限背景 + label ─────
+  const canvas = d3.select('#em-cycle-canvas');
+  const W = 1200, H = 700;
+  // 象限布局：与 matplotlib renderer 一致（左上 As, 右上 N, 左下 S, 右下 Fe）
+  const quadrants = [
+    { id: 'arsenic',  x: 0,     y: 0,     w: W/2, h: H/2, color: '#8b4513', name: 'As · 砷循环' },
+    { id: 'nitrogen', x: W/2,   y: 0,     w: W/2, h: H/2, color: '#4682b4', name: 'N · 氮循环' },
+    { id: 'sulfur',   x: 0,     y: H/2,   w: W/2, h: H/2, color: '#daa520', name: 'S · 硫循环' },
+    { id: 'iron',     x: W/2,   y: H/2,   w: W/2, h: H/2, color: '#cd5c5c', name: 'Fe · 铁循环' },
+  ];
+
+  // 从 EM_DATA.elements 推断实际存在的元素（骨架阶段全部显示）
+  const presentElements = new Set((EM_DATA.elements || []).map(e => e.element_id));
+
+  const qGroup = d3.select('#em-quadrants');
+  qGroup.selectAll('rect.em-quadrant-bg')
+    .data(quadrants)
+    .enter()
+    .append('rect')
+    .attr('class', 'em-quadrant-bg')
+    .attr('x', d => d.x)
+    .attr('y', d => d.y)
+    .attr('width', d => d.w)
+    .attr('height', d => d.h)
+    .attr('fill', d => d.color)
+    .attr('fill-opacity', d => presentElements.has(d.id) ? 0.1 : 0.03);
+
+  qGroup.selectAll('text.em-quadrant-label')
+    .data(quadrants)
+    .enter()
+    .append('text')
+    .attr('class', 'em-quadrant-label')
+    .attr('x', d => d.x + d.w/2)
+    .attr('y', d => d.y + 30)
+    .attr('fill', d => d.color)
+    .text(d => {
+      const el = (EM_DATA.elements || []).find(e => e.element_id === d.id);
+      if (el) {
+        return `${d.name} (${el.pathways.length} 通路)`;
+      }
+      return `${d.name} (无数据)`;
+    });
+
+  // 分割线
+  qGroup.append('line')
+    .attr('class', 'em-quadrant-divider')
+    .attr('x1', W/2).attr('y1', 0).attr('x2', W/2).attr('y2', H);
+  qGroup.append('line')
+    .attr('class', 'em-quadrant-divider')
+    .attr('x1', 0).attr('y1', H/2).attr('x2', W).attr('y2', H/2);
+
+  // ───── Meta 面板的数据 dump ─────
+  document.getElementById('em-params-dump').textContent =
+    JSON.stringify(EM_DATA.params || {}, null, 2);
+  document.getElementById('em-meta-dump').textContent =
+    JSON.stringify(EM_DATA.meta || {}, null, 2);
+
+  console.log('[EnvMeta] 数据已加载', {
+    elements: (EM_DATA.elements || []).length,
+    env_correlations: (EM_DATA.env_correlations || []).length,
+    sensitivity: (EM_DATA.sensitivity || []).length,
+    has_hypothesis: !!EM_DATA.hypothesis,
+    has_compare: !!EM_DATA.compare_groups,
+  });
+})();
+</script>
+
+</body>
+</html>

@@ -1995,6 +1995,26 @@ elif page == "生物地球化学循环图":
                                mime="text/tab-separated-values", key="cy_tsv")
         _vector_downloads(last.figure, "cycle", "cy")
 
+        # —— S4.5 独立交互 HTML 导出（T2）——————————————
+        try:
+            from envmeta.geocycle.html_exporter import build_interactive_html as _build_html
+            _hyp = st.session_state.get("_hyp_last")
+            _cmp = st.session_state.get("_cy_compare_last")
+            _html_bytes = _build_html(last, hypothesis=_hyp, compare_df=_cmp)
+            st.download_button(
+                "📦 导出交互 HTML（独立 SI · D3.js 嵌入）",
+                data=_html_bytes,
+                file_name="envmeta_cycle_interactive.html",
+                mime="text/html",
+                key="cy_html_export",
+                help=(
+                    f"独立 HTML 文件（~{len(_html_bytes) // 1024} KB）含 D3.js 嵌入，"
+                    "双击浏览器打开即可离线交互。T2-α 当前：4 象限布局 + 数据注入。"
+                ),
+            )
+        except Exception as _e:  # noqa: BLE001
+            st.caption(f"⚠️ 交互 HTML 导出失败：{_e}")
+
         # —— 跨组对比小工具（S2.5-7d）——————————————————
         with st.expander("跨组对比表（回答『A/CK/B 差在哪里』）", expanded=False):
             st.caption(
