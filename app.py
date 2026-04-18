@@ -598,26 +598,42 @@ def _load_mag_df(name: str | None):
 # ══════════════════════════════════════════════════════════
 if page == "首页":
     st.title("EnvMeta")
-    st.subheader("环境微生物宏基因组可视化分析平台")
+    st.subheader("环境微生物宏基因组可视化分析平台 · v0.8")
     st.markdown("---")
     st.markdown(
         """
-        **EnvMeta** 帮助你从宏基因组下游分析的数据文件快速生成发表级图形。
+        **解决环境微生物博士生的核心痛点 —— 测序公司给了一堆表格，
+        不知道哪个文件能做什么分析。** 文件一键识别 + 14 张发表级图表 +
+        元素循环图自动推断 + 假说评分器 + 独立交互 HTML 导出。
+        **全部开源免费、离线可用。**
 
-        #### 快速开始
-        1. 在 **文件管理** 中上传你的数据文件
-        2. 选择分析模块，系统自动匹配可用的输入文件
-        3. 调整图形参数，实时预览
-        4. 一键导出高质量图形（PNG / PDF）和可复现数据
+        #### 🚀 三步上手
+        1. 首页点「📦 加载砷渣修复示例数据」（或自己上传文件到「文件管理」）
+        2. 走「🧭 图表选择向导」按研究问题找分析，或直接进 Reads/MAG/循环图分析
+        3. 调参出图 → 导出中心批量下载 PNG/PDF/SVG/TIFF + `.py` 复现脚本
 
-        #### 当前可用功能（v0.5 — Phase 1/2 全通）
+        #### ✨ 核心卖点
+        | 能力 | 说明 |
+        |---|---|
+        | 🔄 **元素循环图自动推断** | 从 KO 注释 + 环境因子自动推断 4 元素 × 18 通路（业界独有） |
+        | 🧪 **假说评分 YAML 评分器** | 5 类 claim + 置换 null_p + 权重敏感度 + 9 档解读（业界独有） |
+        | 🌐 **独立交互 HTML 导出** | 400 KB 单文件 D3.js 嵌入，审稿人浏览器直接操作（SI 杀手锏） |
+        | 📦 **Fork Bundle** | 打包 KB + YAML + config 为 zip，论文-工具绑定复现 |
+        | ⚡ **跨元素化学物耦合** | As↔H₂S→As₂S₃ / Fe↔S 等虚线连接（业界独有） |
+        | 💡 **新手落地包** | 数据准备指南 + 图表向导 + 每图「如何解读」+ 一键样例数据 |
+
+        #### 📊 功能矩阵
         | 模块 | 支持内容 |
         |------|---------|
-        | 文件识别 | metadata / abundance / distance / alpha / CheckM / env factors / KO 宽长表 / Keystone / MAG taxonomy / Gephi nodes+edges |
-        | Reads-based 分析 | 堆叠图 / PCoA / 基因热图 / α 多样性 / log2FC / RDA / LEfSe |
-        | MAG-based 分析 | MAG 质量 / 丰度热图 / 通路完整度 / 元素循环基因谱 / 共现网络 Gephi-prep |
-        | 生物地球化学循环图 | 4 元素推断 + 假说评分 + 跨组对比 + Fork Bundle |
-        | 导出 | PNG / PDF / SVG / TIFF 600dpi / TSV / 复现 .py 脚本 |
+        | 📁 文件识别 | 11 类（abundance 分 MAG/Taxon 两级识别 / KO 宽长 / CheckM / GTDB / env / Gephi ...） |
+        | 📊 Reads-based（7 图） | 堆叠图 / PCoA / α 多样性 / RDA / LEfSe / 基因热图 / log2FC |
+        | 🧬 MAG-based（5 图） | MAG 质量 / 丰度热图 / 通路完整度 / 基因谱 / 共现网络 Gephi-prep |
+        | 🔄 循环图 | 4 元素推断 + 假说评分 + 跨组对比 + Fork Bundle + 独立 HTML |
+        | 💾 导出 | PNG / PDF / SVG / TIFF 600dpi / TSV / `.py` 脚本，批量 ZIP |
+
+        > 📖 **在线版**：<https://envmeta-3xjhcu7lv2gkj4pjtk8gsb.streamlit.app/>
+        > 📖 **源码**：<https://github.com/redlizzxy/EnvMeta>
+        > 📖 **数据准备**：左侧「数据准备指南」— 覆盖 CoverM / HUMAnN3 / eggNOG / DRAM / GTDB-Tk / CheckM2 等 11 种上游工具
         """
     )
     st.markdown("---")
