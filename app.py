@@ -354,6 +354,38 @@ def _first_of(*ftypes: FileType) -> str | None:
     return None
 
 
+def _first_mag_abundance() -> str | None:
+    """优先选 MAG 级丰度表（首列 = Genome/MAG/Bin/... 或行值像 Mx_*/MAG_*）。
+
+    修复 2026-04-19：Genus.txt / Phylum.txt / Species.txt 也会被识别为
+    ABUNDANCE_WIDE，`_first_of` 按插入顺序选到 Genus.txt → MAG 分析里
+    abundance_mean 全部为 0 → Top-N 退化为 tiebreaker 顺序（bug）。
+    """
+    mag_headers = {"genome", "mag", "bin", "mag_id", "genome_id"}
+    # 第一轮：按 detector 置信度（MAG 级 conf=0.95）
+    candidates: list[tuple[float, str]] = []
+    for n, info in st.session_state.files.items():
+        if info["type"] != FileType.ABUNDANCE_WIDE:
+            continue
+        conf = getattr(info.get("result"), "confidence", 0.0) or 0.0
+        candidates.append((conf, n))
+    if not candidates:
+        return None
+    # 置信度降序
+    candidates.sort(key=lambda t: -t[0])
+    # 置信度高（MAG 级 ≥0.92）优先
+    top_conf, top_name = candidates[0]
+    if top_conf >= 0.92:
+        return top_name
+    # 回退：找首列匹配 Genome/MAG/... 的文件
+    for _, n in candidates:
+        df = st.session_state.files[n]["df"]
+        if df.shape[1] > 0 and df.columns[0].strip().lower() in mag_headers:
+            return n
+    # 都不像 MAG 级 → 退回第一个（向后兼容）
+    return candidates[0][1]
+
+
 def _idx_or_default(options: list[str], name: str | None) -> int:
     return options.index(name) if (name and name in options) else 0
 
@@ -469,8 +501,8 @@ def _mag_file_selectors(prefix: str,
         selected["_ko"] = ko_name
     used = [selected.get("_ko")] if ko_type else []
 
-    # MAG 丰度表
-    ab_default = _first_of(FileType.ABUNDANCE_WIDE)
+    # MAG 丰度表（优先 MAG 级 abundance.tsv，避开 Genus.txt / Phylum.txt）
+    ab_default = _first_mag_abundance()
     ab_label = ("MAG 丰度表（必需）" if require_abundance
                 else "MAG 丰度表（可选，用于 Top-N 打分）")
     if require_abundance:

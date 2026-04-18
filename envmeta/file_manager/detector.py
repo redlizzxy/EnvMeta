@@ -234,12 +234,22 @@ def _rule_ko_abundance_wide(df: pd.DataFrame, filename: str) -> tuple[bool, floa
 
 
 def _rule_abundance_wide(df: pd.DataFrame, filename: str) -> tuple[bool, float, str]:
-    """物种丰度宽表：首列 Taxonomy/OTU，其余列纯数值。"""
+    """丰度宽表：首列标识 + 其余列纯数值。
+
+    置信度分层（避免 Genus.txt / Species.txt 和 abundance.tsv 冲突时默认选错）：
+    - MAG 级（首列 Genome/MAG/Bin，或行值看起来像 Mx_*/MAG_*/bin_*）→ 0.95（高）
+    - 分类级（首列 Taxonomy/OTU/Taxon）→ 0.88（中）
+    - 都不是 → 不匹配
+    """
     if df.shape[1] < 3 or df.shape[0] < 2:
         return False, 0.0, ""
     first_col = df.columns[0].lower()
-    first_col_ok = first_col in ("taxonomy", "#otu id", "#otuid", "taxon", "genome")
-    if not first_col_ok:
+
+    # 分类 Taxonomy 关键字
+    is_taxon_header = first_col in ("taxonomy", "#otu id", "#otuid", "taxon")
+    # MAG 关键字
+    is_mag_header = first_col in ("genome", "mag", "bin", "mag_id", "genome_id")
+    if not (is_taxon_header or is_mag_header):
         return False, 0.0, ""
 
     sample_cols = df.columns[1:]
@@ -249,9 +259,37 @@ def _rule_abundance_wide(df: pd.DataFrame, filename: str) -> tuple[bool, float, 
     except Exception:
         return False, 0.0, ""
 
-    if nan_ratio < 0.05:
-        return True, 0.9, f"首列 {df.columns[0]!r} + {len(sample_cols)} 个数值样本列"
-    return False, 0.0, ""
+    if nan_ratio >= 0.05:
+        return False, 0.0, ""
+
+    # 用行值判断 MAG vs 分类：
+    # - 分类级：值以 GTDB/SILVA 前缀开头（k__/p__/c__/o__/f__/g__/s__/d__），
+    #   或含分号分隔的 lineage
+    # - MAG 级：值以 Mx_/MAG_/bin./GCF_/GCA_/bin_ 开头
+    first_vals = df.iloc[:min(20, len(df)), 0].astype(str).tolist()
+    taxon_prefixes = ("k__", "p__", "c__", "o__", "f__", "g__", "s__", "d__")
+    taxon_like = sum(
+        1 for v in first_vals
+        if v.startswith(taxon_prefixes) or ";" in v
+    )
+    mag_prefixes = ("Mx_", "MAG_", "MAG.", "bin_", "bin.", "Bin", "GCF_", "GCA_")
+    mag_like = sum(1 for v in first_vals if v.startswith(mag_prefixes))
+
+    n = len(first_vals) or 1
+    if is_mag_header or mag_like >= n * 0.5:
+        looks_like_mag = True
+    elif taxon_like >= n * 0.5:
+        looks_like_mag = False
+    else:
+        # 无法断定：沿用旧行为（低置信度标记为 ABUNDANCE_WIDE）
+        looks_like_mag = False
+
+    conf = 0.95 if looks_like_mag else 0.88
+    hint = ("MAG 级" if looks_like_mag else "分类级")
+    return True, conf, (
+        f"{hint}丰度表：首列 {df.columns[0]!r} + "
+        f"{len(sample_cols)} 个数值样本列"
+    )
 
 
 def _rule_gephi_nodes(df: pd.DataFrame, filename: str) -> tuple[bool, float, str]:
