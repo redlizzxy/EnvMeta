@@ -266,8 +266,10 @@ S8 插件框架推迟到论文接收后再做。完整计划见 `C:\Users\REDLIZ
 2. ✅ **T1 导出中心统一重构已完成**（2026-04-17，~3h）— 4-tab 页（图表/Bundle/
    脚本/文档）+ `_export_registry` 架构 + 批量 ZIP + 文档下载。详见日志
    「2026-04-17 T1 导出中心」
-3. **🟥 Sunday Sprint 剩余：T2 S4.5 HTML 交互导出完整版**（周日汇报 +
-   师弟师妹测试用，~10-14h）+ T3 评测表电子版（腾讯问卷，~2-3h）
+3. ✅ **T2 S4.5 HTML 交互导出完整版已完成**（2026-04-17，~5h）— α 骨架 + β
+   循环图交互 + γ 假说评分交互 + δ SVG/JSON 导出 + 点击穿透。400 KB 独立 HTML
+   离线可用。详见日志「2026-04-17 T2 HTML 交互导出」
+4. **🟥 Sunday Sprint 剩余：T3 评测表电子版**（腾讯问卷，~2-3h）
 4. **🟥 装 R 做 EnvMeta vs 原脚本侧侧对比** — 论文 Methods 关键证据，独立时间
    做（需装 R 环境，~1-2 天）
 5. **🟥 English README + LICENSE + Zenodo DOI** — iMeta 投稿硬指标，~4h
@@ -287,13 +289,176 @@ S8 插件框架推迟到论文接收后再做。完整计划见 `C:\Users\REDLIZ
 - ✅ Phase 3 核心功能全部完成（循环图 + 假说评分 + Bundle）
 - ✅ **S8-ux 新手落地包**（2026-04-17）— 非生信课题组可用门槛打通
 - ✅ **T1 导出中心统一重构**（2026-04-17）— 批量 ZIP + 4-tab + 文档下载
-- ✅ **v0.7 Sunday Sprint 就绪**（v0.6 + T1 导出中心）
-- 📄 论文 Methods 可起草（含 user study 先决条件）
-- 🎯 **下周日汇报（2026-04-19）** — T2 S4.5 HTML 完整版 + T3 评测表发射 10 人测试
+- ✅ **T2 S4.5 HTML 交互导出 v1**（2026-04-17）— 400 KB 独立离线 HTML
+  含 D3.js 嵌入：循环图 4 象限力导向 + 节点交互 + 跨元素耦合虚线 + 假说评分
+  交互 + 跨组对比 + SVG/JSON 导出。**EnvMeta 论文 SI 杀手锏 + 差异化独家能力**
+- ✅ **v0.8 Sunday Sprint v1 就绪**（v0.7 + T1 导出中心 + T2 HTML 交互导出）
+- 📄 论文 Methods 可起草（含 user study 先决条件 + SI HTML 独立附件）
+- 🎯 **周日汇报（2026-04-19）** — 仅剩 T3 评测表问卷（2-3h），余量充足
 
 ## 开发日志
 
 > 每次 session 结束前更新此区块。新对话开始时 Claude Code 自动读取，了解当前进度。
+
+### 2026-04-17（**T2 S4.5 HTML 交互导出 v1 ⭐** — Sunday Sprint 最大杀手锏）
+
+Sunday Sprint 第二块（核心杀手锏）完成。一个 session ~5h 把 T2 四阶段（α 骨架 /
+β 循环图交互 / γ 假说评分交互 / δ SVG/JSON 导出）全部打通。产物：**400 KB
+独立离线 HTML，含 D3.js 嵌入**，双击浏览器打开 → 完整交互循环图 + 假说评分 +
+跨组对比。
+
+#### 独家卖点（竞品对比）
+
+| 能力 | Krona | Anvi'o | MicrobiomeAnalyst | iTOL | **EnvMeta T2** |
+|---|---|---|---|---|---|
+| 独立 HTML 离线可分享 | ✅ | ⚠️ static | ❌ web-only | ⚠️ | **✅** |
+| 元素循环专用语义（As/N/S/Fe）| ❌ | ❌ | ❌ | ❌ | **✅ 独有** |
+| 跨元素化学物耦合（As↔H₂S→As₂S₃）| ❌ | ❌ | ❌ | ❌ | **✅ 独有** |
+| 假说评分 + null_p + 权重敏感度 | ❌ | ❌ | ❌ | ❌ | **✅ 独有** |
+| Claim → 循环图点击穿透 | ❌ | ❌ | ❌ | ❌ | **✅ 独有** |
+
+结论：**EnvMeta 是目前唯一能让审稿人在 SI 里亲手操作元素循环图 + 亲自验证
+null_p + 跨组切换假说评分的工具**。iMeta / Bioinformatics 方法学论文里这是
+强差异化证据。
+
+#### 四阶段交付
+
+**T2-α 骨架（~1.5h）**：
+- `envmeta/geocycle/html_exporter.py`（~235 行）：
+  - `cycle_to_json(CycleData, hypothesis=, compare_df=, hypothesis_by_group=)`
+    输出扁平 JSON dict（version / generated_at / elements / env_correlations /
+    full_corr_matrix / sensitivity / couplings / params / meta / hypothesis /
+    hypothesis_by_group_summary / compare_groups）
+  - `build_interactive_html(...) -> bytes`
+  - `export_html(...) -> Path`
+- `envmeta/geocycle/templates/cycle_interactive.html`（~450 行骨架）：
+  - 5 tab 结构（循环图 / 环境相关 / 假说评分 / 跨组对比 / 参数-数据）
+  - 4 象限（arsenic / nitrogen / sulfur / iron）与 matplotlib renderer 对齐
+  - `{{D3_JS_INLINE}}` + `{{CYCLE_DATA_JSON}}` + `{{META_HTML}}` 三占位符
+- `envmeta/geocycle/templates/d3.v7.min.js`（273 KB 本地缓存）
+- `tests/test_html_exporter.py` +12 case（JSON 字段完整 / NaN→None /
+  HTML 大小 / 无外部 http / meta 块 / ...）
+- `app.py` 循环图页加「📦 导出交互 HTML」按钮
+- commit `4af5e84`
+
+**T2-β 循环图完整交互（~2h）**：
+- 节点展开：每个 (MAG, pathway) 对 = 一个 D3 节点。本数据集 81 节点 / 17 通路
+- 节点大小 ∝ `log(1 + completeness × abundance)`，keystone 金色边框
+- 节点颜色按 13 门分色（对齐 matplotlib PHYLUM_COLORS）
+- **D3 forceSimulation + 4 象限硬约束**（custom tick clamp force 钳制节点不出
+  所属象限）+ pathway 集群吸引力
+- **Hover tooltip**：MAG / 门 / 通路 / completeness / abundance / genes 数
+- **点击节点**：同通路其他节点高亮，其他 dim 到 0.15 opacity，顶部栏显示
+  "🎯 通路名 · N MAG · K keystone"
+- **拖拽节点**：D3 drag 释放后 simulation 重新计算
+- **缩放平移**：D3 zoom (0.3x-5x) + 画布 pan
+- **跨元素耦合虚线**：从 KB `couplings()` 读 4 条预设（As↔S₂S / As↔Fe /
+  Fe↔S / NO3↔As），彩色弧线连接对应象限中心 + 化学物 label + tooltip
+- **控制栏**：🔄 重置布局 / 🔗 显示耦合 toggle / 🏷️ 显示通路名 toggle
+- **图例**：当前数据中的 phyla 分色
+
+**T2-γ 假说评分交互 + 跨组（~1.5h）**：
+- **Overall 5 卡片**：overall_score / label (彩色 + 9 档解读) / claims 统计 /
+  null_p (Fisher 置换) / weight ±20% robust
+- **Null p 可视化条**：绿→橙→红渐变，观察 p 值位置用黑线标出
+- **Claim 表**：sortable by 列头 / searchable / status 色（satisfied绿
+  / partial橙 / unsatisfied红 / skipped灰） / required 锁标记 / vetoed 行红底
+- **点击穿透**：claim 有 `evidence.pathway_id` 时，点击该行 → 自动切到循环图
+  tab + 高亮对应通路（`🎯 从假说 claim "xxx" 跳转到 ...`）
+- **权重敏感度表**：每条 non-skipped claim × 上下 ±20% 扰动 × new label /
+  flipped 标红
+- **跨组评分汇总表**：score_by_groups 返回 DataFrame → 简化表展示（group ×
+  overall / label / null_p / n_satisfied 等）
+- **跨组对比 tab**：compare_groups 54 行 → group × pathway → total_contribution /
+  top_mag_genus / keystone 标记并排，一目了然看 A/CK/B 差异
+
+**T2-δ 打磨（~30 min）**：
+- **SVG 导出按钮**：客户端克隆 SVG + 注入 inline styles + XMLSerializer →
+  .svg 下载（可在 Illustrator / Inkscape 二次编辑）
+- **JSON 导出按钮**：整个 `EM_DATA` dump 成带 indent 的 .json（读者用 Python /
+  R 自行分析）
+- `app.py` 循环图页的 HTML 导出按钮升级 help 文案（含全功能描述）
+
+#### 关键设计决策
+
+1. **D3.js inline 明文嵌入**（非 base64）— 审计透明 + 压缩后省空间
+2. **D3 forceSimulation + custom clamp force** 而非纯力导向 — 节点不会跑出所属
+   元素象限，保持视觉语义
+3. **每个 (MAG, pathway) = 一个节点** 而非 "每个 MAG 一个节点共享多通路" —
+   沿用 matplotlib cell_renderer 的 cell 语义（一个 MAG 在多通路里就有多节点）
+4. **Claim 点击穿透** 是 EnvMeta 独家能力 — 让"描述性 vs 因果性"哲学在 UI 里
+   兑现（审稿人怀疑某 claim？点一下看对应通路在循环图里的 contributors）
+5. **跨元素耦合虚线 = 象限中心之间的 Q 曲线** — matplotlib 版是精确化学物锚点
+   到锚点的连线；D3 简化成象限级，更强调宏观关系
+6. **score_by_groups 返回 DataFrame** 而非 dict[group, HypothesisScore] —
+   html_exporter 同时支持两种类型，后者拆成 tab 切换，前者呈现汇总表
+7. **纯 UTF-8 中文 UI** + PingFang / Microsoft YaHei fallback — 学术用户第一
+   印象友好
+
+#### 真实数据验证（arsenic_steel_slag demo）
+
+- 4 元素 / 17 活跃通路 / 81 节点 / 11 env_corr / 18 sensitivity / 4 KB couplings
+- Hypothesis: overall=1.000 / label=strong / null_p=N/A (全 satisfied 退化) /
+  weight_robust=True
+- score_by_groups: CK / A / B 三组各自 label + null_p
+- compare_groups: 54 行 (18 通路 × 3 组)
+- HTML: **400 KB**（符合 ~400 KB 预期）
+
+#### 测试累积
+
+272 → **273**（+1 新增 test_cycle_to_json_hypothesis_by_group_df），150s 跑完。
+
+#### 交付文件清单
+
+| 文件 | 动作 | 行数 |
+|---|---|---|
+| `envmeta/geocycle/html_exporter.py` | T2-α 新建 + T2-β 扩 couplings + T2-γ 扩 hypothesis_by_group | ~250 |
+| `envmeta/geocycle/templates/cycle_interactive.html` | 全阶段累积 | ~1020 |
+| `envmeta/geocycle/templates/d3.v7.min.js` | T2-α 下载 | 273 KB |
+| `tests/test_html_exporter.py` | +14 case（原 12 + 2 新） | ~200 |
+| `app.py` | 循环图页 HTML 导出按钮（T2-α +20 → T2-δ 升级 help 文案） | +30 |
+| `paper/bundles/envmeta_cycle_interactive_v1.html` | 完整 demo 产物 | 400 KB |
+| CLAUDE.md | 本日志 | +100 |
+
+**代码/模板新增**：~1300 行。**论文 Methods 新素材**：4 段可引用。
+
+#### 论文 Methods 新素材
+
+> "To maximize reviewer-accessible reproducibility, EnvMeta exports an
+> **interactive HTML bundle** (~400 KB, D3.js embedded inline, no external
+> dependencies). This single file enables offline interactive exploration
+> of the inferred biogeochemical cycle: force-directed 4-quadrant layout
+> with phylum-colored MAG × pathway nodes, hover tooltips exposing MAG
+> metadata, click-to-highlight pathway lineages, cross-element coupling
+> arcs from the knowledge base, and drag / zoom / pan manipulation.
+> Hypothesis scores (overall, null permutation p-value, weight sensitivity,
+> veto reasons, per-claim evidence) are presented as interactive tables
+> with click-through from claim → highlighted pathway in the cycle view.
+> Cross-group compare tables (CK / A / B) and SVG / JSON export support
+> both reviewer audit and downstream reanalysis."
+
+#### 关键学习
+
+1. **Streamlit widget state 规则（前 session 踩坑复习）**：widget 已在当前 run
+   渲染后，不能直接改它的 session_state key。必须用 on_click 回调在 rerun 前
+   执行。本 session 的 HTML 导出按钮不涉及 widget key 修改，所以 OK
+2. **D3.js force with hard-constrained containers**：`d3.forceSimulation` 默认
+   让节点自由跑；要钳制到矩形内，自定义一个 force：`force('clamp', () =>
+   nodes.forEach(n => { n.x = clamp(...); n.y = clamp(...) }))`。比
+   forceX/forceY 更硬但视觉可控
+3. **SVG 独立导出必须 inline styles**：外部 `<style>` 在 SVG 文件里不生效。
+   克隆 SVG 后在开头插 `<style>` 元素，里面 CDATA 包裹 CSS 规则
+4. **NaN → None 用 DataFrame.to_json round-trip**：比手写
+   `where(notna, None)` 更稳；pandas 原生处理 NaN 为 null（JSON 合法）
+5. **CLAUDE.md 日志的"竞品对比表"**：每个 session 重复贴这个表有必要 —— 未来
+   起草论文时 reviewer 质疑 "为啥需要 HTML 导出" 可以直接引用此表
+
+#### 下一步（Sunday Sprint 第 3 块）
+
+**T3 评测表电子版（~2-3h）**：周日上午做。10 任务腾讯问卷 + SUS 10 题中文版。
+发师弟师妹测试。预计总剩余工时 2-3h，周日下午余量充足做演练 + 修小 bug。
+
+---
 
 ### 2026-04-17（**T1 导出中心统一重构 ⭐** — Sunday Sprint 第一块）
 

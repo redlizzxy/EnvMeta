@@ -1995,12 +1995,17 @@ elif page == "生物地球化学循环图":
                                mime="text/tab-separated-values", key="cy_tsv")
         _vector_downloads(last.figure, "cycle", "cy")
 
-        # —— S4.5 独立交互 HTML 导出（T2）——————————————
+        # —— S4.5 独立交互 HTML 导出（T2 α/β/γ/δ 全套）—————
         try:
             from envmeta.geocycle.html_exporter import build_interactive_html as _build_html
             _hyp = st.session_state.get("_hyp_last")
             _cmp = st.session_state.get("_cy_compare_last")
-            _html_bytes = _build_html(last, hypothesis=_hyp, compare_df=_cmp)
+            _hyp_groups = st.session_state.get("_hyp_multi_last")  # DataFrame or None
+            _html_bytes = _build_html(
+                last, hypothesis=_hyp,
+                compare_df=_cmp,
+                hypothesis_by_group=_hyp_groups,
+            )
             st.download_button(
                 "📦 导出交互 HTML（独立 SI · D3.js 嵌入）",
                 data=_html_bytes,
@@ -2008,8 +2013,10 @@ elif page == "生物地球化学循环图":
                 mime="text/html",
                 key="cy_html_export",
                 help=(
-                    f"独立 HTML 文件（~{len(_html_bytes) // 1024} KB）含 D3.js 嵌入，"
-                    "双击浏览器打开即可离线交互。T2-α 当前：4 象限布局 + 数据注入。"
+                    f"独立 HTML 文件（~{len(_html_bytes) // 1024} KB）含 D3.js 嵌入。"
+                    "双击浏览器打开即可离线交互：循环图（4 象限 + 拖拽 + 缩放 +"
+                    "节点 hover / 点击高亮 + 跨元素耦合虚线）+ 假说评分（claim 表 + null_p"
+                    "+ 权重敏感度 + 点击穿透跳循环图）+ 跨组对比表 + SVG / JSON 导出。"
                 ),
             )
         except Exception as _e:  # noqa: BLE001

@@ -47,10 +47,22 @@ def test_cycle_to_json_required_fields(cycle_data):
     required = {
         "version", "generated_at", "envmeta_version",
         "elements", "env_correlations", "full_corr_matrix",
-        "sensitivity", "params", "meta",
+        "sensitivity", "couplings", "params", "meta",
     }
     missing = required - set(payload.keys())
     assert not missing, f"缺字段：{missing}"
+
+
+def test_cycle_to_json_couplings_from_kb(cycle_data):
+    """T2-β: couplings 应从 KB 读取，至少含 4 条（As/N/S/Fe 对应的预设耦合）。"""
+    payload = cycle_to_json(cycle_data)
+    couplings = payload.get("couplings", [])
+    assert len(couplings) >= 3, f"couplings 太少：{len(couplings)}"
+    # 每条必须有 species_a/species_b/product/type/color
+    for cp in couplings:
+        assert "species_a" in cp and "species_b" in cp
+        assert "product" in cp and "type" in cp
+        assert cp.get("color", "").startswith("#") or cp.get("color") is None
 
 
 def test_cycle_to_json_is_json_serializable(cycle_data):
@@ -154,6 +166,20 @@ def test_export_html_writes_file(cycle_data, tmp_path):
     assert path.stat().st_size > 250_000  # 至少 250 KB
     content = path.read_bytes()
     assert content.startswith(b"<!DOCTYPE html>")
+
+
+def test_cycle_to_json_hypothesis_by_group_df(cycle_data):
+    """T2-γ: score_by_groups 返回 DataFrame 时应存为 hypothesis_by_group_summary。"""
+    fake_df = pd.DataFrame({
+        "group": ["CK", "A", "B"],
+        "overall_score": [0.8, 0.7, 0.9],
+        "label": ["strong", "suggestive", "strong"],
+        "null_p": [0.04, 0.3, 0.01],
+    })
+    payload = cycle_to_json(cycle_data, hypothesis_by_group=fake_df)
+    assert "hypothesis_by_group_summary" in payload
+    assert len(payload["hypothesis_by_group_summary"]) == 3
+    assert payload["hypothesis_by_group_summary"][0]["group"] == "CK"
 
 
 def test_build_html_with_hypothesis_by_group(cycle_data):

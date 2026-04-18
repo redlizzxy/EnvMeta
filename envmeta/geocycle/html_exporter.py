@@ -98,6 +98,7 @@ def cycle_to_json(
     """
     # 延迟导入避免 envmeta.__init__ 慢 startup
     from envmeta import __version__ as _env_version
+    from envmeta.geocycle.knowledge_base import couplings as _kb_couplings
 
     payload: dict = {
         "version": "1.0",
@@ -107,6 +108,7 @@ def cycle_to_json(
         "env_correlations": [asdict(ec) for ec in cycle_data.env_correlations],
         "full_corr_matrix": [asdict(ec) for ec in cycle_data.full_corr_matrix],
         "sensitivity": [asdict(sr) for sr in cycle_data.sensitivity],
+        "couplings": list(_kb_couplings()),  # T2-β: 跨元素化学物耦合（KB 定义）
         "params": dict(cycle_data.params),
         "meta": dict(cycle_data.meta),
     }
@@ -115,9 +117,22 @@ def cycle_to_json(
         payload["hypothesis"] = asdict(hypothesis)
 
     if hypothesis_by_group is not None:
-        payload["hypothesis_by_group"] = {
-            g: asdict(s) for g, s in hypothesis_by_group.items()
-        }
+        # 支持两种类型：
+        # 1) dict[str, HypothesisScore] — 直接 asdict
+        # 2) DataFrame (score_by_groups 返回的 summary) — 转 dict[group, row_dict]
+        if isinstance(hypothesis_by_group, dict):
+            payload["hypothesis_by_group"] = {
+                g: asdict(s) for g, s in hypothesis_by_group.items()
+            }
+        else:
+            # 假定是 DataFrame-like
+            try:
+                _df = hypothesis_by_group
+                records = json.loads(_df.to_json(orient="records", default_handler=str))
+                payload["hypothesis_by_group_summary"] = records  # 简化版：表格化
+            except Exception:  # noqa: BLE001
+                # 非 dict / 非 DataFrame 就丢掉
+                pass
 
     if compare_df is not None:
         # DataFrame → records（用 to_json round-trip 稳定处理 NaN → None）
