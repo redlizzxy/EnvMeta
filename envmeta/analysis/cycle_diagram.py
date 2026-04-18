@@ -89,4 +89,5 @@ def analyze(
         figure=fig,
         stats=data.to_flat_stats(),
         params=p,
+        data=data,  # 供 HTML 交互导出 / Bundle / 导出中心复用
     )

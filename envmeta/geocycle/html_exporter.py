@@ -71,6 +71,7 @@ def cycle_to_json(
     hypothesis: Optional["HypothesisScore"] = None,
     compare_df: Optional["pd.DataFrame"] = None,
     hypothesis_by_group: Optional[dict[str, "HypothesisScore"]] = None,
+    per_group_cycles: Optional[dict[str, "CycleData"]] = None,
 ) -> dict:
     """把 CycleData (+ 可选 HypothesisScore / 跨组对比 DataFrame) 扁平为
     JSON-serializable dict，供前端 D3 消费。
@@ -142,6 +143,19 @@ def cycle_to_json(
             compare_df.to_json(orient="records", default_handler=str)
         )
 
+    # Q3: per-group cycle 数据（HTML 可切换查看 CK / A / B 的循环图）
+    # 每组是独立的 CycleData（来自 infer(group_filter=g)）
+    # 仅存轻量字段（elements + env_correlations），避免 HTML 膨胀
+    if per_group_cycles:
+        payload["cycles_by_group"] = {
+            g: {
+                "elements": [asdict(el) for el in cd.elements],
+                "env_correlations": [asdict(ec) for ec in cd.env_correlations],
+                "meta": dict(cd.meta),
+            }
+            for g, cd in per_group_cycles.items()
+        }
+
     return payload
 
 
@@ -156,6 +170,7 @@ def build_interactive_html(
     hypothesis: Optional["HypothesisScore"] = None,
     compare_df: Optional["pd.DataFrame"] = None,
     hypothesis_by_group: Optional[dict[str, "HypothesisScore"]] = None,
+    per_group_cycles: Optional[dict[str, "CycleData"]] = None,
     title: str = "EnvMeta — Interactive Biogeochemical Cycle",
 ) -> bytes:
     """把 CycleData 渲染成独立可交互 HTML（bytes）。
@@ -182,6 +197,7 @@ def build_interactive_html(
         hypothesis=hypothesis,
         compare_df=compare_df,
         hypothesis_by_group=hypothesis_by_group,
+        per_group_cycles=per_group_cycles,
     )
     # 前端消费的 JSON 字符串。用 ensure_ascii=False 保留中文。
     # 不用 indent — 压缩体积 ~30%

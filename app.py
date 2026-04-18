@@ -1978,6 +1978,29 @@ elif page == "生物地球化学循环图":
         _register_export("cycle_diagram", result=result,
                          file_paths=_cy_files, params=params)
 
+        # Q3: per-group cycles（给 HTML 交互导出用于组切换）
+        # 仅当 metadata 含 Group 列 + 至少 2 组时计算
+        _md = _get(m_name)
+        _per_group = {}
+        if (_md is not None and not _md.empty
+                and "Group" in _md.columns):
+            try:
+                from envmeta.geocycle.inference import infer as _infer_one
+                _groups = sorted(set(_md["Group"].astype(str)))
+                if len(_groups) >= 2:
+                    _inf_params = {k: v for k, v in params.items()
+                                   if k != "group_filter"}
+                    for _g in _groups:
+                        _p = {**_inf_params, "group_filter": _g}
+                        _cd_g = _infer_one(
+                            ko, t, _get(k_name), _get(a_name),
+                            _get(e_name), _md, params=_p,
+                        )
+                        _per_group[_g] = _cd_g
+            except Exception as _e:  # noqa: BLE001
+                st.caption(f"⚠️ 按组跑 infer 失败（不影响主循环图）：{_e}")
+        st.session_state["_cy_per_group_last"] = _per_group or None
+
     last = st.session_state.get("_cy_last")
     if last is not None:
         st.pyplot(last.figure, use_container_width=False)
@@ -1995,16 +2018,26 @@ elif page == "生物地球化学循环图":
                                mime="text/tab-separated-values", key="cy_tsv")
         _vector_downloads(last.figure, "cycle", "cy")
 
-        # —— S4.5 独立交互 HTML 导出（T2 α/β/γ/δ 全套）—————
+        # —— S4.5 独立交互 HTML 导出（T2 α/β/γ/δ/ε 全套）—————
         try:
             from envmeta.geocycle.html_exporter import build_interactive_html as _build_html
+            _cycle_data = getattr(last, "data", None)
+            if _cycle_data is None:
+                raise RuntimeError(
+                    "AnalysisResult 未携带 CycleData —— 请重新点击『生成循环图』"
+                )
             _hyp = st.session_state.get("_hyp_last")
             _cmp = st.session_state.get("_cy_compare_last")
             _hyp_groups = st.session_state.get("_hyp_multi_last")  # DataFrame or None
+            # Q3: per-group 切换所需的每组 CycleData
+            _per_group = st.session_state.get("_cy_per_group_last")
+
             _html_bytes = _build_html(
-                last, hypothesis=_hyp,
+                _cycle_data,
+                hypothesis=_hyp,
                 compare_df=_cmp,
                 hypothesis_by_group=_hyp_groups,
+                per_group_cycles=_per_group,
             )
             st.download_button(
                 "📦 导出交互 HTML（独立 SI · D3.js 嵌入）",
@@ -2014,13 +2047,16 @@ elif page == "生物地球化学循环图":
                 key="cy_html_export",
                 help=(
                     f"独立 HTML 文件（~{len(_html_bytes) // 1024} KB）含 D3.js 嵌入。"
-                    "双击浏览器打开即可离线交互：循环图（4 象限 + 拖拽 + 缩放 +"
-                    "节点 hover / 点击高亮 + 跨元素耦合虚线）+ 假说评分（claim 表 + null_p"
-                    "+ 权重敏感度 + 点击穿透跳循环图）+ 跨组对比表 + SVG / JSON 导出。"
+                    "双击浏览器打开即可离线交互：循环图（4 象限 + 化学物节点 +"
+                    "组切换 + 拖拽 + 缩放）+ 假说评分（跨组优先）+ 跨组对比 +"
+                    "环境相关 5 档可信度 + SVG / JSON 导出。"
                 ),
             )
         except Exception as _e:  # noqa: BLE001
+            import traceback as _tb
             st.caption(f"⚠️ 交互 HTML 导出失败：{_e}")
+            with st.expander("详细错误追踪（调试用）", expanded=False):
+                st.code(_tb.format_exc())
 
         # —— 跨组对比小工具（S2.5-7d）——————————————————
         with st.expander("跨组对比表（回答『A/CK/B 差在哪里』）", expanded=False):
@@ -2752,6 +2788,31 @@ elif page == "导出中心":
                             mime="text/tab-separated-values",
                             key=f"ec_{aid}_tsv",
                         )
+                    # 循环图特殊：加交互 HTML 导出按钮
+                    if aid == "cycle_diagram":
+                        _cd = getattr(entry["result"], "data", None)
+                        if _cd is not None:
+                            try:
+                                from envmeta.geocycle.html_exporter import (
+                                    build_interactive_html as _bh,
+                                )
+                                _html = _bh(
+                                    _cd,
+                                    hypothesis=st.session_state.get("_hyp_last"),
+                                    compare_df=st.session_state.get("_cy_compare_last"),
+                                    hypothesis_by_group=st.session_state.get("_hyp_multi_last"),
+                                    per_group_cycles=st.session_state.get("_cy_per_group_last"),
+                                )
+                                st.download_button(
+                                    f"📦 导出交互 HTML（~{len(_html) // 1024} KB）",
+                                    data=_html,
+                                    file_name=f"{base}_interactive.html",
+                                    mime="text/html",
+                                    key=f"ec_{aid}_html",
+                                    help="独立 HTML · D3.js 嵌入 · 离线可用",
+                                )
+                            except Exception as _e:  # noqa: BLE001
+                                st.caption(f"⚠️ HTML 导出失败：{_e}")
 
     # ── tab 2: Fork Bundle ──────────────────────────────────
     with tab_bundle:

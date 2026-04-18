@@ -83,7 +83,7 @@
     }
     #em-cycle-canvas {
       width: 100%;
-      height: 700px;
+      height: 720px;
       display: block;
     }
     .em-quadrant-label {
@@ -101,7 +101,7 @@
       stroke-width: 1;
       stroke-dasharray: 4 4;
     }
-    /* 节点 */
+    /* MAG 节点 */
     .em-node {
       cursor: pointer;
       stroke: #fff;
@@ -123,40 +123,43 @@
       font-weight: 500;
     }
     .em-pathway-label.dimmed { opacity: 0.2; }
-    /* 耦合虚线 */
-    .em-coupling {
-      fill: none;
-      stroke-width: 2;
-      stroke-dasharray: 6 4;
-      opacity: 0.55;
-      pointer-events: stroke;
-      cursor: pointer;
+
+    /* 化学物节点（宏观底物/产物） */
+    .em-chem-node {
+      cursor: grab;
     }
-    .em-coupling:hover { opacity: 1; stroke-width: 3; }
-    .em-coupling-label {
-      font-size: 10px;
-      fill: #445;
-      text-anchor: middle;
-      pointer-events: none;
-    }
-    .em-coupling-product {
-      cursor: pointer;
-      transition: transform .15s;
-    }
-    .em-coupling-product rect {
-      stroke-width: 1.5;
+    .em-chem-node:active { cursor: grabbing; }
+    .em-chem-node rect {
+      stroke-width: 1.8;
       fill: #fff;
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
     }
-    .em-coupling-product text {
-      font-size: 11px;
+    .em-chem-node.substrate rect {
+      stroke-dasharray: 4 2;   /* 底物：虚线边 */
+    }
+    .em-chem-node.product rect {
+      /* 产物：实线边 */
+    }
+    .em-chem-node text {
+      font-size: 12px;
       font-weight: 700;
       text-anchor: middle;
       pointer-events: none;
       dominant-baseline: central;
     }
-    .em-coupling-product:hover rect {
-      stroke-width: 2.5;
+    .em-chem-node.dimmed { opacity: 0.3; }
+
+    /* 耦合虚线（只连产物 ↔ 产物） */
+    .em-coupling {
+      fill: none;
+      stroke-width: 2;
+      stroke-dasharray: 6 4;
+      opacity: 0.6;
+      pointer-events: stroke;
+      cursor: pointer;
     }
+    .em-coupling:hover { opacity: 1; stroke-width: 3; }
+
     /* Tooltip */
     .em-tooltip {
       position: absolute;
@@ -167,7 +170,7 @@
       border-radius: 4px;
       font-size: 12px;
       line-height: 1.5;
-      max-width: 280px;
+      max-width: 320px;
       z-index: 100;
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
       opacity: 0;
@@ -175,6 +178,7 @@
     }
     .em-tooltip.visible { opacity: 1; }
     .em-tooltip b { color: #f4cf5a; }
+
     /* 控制栏 */
     .em-controls {
       display: flex; gap: 8px; padding: 8px 10px;
@@ -183,6 +187,7 @@
       border-radius: 8px 8px 0 0;
       font-size: 12px;
       align-items: center;
+      flex-wrap: wrap;
     }
     .em-btn {
       padding: 4px 10px;
@@ -195,6 +200,24 @@
     }
     .em-btn:hover { background: #eef3f9; }
     .em-btn.active { background: #2c7fb8; color: #fff; border-color: #2c7fb8; }
+
+    /* Group selector（Q3） */
+    .em-group-selector {
+      display: inline-flex; gap: 4px; align-items: center;
+      background: #fff; border: 1px solid #ccd6e4; border-radius: 4px;
+      padding: 2px 4px;
+    }
+    .em-group-selector label {
+      font-size: 11px; color: #556; margin: 0 4px 0 2px;
+    }
+    .em-group-btn {
+      padding: 3px 10px; font-size: 12px;
+      border: none; background: none; cursor: pointer;
+      border-radius: 3px; color: #334;
+    }
+    .em-group-btn:hover { background: #eef3f9; }
+    .em-group-btn.active { background: #2c7fb8; color: #fff; font-weight: 600; }
+
     .em-legend {
       display: flex; flex-wrap: wrap; gap: 10px;
       margin-left: auto; font-size: 11px;
@@ -204,8 +227,13 @@
       width: 10px; height: 10px; border-radius: 50%;
       display: inline-block;
     }
+    .em-legend-shape {
+      width: 14px; height: 10px; display: inline-block;
+      border: 1.5px solid #445; background: #fff;
+    }
+    .em-legend-shape.dash { border-style: dashed; }
 
-    /* ───── T2-γ 假说评分 / 跨组 样式 ───── */
+    /* ───── 假说评分 / 跨组 样式 ───── */
     .em-hyp-overall {
       display: flex; flex-wrap: wrap; gap: 16px; align-items: stretch;
       margin-bottom: 20px;
@@ -277,7 +305,6 @@
       font-size: 12px; flex: 1; max-width: 240px;
     }
 
-    /* 跨组对比 */
     .em-group-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
     .em-group-tab {
       padding: 6px 14px; background: #fff; border: 1px solid #ccd6e4;
@@ -293,7 +320,7 @@
       color: #8c2817; font-size: 13px;
     }
 
-    /* ───── T2-ε 可信度徽章 + 环境相关样式 ───── */
+    /* 可信度徽章 */
     .em-conf-badge {
       display: inline-block; padding: 1px 7px; border-radius: 10px;
       font-size: 10px; font-weight: 600; letter-spacing: 0.3px;
@@ -314,27 +341,28 @@
     .em-details[open] > summary { border-bottom: 1px solid #e0e4ea; }
     .em-details-body { padding: 12px 14px; }
 
-    .em-env-flash {
-      animation: em-flash 1.4s ease-out;
-    }
-    @keyframes em-flash {
-      0%, 30% { background: #fff4c2; }
-      100% { background: transparent; }
-    }
-
     .em-row-hl {
       background: #fff9e0 !important;
     }
 
-    /* ───── Placeholder（无数据时）───── */
+    /* Placeholder / 错误 */
     .em-placeholder {
       text-align: center;
       padding: 40px 20px;
       color: #888;
     }
     .em-placeholder h3 { margin: 0 0 8px 0; color: #334; }
+    .em-panel-error {
+      background: #fef0ed; border-left: 4px solid #C0392B;
+      padding: 14px 18px; border-radius: 3px; margin: 10px 0;
+      color: #8c2817; font-size: 13px;
+    }
+    .em-panel-error pre {
+      font-size: 11px; color: #664040; white-space: pre-wrap;
+      margin: 8px 0 0; max-height: 180px; overflow: auto;
+    }
 
-    /* ───── 页脚 ───── */
+    /* 页脚 */
     .em-footer {
       margin-top: 24px;
       padding: 16px 0;
@@ -350,10 +378,8 @@
 
 <div class="em-app">
 
-  <!-- ═══════ 顶部 Meta 块（Python 侧注入）═══════ -->
   {{META_HTML}}
 
-  <!-- ═══════ Tab 导航 ═══════ -->
   <div class="em-tabs" role="tablist">
     <button class="em-tab active" data-panel="cycle">🔄 循环图</button>
     <button class="em-tab" data-panel="env">🌡️ 环境相关</button>
@@ -362,53 +388,49 @@
     <button class="em-tab" data-panel="meta">📋 参数 / 数据</button>
   </div>
 
-  <!-- ═══════ Panel 1: 循环图 ═══════ -->
+  <!-- 循环图 -->
   <div class="em-panel active" data-panel="cycle" id="panel-cycle">
     <div id="em-cycle-wrap">
       <div class="em-controls">
+        <div id="em-group-selector-slot"></div>
         <button class="em-btn" id="em-reset">🔄 重置布局</button>
         <button class="em-btn active" id="em-toggle-couplings">🔗 显示耦合</button>
-        <button class="em-btn active" id="em-toggle-labels">🏷️ 显示通路名</button>
-        <button class="em-btn" id="em-export-svg">💾 导出 SVG</button>
-        <button class="em-btn" id="em-export-json">📥 导出 JSON</button>
+        <button class="em-btn active" id="em-toggle-labels">🏷️ 通路名</button>
+        <button class="em-btn active" id="em-toggle-chemicals">⚗️ 化学物节点</button>
+        <button class="em-btn" id="em-export-svg">💾 SVG</button>
+        <button class="em-btn" id="em-export-json">📥 JSON</button>
         <span id="em-click-info" style="color:#667; font-size:11px;"></span>
         <div class="em-legend" id="em-legend"></div>
       </div>
-      <svg id="em-cycle-canvas" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid meet">
-        <!-- zoom group: 所有可平移缩放的内容放这里 -->
+      <svg id="em-cycle-canvas" viewBox="0 0 1200 720" preserveAspectRatio="xMidYMid meet">
         <g id="em-zoom-root">
           <g id="em-quadrants"></g>
           <g id="em-couplings"></g>
           <g id="em-pathway-labels"></g>
+          <g id="em-chemicals"></g>
           <g id="em-nodes"></g>
         </g>
       </svg>
       <div class="em-tooltip" id="em-tooltip"></div>
     </div>
+    <div style="font-size:11px;color:#778;margin-top:6px">
+      💡 HTML 循环图展示<b>宏观</b>元素级耦合（化学物 ↔ 化学物）；
+      微观（cell 内基因级联）请看 app 内的 matplotlib 循环图 PDF。
+    </div>
   </div>
 
-  <!-- ═══════ Panel 2: 环境相关性 ═══════ -->
   <div class="em-panel" data-panel="env" id="panel-env">
     <div id="em-env-container"></div>
   </div>
 
-  <!-- ═══════ Panel 3: 假说评分 ═══════ -->
   <div class="em-panel" data-panel="hypothesis" id="panel-hypothesis">
-    <div id="em-hyp-container" class="em-placeholder">
-      <h3>假说评分（T2-γ 实现）</h3>
-      <p>这里将显示 overall / label / null_p 直方图 / 权重敏感度 / claim 表。</p>
-    </div>
+    <div id="em-hyp-container"></div>
   </div>
 
-  <!-- ═══════ Panel 4: 通路 × 组对比 ═══════ -->
   <div class="em-panel" data-panel="compare" id="panel-compare">
-    <div id="em-compare-container" class="em-placeholder">
-      <h3>通路 × 组对比</h3>
-      <p>本次导出未附带 compare_groups 数据。在 Streamlit 端生成跨组分析后再导出可查看本面板。</p>
-    </div>
+    <div id="em-compare-container"></div>
   </div>
 
-  <!-- ═══════ Panel 5: 元信息 ═══════ -->
   <div class="em-panel" data-panel="meta" id="panel-meta">
     <h3>分析参数</h3>
     <pre id="em-params-dump" style="background:#f5f7fa;padding:12px;border-radius:4px;overflow:auto;font-size:12px;"></pre>
@@ -423,17 +445,17 @@
 
 </div>
 
-<!-- ═══════ D3.js v7 inline ═══════ -->
+<!-- D3.js v7 inline -->
 <script>
 {{D3_JS_INLINE}}
 </script>
 
-<!-- ═══════ 应用数据（Python 注入 JSON）═══════ -->
+<!-- 应用数据（Python 注入 JSON）-->
 <script>
 const EM_DATA = {{CYCLE_DATA_JSON}};
 </script>
 
-<!-- ═══════ 应用 JS ═══════ -->
+<!-- 应用 JS -->
 <script>
 (function() {
   'use strict';
@@ -452,9 +474,9 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
   });
 
   // ═══════════════════════════════════════════════════════
-  // 常量 & 调色板（对齐 matplotlib PHYLUM_COLORS）
+  // 常量 & 调色板
   // ═══════════════════════════════════════════════════════
-  const W = 1200, H = 700;
+  const W = 1200, H = 720;
   const QUADRANTS = [
     { id: 'arsenic',  x: 0,     y: 0,     w: W/2, h: H/2, color: '#E74C3C', name: 'As · 砷循环' },
     { id: 'nitrogen', x: W/2,   y: 0,     w: W/2, h: H/2, color: '#3498DB', name: 'N · 氮循环' },
@@ -462,127 +484,25 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
     { id: 'iron',     x: W/2,   y: H/2,   w: W/2, h: H/2, color: '#8E44AD', name: 'Fe · 铁循环' },
   ];
   const PHYLUM_COLORS = {
-    "Pseudomonadota":    "#E74C3C",
-    "Acidobacteriota":   "#3498DB",
-    "Chloroflexota":     "#2ECC71",
-    "Bacteroidota_A":    "#F39C12",
-    "Patescibacteriota": "#9B59B6",
-    "Desulfobacterota":  "#1ABC9C",
-    "Actinomycetota":    "#E67E22",
-    "Gemmatimonadota":   "#34495E",
-    "Planctomycetota":   "#D35400",
-    "Myxococcota":       "#8E44AD",
-    "Nitrospirota":      "#27AE60",
-    "Zixibacteria":      "#C0392B",
+    "Pseudomonadota":    "#E74C3C", "Acidobacteriota":   "#3498DB",
+    "Chloroflexota":     "#2ECC71", "Bacteroidota_A":    "#F39C12",
+    "Patescibacteriota": "#9B59B6", "Desulfobacterota":  "#1ABC9C",
+    "Actinomycetota":    "#E67E22", "Gemmatimonadota":   "#34495E",
+    "Planctomycetota":   "#D35400", "Myxococcota":       "#8E44AD",
+    "Nitrospirota":      "#27AE60", "Zixibacteria":      "#C0392B",
     "Other":             "#BDC3C7",
   };
-  const getPhylumColor = (phy) => PHYLUM_COLORS[phy] || '#95a5a6';
   const QUAD_BY_ID = Object.fromEntries(QUADRANTS.map(q => [q.id, q]));
+  const getPhylumColor = (phy) => PHYLUM_COLORS[phy] || '#95a5a6';
 
   // ═══════════════════════════════════════════════════════
-  // 数据展开：每个 (MAG, pathway) → 一个 node
+  // 工具函数
   // ═══════════════════════════════════════════════════════
-  const nodes = [];
-  const pathways = [];
-
-  (EM_DATA.elements || []).forEach(el => {
-    const quad = QUAD_BY_ID[el.element_id];
-    if (!quad) return;
-    const activePws = el.pathways.filter(p => p.n_active_mags > 0);
-    const nPw = Math.max(activePws.length, 1);
-    const cols = Math.ceil(Math.sqrt(nPw));
-    const rows = Math.ceil(nPw / cols);
-    const pad = 50;
-    const innerW = quad.w - 2 * pad;
-    const innerH = quad.h - 2 * pad - 40;  // 顶部留空给象限 label
-    activePws.forEach((pw, i) => {
-      const ci = i % cols;
-      const ri = Math.floor(i / cols);
-      const cx = quad.x + pad + innerW * (ci + 0.5) / cols;
-      const cy = quad.y + pad + 40 + innerH * (ri + 0.5) / rows;
-      pathways.push({
-        pathway_id: pw.pathway_id,
-        element: el.element_id,
-        display_name: pw.display_name,
-        n_active: pw.n_active_mags,
-        mean_completeness: pw.mean_completeness,
-        total_contribution: pw.total_contribution,
-        cx, cy,
-      });
-      (pw.contributors || []).forEach(mc => {
-        nodes.push({
-          id: `${pw.pathway_id}::${mc.mag}`,
-          mag: mc.mag,
-          label: mc.label || mc.mag,
-          phylum: mc.phylum || 'Other',
-          completeness: mc.completeness,
-          abundance: mc.abundance_mean,
-          is_keystone: !!mc.is_keystone,
-          genes: mc.genes || [],
-          pathway_id: pw.pathway_id,
-          pathway_name: pw.display_name,
-          element: el.element_id,
-          r: Math.max(4, Math.min(18,
-            4 + 2.5 * Math.log(1 + mc.completeness * mc.abundance_mean / 5))),
-          x: cx + (Math.random() - 0.5) * 30,
-          y: cy + (Math.random() - 0.5) * 30,
-          cx, cy,
-          quad,
-        });
-      });
-    });
-  });
-
-  console.log(`[EnvMeta] 展开 ${nodes.length} 节点 / ${pathways.length} 通路`);
-
-  // ═══════════════════════════════════════════════════════
-  // 4 象限背景 + 标签 + 分割线
-  // ═══════════════════════════════════════════════════════
-  const presentElements = new Set((EM_DATA.elements || []).map(e => e.element_id));
-  const qGroup = d3.select('#em-quadrants');
-  qGroup.selectAll('rect.em-quadrant-bg')
-    .data(QUADRANTS)
-    .enter().append('rect')
-    .attr('class', 'em-quadrant-bg')
-    .attr('x', d => d.x).attr('y', d => d.y)
-    .attr('width', d => d.w).attr('height', d => d.h)
-    .attr('fill', d => d.color)
-    .attr('fill-opacity', d => presentElements.has(d.id) ? 0.08 : 0.02);
-  qGroup.selectAll('text.em-quadrant-label')
-    .data(QUADRANTS)
-    .enter().append('text')
-    .attr('class', 'em-quadrant-label')
-    .attr('x', d => d.x + d.w/2)
-    .attr('y', d => d.y + 26)
-    .attr('fill', d => d.color)
-    .text(d => {
-      const el = (EM_DATA.elements || []).find(e => e.element_id === d.id);
-      const nPw = el ? el.pathways.filter(p => p.n_active_mags > 0).length : 0;
-      return `${d.name} · ${nPw} 活跃通路`;
-    });
-  qGroup.append('line').attr('class', 'em-quadrant-divider')
-    .attr('x1', W/2).attr('y1', 0).attr('x2', W/2).attr('y2', H);
-  qGroup.append('line').attr('class', 'em-quadrant-divider')
-    .attr('x1', 0).attr('y1', H/2).attr('x2', W).attr('y2', H/2);
-
-  // ═══════════════════════════════════════════════════════
-  // pathway 标签
-  // ═══════════════════════════════════════════════════════
-  const labelSel = d3.select('#em-pathway-labels')
-    .selectAll('text')
-    .data(pathways, d => d.pathway_id)
-    .enter().append('text')
-    .attr('class', 'em-pathway-label')
-    .attr('data-pathway', d => d.pathway_id)
-    .attr('x', d => d.cx)
-    .attr('y', d => d.cy - 28)
-    .text(d => d.display_name);
-
-  // ═══════════════════════════════════════════════════════
-  // 跨元素耦合虚线（KB couplings）— T2-ε.3 精确锚点 + 产物节点
-  // ═══════════════════════════════════════════════════════
-  const couplings = EM_DATA.couplings || [];
-  const speciesToElement = (sp) => {
+  function normSpecies(s) {
+    return (s || '').toLowerCase().trim()
+      .replace(/[\s₀₁₂₃₄₅₆₇₈₉⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻\(\)\[\]-]/g, '');
+  }
+  function speciesToElement(sp) {
     if (!sp) return null;
     const s = sp.toLowerCase();
     if (s.startsWith('as')) return 'arsenic';
@@ -591,267 +511,468 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
       return 'nitrogen';
     if (s.startsWith('s')) return 'sulfur';
     return null;
-  };
+  }
+  function fmtNum(v, digits) {
+    if (v == null || Number.isNaN(v)) return '—';
+    const n = Number(v);
+    if (!Number.isFinite(n)) return '—';
+    return n.toFixed(digits == null ? 3 : digits);
+  }
+  function confBadge(conf) {
+    const c = String(conf || 'unknown').toLowerCase().replace(/\?/g, '');
+    const cls = {
+      'strong': 'em-conf-strong', 'suggestive': 'em-conf-suggestive',
+      'weak': 'em-conf-weak', 'spurious': 'em-conf-spurious',
+    }[c] || 'em-conf-unknown';
+    return `<span class="em-conf-badge ${cls}">${conf || 'unknown'}</span>`;
+  }
 
-  // T2-ε.3: 构建 species → [{pathway_id, cx, cy, pathway_name}] 索引
-  // 同一 species 可能在多条 pathway 中出现（as substrate / product）
-  const chemicalAnchors = new Map();
-  const normSpecies = (s) => (s || '').toLowerCase().trim()
-    .replace(/[\s₀₁₂₃₄₅₆₇₈₉⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻]/g, '');
-  const addAnchor = (species, pw) => {
-    if (!species) return;
-    const key = normSpecies(species);
-    if (!key) return;
-    if (!chemicalAnchors.has(key)) chemicalAnchors.set(key, []);
-    chemicalAnchors.get(key).push({
-      pathway_id: pw.pathway_id, cx: pw.cx, cy: pw.cy,
-      pathway_name: pw.display_name, raw_species: species,
-    });
-  };
+  // ═══════════════════════════════════════════════════════
+  // Q2 + Q3: buildState(cycleData) — 从任意 CycleData 构建渲染状态
+  // 可切换组时重复调用
+  // ═══════════════════════════════════════════════════════
+  function buildState(cycleData) {
+    const elements = cycleData.elements || [];
+    const pathways = [];
+    const nodes = [];
+    const chemBySpeciesPerEl = {}; // { element: Map<species, {role, occurs}> }
 
-  // 扫描所有 pathways 的 contributors.genes 收集 substrate/product
-  (EM_DATA.elements || []).forEach(el => {
-    (el.pathways || []).forEach(pw => {
-      // 找到对应坐标（之前已在 pathways 里登记）
-      const pwRef = pathways.find(p => p.pathway_id === pw.pathway_id);
-      if (!pwRef) return;
-      (pw.contributors || []).forEach(mc => {
-        (mc.genes || []).forEach(g => {
-          addAnchor(g.substrate, pwRef);
-          addAnchor(g.product, pwRef);
+    elements.forEach(el => {
+      const quad = QUAD_BY_ID[el.element_id];
+      if (!quad) return;
+
+      const activePws = (el.pathways || []).filter(p => p.n_active_mags > 0);
+      const nPw = Math.max(activePws.length, 1);
+      const cols = Math.ceil(Math.sqrt(nPw));
+      const rows = Math.ceil(nPw / cols);
+      const pad = 90;  // 左右留给化学物节点
+      const innerW = quad.w - 2 * pad;
+      const innerH = quad.h - 2 * pad - 30;
+
+      activePws.forEach((pw, i) => {
+        const ci = i % cols;
+        const ri = Math.floor(i / cols);
+        const cx = quad.x + pad + innerW * (ci + 0.5) / cols;
+        const cy = quad.y + pad + 30 + innerH * (ri + 0.5) / rows;
+        pathways.push({
+          pathway_id: pw.pathway_id, element: el.element_id,
+          display_name: pw.display_name,
+          n_active: pw.n_active_mags,
+          mean_completeness: pw.mean_completeness,
+          total_contribution: pw.total_contribution,
+          cx, cy,
+        });
+        (pw.contributors || []).forEach(mc => {
+          nodes.push({
+            id: `${pw.pathway_id}::${mc.mag}`,
+            mag: mc.mag,
+            label: mc.label || mc.mag,
+            phylum: mc.phylum || 'Other',
+            completeness: mc.completeness,
+            abundance: mc.abundance_mean,
+            is_keystone: !!mc.is_keystone,
+            genes: mc.genes || [],
+            pathway_id: pw.pathway_id,
+            pathway_name: pw.display_name,
+            element: el.element_id,
+            r: Math.max(4, Math.min(18,
+              4 + 2.5 * Math.log(1 + (mc.completeness || 0) * (mc.abundance_mean || 0) / 5))),
+            x: cx + (Math.random() - 0.5) * 30,
+            y: cy + (Math.random() - 0.5) * 30,
+            cx, cy, quad,
+          });
+          // 收集该 MAG 的基因 substrate/product → 化学物候选
+          if (!chemBySpeciesPerEl[el.element_id]) {
+            chemBySpeciesPerEl[el.element_id] = new Map();
+          }
+          const elMap = chemBySpeciesPerEl[el.element_id];
+          (mc.genes || []).forEach(g => {
+            if (g.substrate) {
+              const k = normSpecies(g.substrate);
+              if (!elMap.has(k)) elMap.set(k, { name: g.substrate, role: 'substrate', occurs: 1 });
+              else elMap.get(k).occurs += 1;
+            }
+            if (g.product) {
+              const k = normSpecies(g.product);
+              // 同一化学物若既是底物又是产物，以"产物"优先（参与耦合）
+              if (!elMap.has(k)) elMap.set(k, { name: g.product, role: 'product', occurs: 1 });
+              else {
+                const existing = elMap.get(k);
+                existing.occurs += 1;
+                if (existing.role === 'substrate') existing.role = 'product';
+              }
+            }
+          });
         });
       });
     });
-  });
 
-  // chemicalToPathway(species): 返回匹配 pathway 的平均坐标（多条 pathway 含同化学物时）
-  function chemicalToPathway(species) {
-    if (!species) return null;
-    const key = normSpecies(species);
-    const hits = chemicalAnchors.get(key);
-    if (!hits || hits.length === 0) return null;
-    // 相同 species 多条 pathway：取平均坐标（锚在集群中心）
-    const cx = hits.reduce((s, h) => s + h.cx, 0) / hits.length;
-    const cy = hits.reduce((s, h) => s + h.cy, 0) / hits.length;
-    return {
-      cx, cy, n_pathways: hits.length,
-      pathway_ids: hits.map(h => h.pathway_id),
-      pathway_names: [...new Set(hits.map(h => h.pathway_name))],
-    };
-  }
-
-  const couplingData = couplings.map(cp => {
-    const a = speciesToElement(cp.species_a);
-    const b = speciesToElement(cp.species_b);
-    if (!a || !b || a === b) return null;
-    const qa = QUAD_BY_ID[a], qb = QUAD_BY_ID[b];
-    if (!qa || !qb) return null;
-    // T2-ε.3: 优先精确锚到 pathway 集群；fallback 到象限中心
-    const anchorA = chemicalToPathway(cp.species_a);
-    const anchorB = chemicalToPathway(cp.species_b);
-    const x1 = anchorA ? anchorA.cx : (qa.x + qa.w/2);
-    const y1 = anchorA ? anchorA.cy : (qa.y + qa.h/2);
-    const x2 = anchorB ? anchorB.cx : (qb.x + qb.w/2);
-    const y2 = anchorB ? anchorB.cy : (qb.y + qb.h/2);
-    return {
-      ...cp, el_a: a, el_b: b,
-      x1, y1, x2, y2,
-      anchor_a_precise: !!anchorA,
-      anchor_b_precise: !!anchorB,
-      anchor_a_paths: anchorA ? anchorA.pathway_names : [],
-      anchor_b_paths: anchorB ? anchorB.pathway_names : [],
-    };
-  }).filter(Boolean);
-
-  const coupGroup = d3.select('#em-couplings');
-
-  // 曲线路径（保存中点坐标供产物节点使用）
-  couplingData.forEach(d => {
-    d.mx = (d.x1 + d.x2) / 2;
-    d.my = (d.y1 + d.y2) / 2;
-    const dx = d.x2 - d.x1, dy = d.y2 - d.y1;
-    d.ctrl_x = d.mx + dy * 0.15;
-    d.ctrl_y = d.my - dx * 0.15;
-    // 产物节点偏离中点一点（朝 Q 曲线的凸向）
-    d.prod_x = (d.mx + d.ctrl_x) / 2;
-    d.prod_y = (d.my + d.ctrl_y) / 2;
-  });
-
-  const mkCoupTooltip = (d) => {
-    const precise = d.anchor_a_precise && d.anchor_b_precise
-      ? '精确锚点（pathway 级）'
-      : d.anchor_a_precise || d.anchor_b_precise
-      ? '部分精确（一端象限中心）'
-      : '象限级（化学物未在当前数据中出现）';
-    const aPaths = d.anchor_a_paths.length > 0
-      ? `\n  左端承载：${d.anchor_a_paths.join(' / ')}` : '';
-    const bPaths = d.anchor_b_paths.length > 0
-      ? `\n  右端承载：${d.anchor_b_paths.join(' / ')}` : '';
-    return `${d.species_a} ↔ ${d.species_b} → ${d.product}  (${d.type})\n` +
-      `${d.description || ''}${aPaths}${bPaths}\n\n[${precise}]`;
-  };
-
-  coupGroup.selectAll('path.em-coupling')
-    .data(couplingData)
-    .enter().append('path')
-    .attr('class', 'em-coupling')
-    .attr('stroke', d => d.color || '#666')
-    .attr('d', d => `M${d.x1},${d.y1} Q${d.ctrl_x},${d.ctrl_y} ${d.x2},${d.y2}`)
-    .append('title')
-    .text(mkCoupTooltip);
-
-  // T2-ε.3: 中点产物节点（小圆角方块 + product label）
-  const prodGroup = coupGroup.selectAll('g.em-coupling-product')
-    .data(couplingData)
-    .enter().append('g')
-    .attr('class', 'em-coupling-product')
-    .attr('transform', d => `translate(${d.prod_x},${d.prod_y})`);
-
-  prodGroup.each(function(d) {
-    const g = d3.select(this);
-    // 估算文本宽度（大致 7 px/字符 + padding）
-    const label = d.product || '?';
-    const w = Math.max(36, label.length * 8 + 12);
-    const h = 20;
-    g.append('rect')
-      .attr('x', -w/2).attr('y', -h/2)
-      .attr('width', w).attr('height', h)
-      .attr('rx', 4).attr('ry', 4)
-      .attr('stroke', d.color || '#666');
-    g.append('text')
-      .attr('fill', d.color || '#445')
-      .text(label);
-    g.append('title').text(mkCoupTooltip(d));
-  });
-
-  // 边缘 label（species_a ↔ species_b → product）放在起点朝中点 1/3 处
-  coupGroup.selectAll('text.em-coupling-label')
-    .data(couplingData)
-    .enter().append('text')
-    .attr('class', 'em-coupling-label')
-    .attr('x', d => d.x1 + (d.mx - d.x1) * 0.35)
-    .attr('y', d => d.y1 + (d.my - d.y1) * 0.35 - 6)
-    .attr('fill', d => d.color || '#666')
-    .text(d => `${d.species_a} ↔ ${d.species_b}`);
-
-  // ═══════════════════════════════════════════════════════
-  // 节点渲染
-  // ═══════════════════════════════════════════════════════
-  const nodeSel = d3.select('#em-nodes')
-    .selectAll('circle')
-    .data(nodes, d => d.id)
-    .enter().append('circle')
-    .attr('class', d => 'em-node' + (d.is_keystone ? ' keystone' : ''))
-    .attr('r', d => d.r)
-    .attr('fill', d => getPhylumColor(d.phylum))
-    .attr('cx', d => d.x).attr('cy', d => d.y);
-
-  // ═══════════════════════════════════════════════════════
-  // D3 力导向 + 象限硬约束
-  // ═══════════════════════════════════════════════════════
-  const simulation = d3.forceSimulation(nodes)
-    .force('x', d3.forceX(d => d.cx).strength(0.08))
-    .force('y', d3.forceY(d => d.cy).strength(0.08))
-    .force('collide', d3.forceCollide(d => d.r + 1.5).strength(0.85))
-    .force('clamp', () => {
-      nodes.forEach(n => {
-        const q = n.quad;
-        const margin = n.r + 2;
-        n.x = Math.max(q.x + margin, Math.min(q.x + q.w - margin, n.x));
-        n.y = Math.max(q.y + 50, Math.min(q.y + q.h - margin, n.y));
-      });
-    })
-    .alphaDecay(0.03);
-
-  simulation.on('tick', () => {
-    nodeSel.attr('cx', d => d.x).attr('cy', d => d.y);
-  });
-
-  // ═══════════════════════════════════════════════════════
-  // Tooltip
-  // ═══════════════════════════════════════════════════════
-  const tooltip = d3.select('#em-tooltip');
-  const wrap = document.getElementById('em-cycle-wrap');
-  nodeSel
-    .on('mouseenter', function(event, d) {
-      const rect = wrap.getBoundingClientRect();
-      const kstar = d.is_keystone ? ' <span style="color:#D4A017">⭐ keystone</span>' : '';
-      tooltip.html(
-        `<div style="font-size:13px;margin-bottom:4px"><b>${d.label}</b>${kstar}</div>` +
-        `<div>门：${d.phylum}</div>` +
-        `<div>通路：<b>${d.pathway_name}</b></div>` +
-        `<div>completeness：${d.completeness.toFixed(1)}%</div>` +
-        `<div>abundance：${d.abundance.toFixed(4)}</div>` +
-        `<div>genes 数：${d.genes.length}</div>`
-      );
-      tooltip.style('left', (event.clientX - rect.left + 12) + 'px')
-             .style('top', (event.clientY - rect.top + 12) + 'px')
-             .classed('visible', true);
-    })
-    .on('mousemove', function(event) {
-      const rect = wrap.getBoundingClientRect();
-      tooltip.style('left', (event.clientX - rect.left + 12) + 'px')
-             .style('top', (event.clientY - rect.top + 12) + 'px');
-    })
-    .on('mouseleave', function() {
-      tooltip.classed('visible', false);
+    // 化学物节点布局：每象限底物左边竖排，产物右边竖排
+    const chemicals = [];
+    Object.entries(chemBySpeciesPerEl).forEach(([elId, elMap]) => {
+      const quad = QUAD_BY_ID[elId];
+      if (!quad) return;
+      const subs = [], prods = [];
+      elMap.forEach((v, k) => (v.role === 'product' ? prods : subs).push(v));
+      subs.sort((a, b) => b.occurs - a.occurs);
+      prods.sort((a, b) => b.occurs - a.occurs);
+      const topPad = 50, botPad = 30;
+      const axisTop = quad.y + topPad;
+      const axisBot = quad.y + quad.h - botPad;
+      const mkChem = (list, xOffset, role) => {
+        list.forEach((c, i) => {
+          const y = axisTop + (i + 1) * (axisBot - axisTop) / (list.length + 1);
+          chemicals.push({
+            id: `${elId}::${role}::${c.name}`,
+            name: c.name, role, element: elId,
+            occurs: c.occurs, quad,
+            x: quad.x + xOffset, y,
+            anchor_x: quad.x + xOffset, anchor_y: y,
+          });
+        });
+      };
+      mkChem(subs, 35, 'substrate');
+      mkChem(prods, quad.w - 35, 'product');
     });
 
+    return { cycleData, pathways, nodes, chemicals };
+  }
+
   // ═══════════════════════════════════════════════════════
-  // 点击节点 → 高亮同通路
+  // computeCouplings(state) — 只连"产物 ↔ 产物"
   // ═══════════════════════════════════════════════════════
+  function computeCouplings(state) {
+    const prodIndex = new Map();
+    state.chemicals.filter(c => c.role === 'product').forEach(c => {
+      prodIndex.set(normSpecies(c.name), c);
+    });
+    const couplings = EM_DATA.couplings || [];
+    return couplings.map(cp => {
+      const a = prodIndex.get(normSpecies(cp.species_a));
+      const b = prodIndex.get(normSpecies(cp.species_b));
+      if (!a || !b) return null;  // 任一端不是当前数据的产物 → 不画
+      return { ...cp, nodeA: a, nodeB: b };
+    }).filter(Boolean);
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // renderCycle(state) — 销毁旧渲染 + 重画
+  // ═══════════════════════════════════════════════════════
+  let currentSim = null;
   let selectedPathway = null;
+  const tooltip = d3.select('#em-tooltip');
+  const wrap = document.getElementById('em-cycle-wrap');
   const clickInfo = d3.select('#em-click-info');
 
-  nodeSel.on('click', function(event, d) {
-    event.stopPropagation();
-    if (selectedPathway === d.pathway_id) {
+  function showTooltip(html, evt) {
+    const rect = wrap.getBoundingClientRect();
+    tooltip.html(html)
+      .style('left', (evt.clientX - rect.left + 12) + 'px')
+      .style('top', (evt.clientY - rect.top + 12) + 'px')
+      .classed('visible', true);
+  }
+  function moveTooltip(evt) {
+    const rect = wrap.getBoundingClientRect();
+    tooltip.style('left', (evt.clientX - rect.left + 12) + 'px')
+           .style('top', (evt.clientY - rect.top + 12) + 'px');
+  }
+  function hideTooltip() { tooltip.classed('visible', false); }
+
+  function renderCycle(state) {
+    if (currentSim) { currentSim.stop(); currentSim = null; }
+
+    d3.select('#em-quadrants').selectAll('*').remove();
+    d3.select('#em-couplings').selectAll('*').remove();
+    d3.select('#em-pathway-labels').selectAll('*').remove();
+    d3.select('#em-chemicals').selectAll('*').remove();
+    d3.select('#em-nodes').selectAll('*').remove();
+
+    const { pathways, nodes, chemicals } = state;
+    const presentElements = new Set((state.cycleData.elements || [])
+      .map(e => e.element_id));
+
+    // 4 象限背景 + 标签 + 分割线
+    const qGroup = d3.select('#em-quadrants');
+    qGroup.selectAll('rect.em-quadrant-bg')
+      .data(QUADRANTS).enter().append('rect')
+      .attr('class', 'em-quadrant-bg')
+      .attr('x', d => d.x).attr('y', d => d.y)
+      .attr('width', d => d.w).attr('height', d => d.h)
+      .attr('fill', d => d.color)
+      .attr('fill-opacity', d => presentElements.has(d.id) ? 0.08 : 0.02);
+    qGroup.selectAll('text.em-quadrant-label')
+      .data(QUADRANTS).enter().append('text')
+      .attr('class', 'em-quadrant-label')
+      .attr('x', d => d.x + d.w/2)
+      .attr('y', d => d.y + 26)
+      .attr('fill', d => d.color)
+      .text(d => {
+        const el = (state.cycleData.elements || []).find(e => e.element_id === d.id);
+        const nPw = el ? el.pathways.filter(p => p.n_active_mags > 0).length : 0;
+        return `${d.name} · ${nPw} 活跃通路`;
+      });
+    qGroup.append('line').attr('class', 'em-quadrant-divider')
+      .attr('x1', W/2).attr('y1', 0).attr('x2', W/2).attr('y2', H);
+    qGroup.append('line').attr('class', 'em-quadrant-divider')
+      .attr('x1', 0).attr('y1', H/2).attr('x2', W).attr('y2', H/2);
+
+    // pathway labels
+    d3.select('#em-pathway-labels').selectAll('text')
+      .data(pathways, d => d.pathway_id)
+      .enter().append('text')
+      .attr('class', 'em-pathway-label')
+      .attr('data-pathway', d => d.pathway_id)
+      .attr('x', d => d.cx).attr('y', d => d.cy - 32)
+      .text(d => d.display_name);
+
+    // 化学物节点（先画，避免 MAG 遮挡）
+    const chemSel = d3.select('#em-chemicals').selectAll('g')
+      .data(chemicals, d => d.id)
+      .enter().append('g')
+      .attr('class', d => `em-chem-node ${d.role}`)
+      .attr('data-element', d => d.element)
+      .attr('transform', d => `translate(${d.x},${d.y})`);
+
+    chemSel.each(function(d) {
+      const g = d3.select(this);
+      const label = d.name;
+      const w = Math.max(44, label.length * 8 + 16);
+      const h = 22;
+      const quadColor = d.quad.color;
+      g.append('rect')
+        .attr('x', -w/2).attr('y', -h/2)
+        .attr('width', w).attr('height', h)
+        .attr('rx', 5).attr('ry', 5)
+        .attr('stroke', quadColor);
+      g.append('text')
+        .attr('fill', quadColor)
+        .text(label);
+    });
+
+    // 化学物拖拽（独立 drag，不入 simulation，用户放哪儿就哪儿）
+    chemSel.call(d3.drag()
+      .on('drag', function(event, d) {
+        const q = d.quad;
+        d.x = Math.max(q.x + 30, Math.min(q.x + q.w - 30, event.x));
+        d.y = Math.max(q.y + 40, Math.min(q.y + q.h - 30, event.y));
+        d3.select(this).attr('transform', `translate(${d.x},${d.y})`);
+        // 耦合线跟随
+        updateCouplings();
+      }));
+
+    // 化学物 tooltip
+    chemSel
+      .on('mouseenter', function(event, d) {
+        const role = d.role === 'product' ? '产物（可耦合）' : '底物（由微生物捕获转化）';
+        showTooltip(
+          `<div style="font-size:13px;margin-bottom:4px"><b>${d.name}</b></div>` +
+          `<div>角色：${role}</div>` +
+          `<div>出现在 ${d.occurs} 个 gene 记录中</div>` +
+          `<div style="margin-top:4px;font-size:11px;color:#ccc">拖拽可调整位置</div>`,
+          event,
+        );
+      })
+      .on('mousemove', moveTooltip)
+      .on('mouseleave', hideTooltip);
+
+    // MAG 节点
+    const nodeSel = d3.select('#em-nodes').selectAll('circle')
+      .data(nodes, d => d.id)
+      .enter().append('circle')
+      .attr('class', d => 'em-node' + (d.is_keystone ? ' keystone' : ''))
+      .attr('r', d => d.r)
+      .attr('fill', d => getPhylumColor(d.phylum))
+      .attr('cx', d => d.x).attr('cy', d => d.y);
+
+    // MAG tooltip
+    nodeSel
+      .on('mouseenter', function(event, d) {
+        const kstar = d.is_keystone ? ' <span style="color:#D4A017">⭐ keystone</span>' : '';
+        showTooltip(
+          `<div style="font-size:13px;margin-bottom:4px"><b>${d.label}</b>${kstar}</div>` +
+          `<div>门：${d.phylum}</div>` +
+          `<div>通路：<b>${d.pathway_name}</b></div>` +
+          `<div>completeness：${(d.completeness || 0).toFixed(1)}%</div>` +
+          `<div>abundance：${(d.abundance || 0).toFixed(4)}</div>` +
+          `<div>genes 数：${d.genes.length}</div>`,
+          event,
+        );
+      })
+      .on('mousemove', moveTooltip)
+      .on('mouseleave', hideTooltip);
+
+    // MAG 点击 → 高亮通路
+    nodeSel.on('click', function(event, d) {
+      event.stopPropagation();
+      if (selectedPathway === d.pathway_id) {
+        selectedPathway = null;
+        clearHighlight();
+        clickInfo.text('');
+      } else {
+        selectedPathway = d.pathway_id;
+        applyHighlight(selectedPathway);
+        const inPw = nodes.filter(n => n.pathway_id === selectedPathway);
+        const keyCount = inPw.filter(n => n.is_keystone).length;
+        clickInfo.text(
+          `🎯 ${d.pathway_name} · ${inPw.length} MAG · ${keyCount} keystone · 再次点击取消`
+        );
+      }
+    });
+
+    // MAG 拖拽
+    nodeSel.call(d3.drag()
+      .on('start', function(event, d) {
+        if (!event.active) currentSim.alphaTarget(0.3).restart();
+        d.fx = d.x; d.fy = d.y;
+      })
+      .on('drag', function(event, d) { d.fx = event.x; d.fy = event.y; })
+      .on('end', function(event, d) {
+        if (!event.active) currentSim.alphaTarget(0);
+        d.fx = null; d.fy = null;
+      }));
+
+    // 耦合线
+    const couplingData = computeCouplings(state);
+    const coupSel = d3.select('#em-couplings').selectAll('path')
+      .data(couplingData, d => `${d.species_a}→${d.species_b}`)
+      .enter().append('path')
+      .attr('class', 'em-coupling')
+      .attr('stroke', d => d.color || '#666');
+    coupSel.append('title').text(d =>
+      `${d.species_a} ↔ ${d.species_b} → ${d.product}  (${d.type})\n${d.description || ''}\n\n` +
+      `锚点：${d.nodeA.name}（${d.nodeA.element}）↔ ${d.nodeB.name}（${d.nodeB.element}）`
+    );
+
+    function updateCouplings() {
+      coupSel.attr('d', d => {
+        const { nodeA, nodeB } = d;
+        const x1 = nodeA.x, y1 = nodeA.y;
+        const x2 = nodeB.x, y2 = nodeB.y;
+        const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+        const dx = x2 - x1, dy = y2 - y1;
+        const cx = mx + dy * 0.15, cy = my - dx * 0.15;
+        return `M${x1},${y1} Q${cx},${cy} ${x2},${y2}`;
+      });
+    }
+    updateCouplings();
+
+    // forceSimulation —— 只对 MAG 节点
+    currentSim = d3.forceSimulation(nodes)
+      .force('x', d3.forceX(d => d.cx).strength(0.08))
+      .force('y', d3.forceY(d => d.cy).strength(0.08))
+      .force('collide', d3.forceCollide(d => d.r + 1.5).strength(0.85))
+      .force('clamp', () => {
+        nodes.forEach(n => {
+          const q = n.quad;
+          const margin = n.r + 2;
+          n.x = Math.max(q.x + 70, Math.min(q.x + q.w - 70, n.x));
+          n.y = Math.max(q.y + 50, Math.min(q.y + q.h - margin, n.y));
+        });
+      })
+      .alphaDecay(0.03)
+      .on('tick', () => {
+        nodeSel.attr('cx', d => d.x).attr('cy', d => d.y);
+      });
+
+    // 背景点击 = 清除高亮
+    d3.select('#em-cycle-canvas').on('click', null);
+    d3.select('#em-cycle-canvas').on('click', () => {
       selectedPathway = null;
       clearHighlight();
       clickInfo.text('');
-    } else {
-      selectedPathway = d.pathway_id;
-      applyHighlight(selectedPathway);
-      const inPw = nodes.filter(n => n.pathway_id === selectedPathway);
-      const keyCount = inPw.filter(n => n.is_keystone).length;
-      clickInfo.text(
-        `🎯 ${d.pathway_name} · ${inPw.length} MAG · ${keyCount} keystone · 再次点击取消`
-      );
-    }
-  });
-  d3.select('#em-cycle-canvas').on('click', () => {
-    selectedPathway = null;
-    clearHighlight();
-    clickInfo.text('');
-  });
+    });
+    // 阻止拖拽/节点点击冒泡到 canvas 的清除逻辑 —— 已在 nodeSel.on('click') 里 stopPropagation
+
+    // 返回 sel 供后续 highlight 函数用
+    renderCycle._sels = { nodeSel, chemSel };
+  }
+
   function applyHighlight(pathwayId) {
-    nodeSel.classed('dimmed', d => d.pathway_id !== pathwayId)
-           .classed('selected', d => d.pathway_id === pathwayId);
-    labelSel.classed('dimmed', d => d.pathway_id !== pathwayId);
+    const { nodeSel, chemSel } = renderCycle._sels || {};
+    if (nodeSel) nodeSel.classed('dimmed', d => d.pathway_id !== pathwayId)
+                        .classed('selected', d => d.pathway_id === pathwayId);
+    d3.selectAll('.em-pathway-label').classed('dimmed',
+      function() { return this.dataset.pathway !== pathwayId; });
+    // 化学物：该通路涉及的 substrate/product 保持，其他 dim
+    if (chemSel) {
+      // 收集该通路涉及的化学物 name set
+      const pwNodes = (renderCycle._sels?.nodeSel?.data() || [])
+        .filter(n => n.pathway_id === pathwayId);
+      const relChemNames = new Set();
+      pwNodes.forEach(n => (n.genes || []).forEach(g => {
+        if (g.substrate) relChemNames.add(normSpecies(g.substrate));
+        if (g.product) relChemNames.add(normSpecies(g.product));
+      }));
+      chemSel.classed('dimmed', d => !relChemNames.has(normSpecies(d.name)));
+    }
   }
   function clearHighlight() {
-    nodeSel.classed('dimmed', false).classed('selected', false);
-    labelSel.classed('dimmed', false);
+    const sels = renderCycle._sels || {};
+    if (sels.nodeSel) sels.nodeSel.classed('dimmed', false).classed('selected', false);
+    if (sels.chemSel) sels.chemSel.classed('dimmed', false);
+    d3.selectAll('.em-pathway-label').classed('dimmed', false);
   }
 
   // ═══════════════════════════════════════════════════════
-  // 拖拽
+  // Q3: Group selector — cycles_by_group 存在时添加
   // ═══════════════════════════════════════════════════════
-  nodeSel.call(d3.drag()
-    .on('start', function(event, d) {
-      if (!event.active) simulation.alphaTarget(0.3).restart();
-      d.fx = d.x; d.fy = d.y;
-    })
-    .on('drag', function(event, d) {
-      d.fx = event.x; d.fy = event.y;
-    })
-    .on('end', function(event, d) {
-      if (!event.active) simulation.alphaTarget(0);
-      d.fx = null; d.fy = null;
-    }));
+  let currentGroup = '__all__';
+  function installGroupSelector() {
+    const slot = document.getElementById('em-group-selector-slot');
+    if (!EM_DATA.cycles_by_group || Object.keys(EM_DATA.cycles_by_group).length === 0) {
+      return;
+    }
+    const groups = Object.keys(EM_DATA.cycles_by_group);
+    const wrap = document.createElement('div');
+    wrap.className = 'em-group-selector';
+    wrap.innerHTML = '<label>📁 组：</label>';
+    const opts = [{ id: '__all__', name: '全样本' }, ...groups.map(g => ({ id: g, name: g }))];
+    opts.forEach(o => {
+      const btn = document.createElement('button');
+      btn.className = 'em-group-btn' + (o.id === currentGroup ? ' active' : '');
+      btn.textContent = o.name;
+      btn.addEventListener('click', () => {
+        if (o.id === currentGroup) return;
+        currentGroup = o.id;
+        wrap.querySelectorAll('.em-group-btn').forEach(b =>
+          b.classList.toggle('active', b === btn));
+        const cd = o.id === '__all__' ? EM_DATA : EM_DATA.cycles_by_group[o.id];
+        state = buildState(cd);
+        renderCycle(state);
+        selectedPathway = null;
+        clickInfo.text('');
+        rebindLegend();
+      });
+      wrap.appendChild(btn);
+    });
+    slot.appendChild(wrap);
+  }
 
   // ═══════════════════════════════════════════════════════
-  // Zoom + Pan
+  // 初始渲染
+  // ═══════════════════════════════════════════════════════
+  let state = buildState(EM_DATA);
+  renderCycle(state);
+  installGroupSelector();
+
+  // 图例（门颜色 + 形状说明）
+  function rebindLegend() {
+    const legend = d3.select('#em-legend');
+    legend.selectAll('*').remove();
+    const phylaPresent = [...new Set(state.nodes.map(n => n.phylum))].sort();
+    phylaPresent.forEach(phy => {
+      legend.append('span').attr('class', 'em-legend-item')
+        .html(`<span class="em-legend-dot" style="background:${getPhylumColor(phy)}"></span>${phy}`);
+    });
+    legend.append('span').attr('class', 'em-legend-item')
+      .html('<span class="em-legend-shape dash"></span>底物');
+    legend.append('span').attr('class', 'em-legend-item')
+      .html('<span class="em-legend-shape"></span>产物');
+  }
+  rebindLegend();
+
+  // ═══════════════════════════════════════════════════════
+  // Zoom + Pan + 控制栏
   // ═══════════════════════════════════════════════════════
   const zoom = d3.zoom()
     .scaleExtent([0.3, 5])
@@ -860,18 +981,26 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
     });
   d3.select('#em-cycle-canvas').call(zoom);
 
-  // ═══════════════════════════════════════════════════════
-  // 控制栏按钮
-  // ═══════════════════════════════════════════════════════
   document.getElementById('em-reset').addEventListener('click', () => {
     d3.select('#em-cycle-canvas').transition().duration(400)
       .call(zoom.transform, d3.zoomIdentity);
-    nodes.forEach(n => { n.fx = null; n.fy = null; });
-    simulation.alpha(0.5).restart();
+    state.nodes.forEach(n => { n.fx = null; n.fy = null; });
+    state.chemicals.forEach(c => { c.x = c.anchor_x; c.y = c.anchor_y; });
+    d3.select('#em-chemicals').selectAll('g')
+      .attr('transform', d => `translate(${d.x},${d.y})`);
+    if (currentSim) currentSim.alpha(0.5).restart();
+    // 耦合线也重画
+    d3.select('#em-couplings').selectAll('path').attr('d', d => {
+      const { nodeA, nodeB } = d;
+      const mx = (nodeA.x + nodeB.x) / 2, my = (nodeA.y + nodeB.y) / 2;
+      const dx = nodeB.x - nodeA.x, dy = nodeB.y - nodeA.y;
+      return `M${nodeA.x},${nodeA.y} Q${mx + dy * 0.15},${my - dx * 0.15} ${nodeB.x},${nodeB.y}`;
+    });
     clearHighlight();
     selectedPathway = null;
     clickInfo.text('');
   });
+
   const couplingsBtn = document.getElementById('em-toggle-couplings');
   couplingsBtn.addEventListener('click', () => {
     const show = !couplingsBtn.classList.contains('active');
@@ -884,9 +1013,15 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
     labelsBtn.classList.toggle('active', show);
     d3.select('#em-pathway-labels').style('display', show ? null : 'none');
   });
+  const chemBtn = document.getElementById('em-toggle-chemicals');
+  chemBtn.addEventListener('click', () => {
+    const show = !chemBtn.classList.contains('active');
+    chemBtn.classList.toggle('active', show);
+    d3.select('#em-chemicals').style('display', show ? null : 'none');
+  });
 
   // ═══════════════════════════════════════════════════════
-  // T2-δ SVG 导出（含 inline styles 保证独立可编辑）
+  // SVG / JSON 导出
   // ═══════════════════════════════════════════════════════
   function triggerDownload(data, filename, mime) {
     const blob = new Blob([data], { type: mime });
@@ -899,29 +1034,24 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
 
   document.getElementById('em-export-svg').addEventListener('click', () => {
     const svg = document.getElementById('em-cycle-canvas').cloneNode(true);
-    // 将外部 CSS 的关键样式 inline 到 SVG 里（独立可编辑于 Illustrator / Inkscape）
     const inlineStyle = `
       .em-node { stroke: #fff; stroke-width: 1.5; }
       .em-node.keystone { stroke: #D4A017; stroke-width: 2.5; }
-      .em-node.dimmed { opacity: 0.15; }
-      .em-node.selected { stroke-width: 3; }
       .em-quadrant-bg { fill-opacity: 0.08; }
       .em-quadrant-divider { stroke: #ccd6e4; stroke-width: 1; stroke-dasharray: 4 4; }
-      .em-coupling { fill: none; stroke-width: 2; stroke-dasharray: 6 4; opacity: 0.55; }
-      .em-coupling-label { font-size: 10px; text-anchor: middle; }
+      .em-coupling { fill: none; stroke-width: 2; stroke-dasharray: 6 4; opacity: 0.6; }
       .em-pathway-label { font-size: 10px; text-anchor: middle; font-weight: 500; fill: #334; }
-      .em-pathway-label.dimmed { opacity: 0.2; }
       .em-quadrant-label { font-size: 16px; font-weight: 700; text-anchor: middle; }
+      .em-chem-node rect { stroke-width: 1.8; fill: #fff; }
+      .em-chem-node.substrate rect { stroke-dasharray: 4 2; }
+      .em-chem-node text { font-size: 12px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
     `;
     const styleEl = document.createElementNS('http://www.w3.org/2000/svg', 'style');
     styleEl.textContent = inlineStyle;
     svg.insertBefore(styleEl, svg.firstChild);
-    // 确保 xmlns
-    if (!svg.getAttribute('xmlns')) {
-      svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-    }
+    if (!svg.getAttribute('xmlns')) svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
     const src = new XMLSerializer().serializeToString(svg);
-    const ts = new Date().toISOString().slice(0,19).replace(/[:T]/g,'');
+    const ts = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '');
     triggerDownload(
       '<?xml version="1.0" encoding="UTF-8"?>\n' + src,
       `envmeta_cycle_${ts}.svg`,
@@ -930,7 +1060,7 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
   });
 
   document.getElementById('em-export-json').addEventListener('click', () => {
-    const ts = new Date().toISOString().slice(0,19).replace(/[:T]/g,'');
+    const ts = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '');
     triggerDownload(
       JSON.stringify(EM_DATA, null, 2),
       `envmeta_cycle_data_${ts}.json`,
@@ -939,503 +1069,41 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
   });
 
   // ═══════════════════════════════════════════════════════
-  // 图例（门颜色）
+  // Q1: Panel 渲染 try-catch 隔离
   // ═══════════════════════════════════════════════════════
-  const phylaPresent = [...new Set(nodes.map(n => n.phylum))].sort();
-  const legend = d3.select('#em-legend');
-  phylaPresent.forEach(phy => {
-    legend.append('span')
-      .attr('class', 'em-legend-item')
-      .html(
-        `<span class="em-legend-dot" style="background:${getPhylumColor(phy)}"></span>${phy}`
-      );
-  });
-
-  // ═══════════════════════════════════════════════════════
-  // T2-γ 假说评分面板
-  // ═══════════════════════════════════════════════════════
-  function labelClass(label, vetoed) {
-    if (vetoed) return 'em-label-vetoed';
-    return 'em-label-' + (label || 'insufficient');
+  function showPanelError(name, err) {
+    console.error(`[EnvMeta ${name} panel]`, err);
+    const container = document.getElementById(`panel-${name}`);
+    if (container) {
+      container.innerHTML = `<div class="em-panel-error">
+        <b>❌ ${name} panel 渲染失败：</b> ${err && (err.message || String(err))}
+        <pre>${err && err.stack ? err.stack : ''}</pre>
+        <small>按 F12 打开 DevTools Console 查看详细堆栈。</small>
+      </div>`;
+    }
   }
 
-  function interpretOverall(hyp) {
-    const { label, overall_score: ov, null_p: p, weight_robust: robust,
-            veto_reasons: veto } = hyp;
-    if (veto && veto.length > 0) {
-      return {
-        type: 'vetoed',
-        text: `🚫 必要前提否决：required claim "${veto.join(', ')}" 未满足`,
-      };
-    }
-    const specific = (p !== null && p !== undefined && p < 0.05);
-    const degenerate = (p === null || p === undefined) && ov >= 0.95;
-    if (label === 'strong') {
-      if ((specific || degenerate) && robust) {
-        return { type: 'strong+', text: '⭐ 最强支持：权重设计与数据双特异，±20% 扰动稳健' };
-      }
-      if (robust && p !== null && p !== undefined && p >= 0.20) {
-        return { type: 'strong-unspecific',
-                 text: `⚠️ strong 但不特异：null_p=${p.toFixed(2)} 偏高，通过率幸运主导` };
-      }
-      if (!robust) {
-        return { type: 'strong-fragile',
-                 text: '⚠️ strong 但权重敏感：±20% 扰动下 label 翻转' };
-      }
-      return { type: 'strong', text: '🟢 strong：证据达阈值' };
-    }
-    if (label === 'suggestive') return { type: 'suggestive', text: '🟡 中等支持：部分吻合' };
-    if (label === 'weak') return { type: 'weak', text: '🟠 证据薄弱' };
-    return { type: 'insufficient', text: '🔴 证据不足' };
-  }
+  // 各 panel 渲染函数定义在下方；每个用 try-catch 包起来
+  try { renderEnvPanel(EM_DATA, document.getElementById('em-env-container')); }
+  catch (e) { showPanelError('env', e); }
 
-  function renderHypothesisPanel(hyp, container) {
-    container.innerHTML = '';  // 清空 placeholder
-    container.classList.remove('em-placeholder');
+  try { renderHypothesisBlock(EM_DATA, document.getElementById('em-hyp-container')); }
+  catch (e) { showPanelError('hypothesis', e); }
 
-    // 标题
-    const h2 = document.createElement('h3');
-    h2.style.margin = '0 0 12px 0';
-    h2.innerHTML = `🧪 ${hyp.hypothesis_name || 'Hypothesis'}`;
-    container.appendChild(h2);
+  try { renderCompareBlock(EM_DATA, document.getElementById('em-compare-container')); }
+  catch (e) { showPanelError('compare', e); }
 
-    // 若 vetoed
-    const vetoed = hyp.veto_reasons && hyp.veto_reasons.length > 0;
-    if (vetoed) {
-      const banner = document.createElement('div');
-      banner.className = 'em-veto-banner';
-      banner.innerHTML = `<b>🚫 Required claim(s) 未通过硬否决：</b> ${hyp.veto_reasons.join(', ')}<br>
-        <span style="font-size:12px">无论 overall 多高，结论仍为 <b>insufficient</b>。</span>`;
-      container.appendChild(banner);
-    }
-
-    // Overall 卡组
-    const overallWrap = document.createElement('div');
-    overallWrap.className = 'em-hyp-overall';
-
-    const labelCls = labelClass(hyp.label, vetoed);
-    const interp = interpretOverall(hyp);
-
-    const card1 = document.createElement('div');
-    card1.className = 'em-hyp-card';
-    card1.innerHTML = `<h4>Overall Score</h4>
-      <div class="em-val">${hyp.overall_score.toFixed(3)}</div>
-      <div class="em-sub">weighted Σ(w·s) / Σ(w)（仅非 skipped）</div>`;
-    overallWrap.appendChild(card1);
-
-    const card2 = document.createElement('div');
-    card2.className = 'em-hyp-card';
-    card2.innerHTML = `<h4>Label</h4>
-      <div class="em-val ${labelCls}" style="text-transform:uppercase">${vetoed ? 'vetoed' : (hyp.label || '?')}</div>
-      <div class="em-sub">${interp.text}</div>`;
-    overallWrap.appendChild(card2);
-
-    const card3 = document.createElement('div');
-    card3.className = 'em-hyp-card';
-    card3.innerHTML = `<h4>Claims</h4>
-      <div class="em-val">${hyp.n_satisfied}/${hyp.n_total}</div>
-      <div class="em-sub">satisfied / scored · skipped ${hyp.n_skipped}</div>`;
-    overallWrap.appendChild(card3);
-
-    const pNull = hyp.null_p;
-    const pText = pNull === null || pNull === undefined
-      ? 'N/A (退化或样本不足)'
-      : `p = ${pNull.toFixed(3)}`;
-    const card4 = document.createElement('div');
-    card4.className = 'em-hyp-card';
-    card4.innerHTML = `<h4>Null p <span style="text-transform:none;color:#889;font-weight:400">(Fisher 置换)</span></h4>
-      <div class="em-val" style="color:${pNull !== null && pNull !== undefined && pNull < 0.05 ? '#27AE60' : '#E67E22'}">${pText}</div>
-      <div class="em-sub">${hyp.null_p_samples || 0} 次排列</div>`;
-    overallWrap.appendChild(card4);
-
-    const card5 = document.createElement('div');
-    card5.className = 'em-hyp-card';
-    const robustText = hyp.weight_robust === null || hyp.weight_robust === undefined
-      ? 'N/A' : (hyp.weight_robust ? '✅ robust' : '⚠️ 敏感');
-    card5.innerHTML = `<h4>Weight ±20%</h4>
-      <div class="em-val">${robustText}</div>
-      <div class="em-sub">OAT 扰动下 label 是否翻转</div>`;
-    overallWrap.appendChild(card5);
-
-    container.appendChild(overallWrap);
-
-    // null_p 可视化条
-    if (pNull !== null && pNull !== undefined) {
-      const pWrap = document.createElement('div');
-      pWrap.innerHTML = '<h4 style="margin:16px 0 6px">Null p 位置（绿=特异 / 红=偶然）</h4>';
-      const bar = document.createElement('div');
-      bar.className = 'em-null-p-bar';
-      const marker = document.createElement('div');
-      marker.className = 'em-null-p-marker';
-      marker.style.left = (pNull * 100) + '%';
-      marker.setAttribute('data-label', `p=${pNull.toFixed(3)}`);
-      bar.appendChild(marker);
-      pWrap.appendChild(bar);
-      const ticks = document.createElement('div');
-      ticks.className = 'em-null-p-ticks';
-      ticks.innerHTML = '<span>0 (最特异)</span><span>0.05</span><span>0.2</span><span>0.5</span><span>1.0 (纯偶然)</span>';
-      pWrap.appendChild(ticks);
-      container.appendChild(pWrap);
-    }
-
-    // Claim 表 + 搜索
-    const claims = hyp.claim_results || [];
-    const filterWrap = document.createElement('div');
-    filterWrap.className = 'em-filter-bar';
-    filterWrap.innerHTML = `<strong>Claims 表：</strong>
-      <input type="text" placeholder="搜索 claim_id / type / explanation..." id="em-claim-search">
-      <span id="em-claim-count" style="color:#667">${claims.length} 条</span>`;
-    container.appendChild(filterWrap);
-
-    const table = document.createElement('table');
-    table.className = 'em-claim-table';
-    table.id = 'em-claim-table';
-    const thead = document.createElement('thead');
-    thead.innerHTML = `<tr>
-      <th data-key="claim_id">Claim ID ↕</th>
-      <th data-key="claim_type">Type ↕</th>
-      <th data-key="status">Status ↕</th>
-      <th data-key="score">Score ↕</th>
-      <th data-key="weight">Weight ↕</th>
-      <th>Explanation</th>
-    </tr>`;
-    table.appendChild(thead);
-    const tbody = document.createElement('tbody');
-    table.appendChild(tbody);
-    container.appendChild(table);
-
-    const renderClaims = (list) => {
-      tbody.innerHTML = '';
-      list.forEach(c => {
-        const tr = document.createElement('tr');
-        if (c.required) tr.classList.add('em-required');
-        const vetoByThis = vetoed && hyp.veto_reasons.includes(c.claim_id);
-        if (vetoByThis) tr.classList.add('em-vetoed');
-        tr.dataset.pathway = (c.evidence && c.evidence.pathway_id) || '';
-        tr.dataset.envFactor = (c.evidence && c.evidence.env_factor) || '';
-        tr.innerHTML = `
-          <td><code>${c.claim_id}</code></td>
-          <td>${c.claim_type}</td>
-          <td class="status-${c.status}">${c.status}</td>
-          <td>${c.score != null ? c.score.toFixed(2) : '—'}</td>
-          <td>${c.weight != null ? c.weight.toFixed(2) : '—'}</td>
-          <td style="color:#556">${c.explanation || ''}</td>`;
-        // 点击穿透：env_correlation claim 跳 env tab；其他类型（有 pathway_id）跳循环图
-        const isEnv = c.claim_type === 'env_correlation' && tr.dataset.envFactor;
-        if (isEnv && tr.dataset.pathway) {
-          tr.style.cursor = 'pointer';
-          tr.title = `点击跳转到环境相关表：${tr.dataset.pathway} × ${tr.dataset.envFactor}`;
-          tr.addEventListener('click', () => {
-            window.__em_jumpToEnv && window.__em_jumpToEnv(
-              tr.dataset.pathway, tr.dataset.envFactor);
-          });
-        } else if (tr.dataset.pathway) {
-          tr.style.cursor = 'pointer';
-          tr.title = `点击高亮循环图中 ${tr.dataset.pathway}`;
-          tr.addEventListener('click', () => {
-            document.querySelector('.em-tab[data-panel="cycle"]').click();
-            selectedPathway = tr.dataset.pathway;
-            applyHighlight(selectedPathway);
-            clickInfo.text(`🎯 从假说 claim "${c.claim_id}" 跳转到通路 ${tr.dataset.pathway}`);
-          });
-        }
-        tbody.appendChild(tr);
-      });
-      document.getElementById('em-claim-count').textContent = `${list.length} 条`;
-    };
-
-    renderClaims(claims);
-
-    // 搜索
-    document.getElementById('em-claim-search').addEventListener('input', (e) => {
-      const q = e.target.value.trim().toLowerCase();
-      if (!q) { renderClaims(claims); return; }
-      renderClaims(claims.filter(c =>
-        (c.claim_id || '').toLowerCase().includes(q) ||
-        (c.claim_type || '').toLowerCase().includes(q) ||
-        (c.explanation || '').toLowerCase().includes(q)
-      ));
-    });
-
-    // 列头排序
-    let sortKey = null, sortAsc = true;
-    thead.querySelectorAll('th[data-key]').forEach(th => {
-      th.addEventListener('click', () => {
-        const key = th.dataset.key;
-        if (sortKey === key) sortAsc = !sortAsc; else { sortKey = key; sortAsc = true; }
-        const sorted = [...claims].sort((a, b) => {
-          const va = a[key], vb = b[key];
-          if (va == null && vb == null) return 0;
-          if (va == null) return 1;
-          if (vb == null) return -1;
-          if (typeof va === 'number' && typeof vb === 'number') {
-            return sortAsc ? va - vb : vb - va;
-          }
-          return sortAsc ? String(va).localeCompare(String(vb))
-                         : String(vb).localeCompare(String(va));
-        });
-        renderClaims(sorted);
-      });
-    });
-
-    // 权重敏感度表（若有）
-    const ws = hyp.weight_sensitivity_rows || [];
-    if (ws.length > 0) {
-      const ws_h = document.createElement('h3');
-      ws_h.style.margin = '20px 0 8px';
-      ws_h.textContent = '权重敏感度（OAT ±20%）';
-      container.appendChild(ws_h);
-      const wsTable = document.createElement('table');
-      wsTable.className = 'em-claim-table';
-      wsTable.innerHTML = `<thead><tr>
-        <th>Claim</th><th>Direction</th><th>New Weight</th>
-        <th>New Overall</th><th>New Label</th><th>Flipped</th>
-      </tr></thead><tbody></tbody>`;
-      const wsBody = wsTable.querySelector('tbody');
-      ws.forEach(r => {
-        const tr = document.createElement('tr');
-        if (r.flipped) tr.style.background = '#fef0ed';
-        tr.innerHTML = `
-          <td><code>${r.claim_id}</code></td>
-          <td>${r.direction}</td>
-          <td>${r.new_weight}</td>
-          <td>${r.new_overall}</td>
-          <td class="em-label-${r.new_label}">${r.new_label}</td>
-          <td>${r.flipped ? '⚠️ flipped' : '—'}</td>`;
-        wsBody.appendChild(tr);
-      });
-      container.appendChild(wsTable);
-    }
-  }
+  // Meta 面板（安全）
+  try {
+    document.getElementById('em-params-dump').textContent =
+      JSON.stringify(EM_DATA.params || {}, null, 2);
+    document.getElementById('em-meta-dump').textContent =
+      JSON.stringify(EM_DATA.meta || {}, null, 2);
+  } catch (e) { console.error('[EnvMeta meta]', e); }
 
   // ═══════════════════════════════════════════════════════
-  // T2-ε.4 假说评分：有分组时跨组概览优先（顶部大卡片 + 差异横幅）
+  // renderEnvPanel
   // ═══════════════════════════════════════════════════════
-  function buildGroupSummaryRows() {
-    // 统一从两种数据源合成 [{group, overall, label, null_p, n_satisfied, n_total, veto}]
-    if (EM_DATA.hypothesis_by_group) {
-      return Object.entries(EM_DATA.hypothesis_by_group).map(([g, h]) => ({
-        group: g,
-        overall_score: h.overall_score,
-        label: h.label,
-        null_p: h.null_p,
-        n_satisfied: h.n_satisfied,
-        n_total: h.n_total,
-        n_skipped: h.n_skipped,
-        vetoed: (h.veto_reasons || []).length > 0,
-      }));
-    }
-    if (EM_DATA.hypothesis_by_group_summary) {
-      return EM_DATA.hypothesis_by_group_summary.map(r => ({
-        group: r.group,
-        overall_score: r.overall_score != null ? Number(r.overall_score) : null,
-        label: r.label,
-        null_p: r.null_p != null ? Number(r.null_p) : null,
-        n_satisfied: r.n_satisfied,
-        n_total: r.n_total,
-        n_skipped: r.n_skipped,
-        vetoed: false,
-      }));
-    }
-    return [];
-  }
-
-  function renderCrossGroupOverview(container, rows, onGroupSelect) {
-    const section = document.createElement('div');
-    section.style.cssText = 'margin-bottom: 22px';
-
-    const h = document.createElement('h3');
-    h.style.margin = '0 0 8px';
-    h.innerHTML = '🔀 跨组评分概览 <span style="font-size:12px;color:#556;font-weight:400">' +
-      '（点击组卡片 ↓ 可在下方展开该组完整 claim 详情）</span>';
-    section.appendChild(h);
-
-    // 组间差异警告
-    const labels = [...new Set(rows.map(r => r.label).filter(Boolean))];
-    if (labels.length > 1) {
-      const banner = document.createElement('div');
-      banner.style.cssText = 'background:#fff7e0;border-left:4px solid #F39C12;' +
-        'padding:10px 14px;border-radius:3px;margin-bottom:12px;color:#7a4a10;font-size:13px';
-      banner.innerHTML = `<b>⚠️ 组间 label 差异：</b>不同组达到了不同的 label（${labels.join(' / ')}）—— ` +
-        `这是组间机制差异的关键证据，值得重点分析。`;
-      section.appendChild(banner);
-    }
-
-    const cards = document.createElement('div');
-    cards.className = 'em-hyp-overall';
-    let selectedIdx = -1;
-    // 默认选中 overall 最高的组（有分组完整数据时）
-    if (onGroupSelect) {
-      let maxScore = -Infinity;
-      rows.forEach((r, i) => {
-        const s = r.overall_score != null ? Number(r.overall_score) : -1;
-        if (s > maxScore) { maxScore = s; selectedIdx = i; }
-      });
-    }
-
-    rows.forEach((r, i) => {
-      const card = document.createElement('div');
-      card.className = 'em-hyp-card';
-      if (onGroupSelect) {
-        card.style.cursor = 'pointer';
-        card.title = '点击下方查看该组完整 claim 详情';
-      }
-      if (i === selectedIdx && onGroupSelect) {
-        card.style.border = '2px solid #2c7fb8';
-        card.style.background = '#f0f7fd';
-      }
-      const labelCls = r.vetoed ? 'em-label-vetoed'
-        : ('em-label-' + (r.label || 'insufficient'));
-      const labelText = r.vetoed ? 'VETOED' : String(r.label || '?').toUpperCase();
-      const ovTxt = r.overall_score != null ? Number(r.overall_score).toFixed(3) : '—';
-      const pTxt = r.null_p == null ? 'N/A' : `p = ${Number(r.null_p).toFixed(3)}`;
-      const pColor = r.null_p != null && Number(r.null_p) < 0.05 ? '#27AE60' : '#E67E22';
-      card.innerHTML = `
-        <h4>[${r.group}] Overall</h4>
-        <div class="em-val">${ovTxt}</div>
-        <div class="em-sub" style="margin-top:6px">
-          <div class="${labelCls}" style="font-size:15px;font-weight:700;margin-bottom:3px">
-            ${labelText}
-          </div>
-          <div style="color:${pColor};font-weight:600">${pTxt}</div>
-          <div style="margin-top:3px">claims: ${r.n_satisfied ?? '?'}/${r.n_total ?? '?'} 通过
-            ${r.n_skipped ? `· ${r.n_skipped} skipped` : ''}</div>
-        </div>`;
-      if (onGroupSelect) {
-        card.addEventListener('click', () => {
-          cards.querySelectorAll('.em-hyp-card').forEach(c => {
-            c.style.border = '1px solid #d0d7e1';
-            c.style.background = '#fff';
-          });
-          card.style.border = '2px solid #2c7fb8';
-          card.style.background = '#f0f7fd';
-          onGroupSelect(r.group);
-        });
-      }
-      cards.appendChild(card);
-    });
-    section.appendChild(cards);
-    container.appendChild(section);
-    return selectedIdx;
-  }
-
-  // 单组 hypothesis + 跨组 summary（两者可并存）
-  const hypContainer = document.getElementById('em-hyp-container');
-  const _groupRows = buildGroupSummaryRows();
-  const _hasGroupData = _groupRows.length > 0;
-  const _hasGroupDict = !!EM_DATA.hypothesis_by_group;
-  const _hasSingleHyp = !!EM_DATA.hypothesis;
-
-  if (_hasGroupData) {
-    hypContainer.classList.remove('em-placeholder');
-    hypContainer.innerHTML = '';
-
-    // 🔀 跨组概览放最顶
-    const groupDetailWrap = document.createElement('div');
-    const selectedIdx = renderCrossGroupOverview(
-      hypContainer,
-      _groupRows,
-      _hasGroupDict ? (g) => {
-        groupDetailHeader.innerHTML =
-          `📋 <b>[${g}]</b> 组 claim 详情 <span style="font-size:12px;color:#556;font-weight:400">` +
-          `（点上方其他组卡片可切换）</span>`;
-        renderHypothesisPanel(EM_DATA.hypothesis_by_group[g], groupDetailBody);
-      } : null,
-    );
-
-    // 选中组详情（仅 dict 形式）
-    if (_hasGroupDict) {
-      const groupDetailHeader = document.createElement('h3');
-      groupDetailHeader.style.cssText = 'margin:24px 0 10px';
-      const defaultGroup = selectedIdx >= 0 ? _groupRows[selectedIdx].group
-        : _groupRows[0].group;
-      groupDetailHeader.innerHTML =
-        `📋 <b>[${defaultGroup}]</b> 组 claim 详情 ` +
-        `<span style="font-size:12px;color:#556;font-weight:400">` +
-        `（点上方其他组卡片可切换）</span>`;
-      hypContainer.appendChild(groupDetailHeader);
-      const groupDetailBody = document.createElement('div');
-      hypContainer.appendChild(groupDetailBody);
-      renderHypothesisPanel(
-        EM_DATA.hypothesis_by_group[defaultGroup],
-        groupDetailBody,
-      );
-      // 把这两个绑定到外层闭包供 click 调用
-      window.__em_groupDetail = { header: groupDetailHeader, body: groupDetailBody };
-      // 重新绑定 onGroupSelect 访问闭包变量
-      hypContainer.querySelectorAll('.em-hyp-card').forEach((card, i) => {
-        if (i >= _groupRows.length) return;
-        const g = _groupRows[i].group;
-        // 替换点击处理器：使用正确的 header/body 引用
-        const newCard = card.cloneNode(true);
-        card.parentNode.replaceChild(newCard, card);
-        newCard.style.cursor = 'pointer';
-        newCard.addEventListener('click', () => {
-          hypContainer.querySelectorAll('.em-hyp-card').forEach(c => {
-            c.style.border = '1px solid #d0d7e1';
-            c.style.background = '#fff';
-          });
-          newCard.style.border = '2px solid #2c7fb8';
-          newCard.style.background = '#f0f7fd';
-          groupDetailHeader.innerHTML =
-            `📋 <b>[${g}]</b> 组 claim 详情 ` +
-            `<span style="font-size:12px;color:#556;font-weight:400">` +
-            `（点上方其他组卡片可切换）</span>`;
-          renderHypothesisPanel(EM_DATA.hypothesis_by_group[g], groupDetailBody);
-        });
-        if (i === selectedIdx) {
-          newCard.style.border = '2px solid #2c7fb8';
-          newCard.style.background = '#f0f7fd';
-        }
-      });
-    }
-
-    // 🌐 全组合并（单 hypothesis）— 折叠在最下
-    if (_hasSingleHyp) {
-      const det = document.createElement('details');
-      det.className = 'em-details';
-      det.style.marginTop = '20px';
-      const summary = document.createElement('summary');
-      summary.innerHTML = `🌐 全组合并评分 <span style="font-size:12px;color:#556;font-weight:400">` +
-        `（overall=${Number(EM_DATA.hypothesis.overall_score || 0).toFixed(3)}，` +
-        `所有样本不分组聚合；默认折叠，仅作对照）</span>`;
-      det.appendChild(summary);
-      const body = document.createElement('div');
-      body.className = 'em-details-body';
-      renderHypothesisPanel(EM_DATA.hypothesis, body);
-      det.appendChild(body);
-      hypContainer.appendChild(det);
-    }
-  } else if (_hasSingleHyp) {
-    // 无分组数据，保持 v1 单组布局
-    renderHypothesisPanel(EM_DATA.hypothesis, hypContainer);
-  } else {
-    hypContainer.classList.add('em-placeholder');
-    hypContainer.innerHTML = '<h3>本次导出未附带假说评分</h3>' +
-      '<p>在 Streamlit 端运行「🧪 假说评分」后再导出 HTML 可查看本面板。</p>';
-  }
-
-  // ═══════════════════════════════════════════════════════
-  // T2-ε.2 环境相关面板（env_correlations + full matrix + sensitivity）
-  // ═══════════════════════════════════════════════════════
-  function confBadge(conf) {
-    const c = String(conf || 'unknown').toLowerCase().replace(/\?/g, '');
-    const cls = {
-      'strong': 'em-conf-strong',
-      'suggestive': 'em-conf-suggestive',
-      'weak': 'em-conf-weak',
-      'spurious': 'em-conf-spurious',
-    }[c] || 'em-conf-unknown';
-    return `<span class="em-conf-badge ${cls}">${conf || 'unknown'}</span>`;
-  }
-
-  function fmtNum(v, digits) {
-    if (v == null || Number.isNaN(v)) return '—';
-    const n = Number(v);
-    if (!Number.isFinite(n)) return '—';
-    return n.toFixed(digits == null ? 3 : digits);
-  }
-
   function renderEnvPanel(data, container) {
     container.innerHTML = '';
     container.classList.remove('em-placeholder');
@@ -1444,19 +1112,15 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
     const fullMatrix = data.full_corr_matrix || [];
     const sensitivity = data.sensitivity || [];
 
-    // 标题 + 说明
     const header = document.createElement('div');
     header.innerHTML = `
       <h3 style="margin:0 0 6px">🌡️ 环境相关性</h3>
       <div style="font-size:12px;color:#556;margin-bottom:10px">
         通路活性（按样本维度的 abundance × |KO∩pw|）与环境因子的 Spearman 相关，
         经 <b>999 次置换</b>产生 <b>perm_p</b>，并用<b>阈值敏感度</b>校验得到 5 档可信度标签。
-        <span style="color:#667">下方顺序：过滤后相关 · 可信度图例 · 完整相关矩阵（折叠） ·
-        S1 阈值敏感度（折叠）</span>
       </div>`;
     container.appendChild(header);
 
-    // 汇总
     const counter = { strong: 0, suggestive: 0, weak: 0, spurious: 0, unknown: 0 };
     filtered.forEach(r => {
       const k = String(r.confidence || 'unknown').toLowerCase().replace(/\?/g, '');
@@ -1475,11 +1139,11 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
     summaryCards.appendChild(mk('🟢 strong', counter.strong || 0, 'perm_p<0.05 + robust'));
     summaryCards.appendChild(mk('🟡 suggestive', counter.suggestive || 0, '方向可信但非最强'));
     summaryCards.appendChild(mk('🔴 spurious?', counter.spurious || 0, '疑似共变 / 置换未通过'));
-    summaryCards.appendChild(mk('S1 稳健', sensitivity.filter(s => s.robust).length +
-      ' / ' + sensitivity.length, '三档阈值 Top-1 一致性'));
+    summaryCards.appendChild(mk('S1 稳健',
+      `${sensitivity.filter(s => s.robust).length} / ${sensitivity.length}`,
+      '三档阈值 Top-1 一致性'));
     container.appendChild(summaryCards);
 
-    // 过滤后相关表
     if (filtered.length === 0) {
       const empty = document.createElement('div');
       empty.style.cssText = 'padding:20px;color:#888;text-align:center';
@@ -1523,7 +1187,6 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
             <td>${fmtNum(r.p_value, 3)}</td>
             <td>${fmtNum(r.perm_p, 3)}</td>
             <td>${confBadge(r.confidence)}</td>`;
-          // 点击行 → 跳循环图高亮对应通路
           if (tr.dataset.pathway) {
             tr.style.cursor = 'pointer';
             tr.title = `点击高亮循环图中 ${tr.dataset.pathway}`;
@@ -1539,12 +1202,10 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
         document.getElementById('em-env-count').textContent = `${list.length} 条`;
       };
 
-      // 默认按 |ρ| 降序
       const defaultSorted = [...filtered].sort((a, b) =>
         Math.abs(Number(b.rho || 0)) - Math.abs(Number(a.rho || 0)));
       render(defaultSorted);
 
-      // 列头排序
       let sortKey = null, sortAsc = true;
       tbl.querySelectorAll('th[data-key]').forEach(th => {
         th.addEventListener('click', () => {
@@ -1565,7 +1226,6 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
         });
       });
 
-      // 搜索
       document.getElementById('em-env-search').addEventListener('input', (e) => {
         const q = e.target.value.trim().toLowerCase();
         if (!q) { render(defaultSorted); return; }
@@ -1577,7 +1237,6 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
       });
     }
 
-    // 可信度图例（紧凑）
     const legend = document.createElement('div');
     legend.style.cssText = 'margin:12px 0;font-size:11px;color:#556';
     legend.innerHTML = `<b>图例：</b> ` +
@@ -1588,30 +1247,25 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
       `${confBadge('unknown')} 不足以判断`;
     container.appendChild(legend);
 
-    // 完整相关矩阵（折叠）
     if (fullMatrix.length > 0) {
       const det = document.createElement('details');
       det.className = 'em-details';
       const summary = document.createElement('summary');
-      summary.innerHTML = `📊 完整相关矩阵（共 <b>${fullMatrix.length}</b> 条 pathway × env 组合，过滤前全量）`;
+      summary.innerHTML = `📊 完整相关矩阵（共 <b>${fullMatrix.length}</b> 条 pathway × env 组合）`;
       det.appendChild(summary);
       const dbody = document.createElement('div');
       dbody.className = 'em-details-body';
-
-      // 按 pathway 分组展示
       const byPw = new Map();
       fullMatrix.forEach(r => {
         if (!byPw.has(r.pathway_id)) byPw.set(r.pathway_id, []);
         byPw.get(r.pathway_id).push(r);
       });
-
       const fullTbl = document.createElement('table');
       fullTbl.className = 'em-claim-table';
       fullTbl.innerHTML = `<thead><tr>
         <th>Pathway</th><th>Env factor</th><th>ρ</th><th>raw p</th><th>perm_p</th><th>Confidence</th>
       </tr></thead><tbody></tbody>`;
       const ftb = fullTbl.querySelector('tbody');
-      // 按 pathway 排序，pathway 内按 |ρ| 降序
       const sortedPws = [...byPw.keys()].sort();
       sortedPws.forEach(pwId => {
         const rows = byPw.get(pwId).sort((a, b) =>
@@ -1636,18 +1290,15 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
       container.appendChild(det);
     }
 
-    // S1 阈值敏感度（折叠）
     if (sensitivity.length > 0) {
       const det = document.createElement('details');
       det.className = 'em-details';
       const summary = document.createElement('summary');
       const nRobust = sensitivity.filter(s => s.robust).length;
-      summary.innerHTML = `🎯 S1 阈值敏感度（<b>${nRobust}/${sensitivity.length}</b> 通路 robust —
-        三档阈值 Top-1 contributor 一致性）`;
+      summary.innerHTML = `🎯 S1 阈值敏感度（<b>${nRobust}/${sensitivity.length}</b> 通路 robust）`;
       det.appendChild(summary);
       const dbody = document.createElement('div');
       dbody.className = 'em-details-body';
-
       const tbl = document.createElement('table');
       tbl.className = 'em-claim-table';
       const ths = (sensitivity[0].thresholds || [30, 50, 70]).map(t =>
@@ -1658,7 +1309,7 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
       const body = tbl.querySelector('tbody');
       sensitivity.forEach(s => {
         const tr = document.createElement('tr');
-        const tops = (s.top_mags_by_threshold || []).map(m =>
+        const tops = (s.top1_by_threshold || []).map(m =>
           `<td style="font-size:11px">${m || '—'}</td>`).join('');
         tr.innerHTML = `
           <td><code>${s.pathway_id || ''}</code>
@@ -1673,13 +1324,9 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
     }
   }
 
-  const envContainer = document.getElementById('em-env-container');
-  renderEnvPanel(EM_DATA, envContainer);
-
-  // 暴露给 claim 点击穿透用
+  // 环境相关跳转接口（给 hypothesis claim 点击穿透用）
   window.__em_jumpToEnv = function(pathwayId, envFactor) {
     document.querySelector('.em-tab[data-panel="env"]').click();
-    // 高亮对应行
     const tbl = document.getElementById('em-env-table');
     if (!tbl) return;
     setTimeout(() => {
@@ -1693,13 +1340,420 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
   };
 
   // ═══════════════════════════════════════════════════════
-  // T2-γ 跨组对比面板
+  // renderHypothesisBlock（跨组优先布局 + 单组 fallback）
   // ═══════════════════════════════════════════════════════
-  function renderComparePanel(rows, container) {
+  function labelClass(label, vetoed) {
+    if (vetoed) return 'em-label-vetoed';
+    return 'em-label-' + (label || 'insufficient');
+  }
+
+  function interpretOverall(hyp) {
+    const { label, overall_score: ov, null_p: p, weight_robust: robust,
+            veto_reasons: veto } = hyp;
+    if (veto && veto.length > 0) {
+      return { type: 'vetoed',
+               text: `🚫 必要前提否决：required claim "${veto.join(', ')}" 未满足` };
+    }
+    const specific = (p !== null && p !== undefined && p < 0.05);
+    const degenerate = (p === null || p === undefined) && ov >= 0.95;
+    if (label === 'strong') {
+      if ((specific || degenerate) && robust) {
+        return { type: 'strong+', text: '⭐ 最强支持：权重与数据双特异，±20% 扰动稳健' };
+      }
+      if (robust && p !== null && p !== undefined && p >= 0.20) {
+        return { type: 'strong-unspecific',
+                 text: `⚠️ strong 但不特异：null_p=${p.toFixed(2)} 偏高，通过率幸运主导` };
+      }
+      if (!robust) {
+        return { type: 'strong-fragile',
+                 text: '⚠️ strong 但权重敏感：±20% 扰动下 label 翻转' };
+      }
+      return { type: 'strong', text: '🟢 strong：证据达阈值' };
+    }
+    if (label === 'suggestive') return { type: 'suggestive', text: '🟡 中等支持：部分吻合' };
+    if (label === 'weak') return { type: 'weak', text: '🟠 证据薄弱' };
+    return { type: 'insufficient', text: '🔴 证据不足' };
+  }
+
+  function renderHypothesisPanel(hyp, container) {
     container.innerHTML = '';
     container.classList.remove('em-placeholder');
 
-    // 预处理：pivot by pathway_id
+    const h2 = document.createElement('h3');
+    h2.style.margin = '0 0 12px 0';
+    h2.innerHTML = `🧪 ${hyp.hypothesis_name || 'Hypothesis'}`;
+    container.appendChild(h2);
+
+    const vetoed = hyp.veto_reasons && hyp.veto_reasons.length > 0;
+    if (vetoed) {
+      const banner = document.createElement('div');
+      banner.className = 'em-veto-banner';
+      banner.innerHTML = `<b>🚫 Required claim(s) 未通过硬否决：</b> ${hyp.veto_reasons.join(', ')}<br>
+        <span style="font-size:12px">无论 overall 多高，结论仍为 <b>insufficient</b>。</span>`;
+      container.appendChild(banner);
+    }
+
+    const overallWrap = document.createElement('div');
+    overallWrap.className = 'em-hyp-overall';
+    const labelCls = labelClass(hyp.label, vetoed);
+    const interp = interpretOverall(hyp);
+
+    const card1 = document.createElement('div');
+    card1.className = 'em-hyp-card';
+    card1.innerHTML = `<h4>Overall Score</h4>
+      <div class="em-val">${Number(hyp.overall_score || 0).toFixed(3)}</div>
+      <div class="em-sub">weighted Σ(w·s) / Σ(w)（仅非 skipped）</div>`;
+    overallWrap.appendChild(card1);
+
+    const card2 = document.createElement('div');
+    card2.className = 'em-hyp-card';
+    card2.innerHTML = `<h4>Label</h4>
+      <div class="em-val ${labelCls}" style="text-transform:uppercase">${vetoed ? 'vetoed' : (hyp.label || '?')}</div>
+      <div class="em-sub">${interp.text}</div>`;
+    overallWrap.appendChild(card2);
+
+    const card3 = document.createElement('div');
+    card3.className = 'em-hyp-card';
+    card3.innerHTML = `<h4>Claims</h4>
+      <div class="em-val">${hyp.n_satisfied}/${hyp.n_total}</div>
+      <div class="em-sub">satisfied / scored · skipped ${hyp.n_skipped}</div>`;
+    overallWrap.appendChild(card3);
+
+    const pNull = hyp.null_p;
+    const pText = pNull === null || pNull === undefined
+      ? 'N/A (退化或样本不足)' : `p = ${Number(pNull).toFixed(3)}`;
+    const card4 = document.createElement('div');
+    card4.className = 'em-hyp-card';
+    card4.innerHTML = `<h4>Null p <span style="text-transform:none;color:#889;font-weight:400">(Fisher 置换)</span></h4>
+      <div class="em-val" style="color:${pNull !== null && pNull !== undefined && pNull < 0.05 ? '#27AE60' : '#E67E22'}">${pText}</div>
+      <div class="em-sub">${hyp.null_p_samples || 0} 次排列</div>`;
+    overallWrap.appendChild(card4);
+
+    const card5 = document.createElement('div');
+    card5.className = 'em-hyp-card';
+    const robustText = hyp.weight_robust === null || hyp.weight_robust === undefined
+      ? 'N/A' : (hyp.weight_robust ? '✅ robust' : '⚠️ 敏感');
+    card5.innerHTML = `<h4>Weight ±20%</h4>
+      <div class="em-val">${robustText}</div>
+      <div class="em-sub">OAT 扰动下 label 是否翻转</div>`;
+    overallWrap.appendChild(card5);
+
+    container.appendChild(overallWrap);
+
+    if (pNull !== null && pNull !== undefined) {
+      const pWrap = document.createElement('div');
+      pWrap.innerHTML = '<h4 style="margin:16px 0 6px">Null p 位置（绿=特异 / 红=偶然）</h4>';
+      const bar = document.createElement('div');
+      bar.className = 'em-null-p-bar';
+      const marker = document.createElement('div');
+      marker.className = 'em-null-p-marker';
+      marker.style.left = (Number(pNull) * 100) + '%';
+      marker.setAttribute('data-label', `p=${Number(pNull).toFixed(3)}`);
+      bar.appendChild(marker);
+      pWrap.appendChild(bar);
+      const ticks = document.createElement('div');
+      ticks.className = 'em-null-p-ticks';
+      ticks.innerHTML = '<span>0 (最特异)</span><span>0.05</span><span>0.2</span><span>0.5</span><span>1.0 (纯偶然)</span>';
+      pWrap.appendChild(ticks);
+      container.appendChild(pWrap);
+    }
+
+    const claims = hyp.claim_results || [];
+    const filterWrap = document.createElement('div');
+    filterWrap.className = 'em-filter-bar';
+    filterWrap.innerHTML = `<strong>Claims 表：</strong>
+      <input type="text" placeholder="搜索 claim_id / type / explanation..." class="em-claim-search">
+      <span class="em-claim-count" style="color:#667">${claims.length} 条</span>`;
+    container.appendChild(filterWrap);
+
+    const table = document.createElement('table');
+    table.className = 'em-claim-table';
+    const thead = document.createElement('thead');
+    thead.innerHTML = `<tr>
+      <th data-key="claim_id">Claim ID ↕</th>
+      <th data-key="claim_type">Type ↕</th>
+      <th data-key="status">Status ↕</th>
+      <th data-key="score">Score ↕</th>
+      <th data-key="weight">Weight ↕</th>
+      <th>Explanation</th>
+    </tr>`;
+    table.appendChild(thead);
+    const tbody = document.createElement('tbody');
+    table.appendChild(tbody);
+    container.appendChild(table);
+
+    const countSpan = filterWrap.querySelector('.em-claim-count');
+    const renderClaims = (list) => {
+      tbody.innerHTML = '';
+      list.forEach(c => {
+        const tr = document.createElement('tr');
+        if (c.required) tr.classList.add('em-required');
+        const vetoByThis = vetoed && hyp.veto_reasons.includes(c.claim_id);
+        if (vetoByThis) tr.classList.add('em-vetoed');
+        tr.dataset.pathway = (c.evidence && c.evidence.pathway_id) || '';
+        tr.dataset.envFactor = (c.evidence && c.evidence.env_factor) || '';
+        tr.innerHTML = `
+          <td><code>${c.claim_id}</code></td>
+          <td>${c.claim_type}</td>
+          <td class="status-${c.status}">${c.status}</td>
+          <td>${c.score != null ? c.score.toFixed(2) : '—'}</td>
+          <td>${c.weight != null ? c.weight.toFixed(2) : '—'}</td>
+          <td style="color:#556">${c.explanation || ''}</td>`;
+        const isEnv = c.claim_type === 'env_correlation' && tr.dataset.envFactor;
+        if (isEnv && tr.dataset.pathway) {
+          tr.style.cursor = 'pointer';
+          tr.title = `点击跳环境相关：${tr.dataset.pathway} × ${tr.dataset.envFactor}`;
+          tr.addEventListener('click', () => {
+            window.__em_jumpToEnv && window.__em_jumpToEnv(
+              tr.dataset.pathway, tr.dataset.envFactor);
+          });
+        } else if (tr.dataset.pathway) {
+          tr.style.cursor = 'pointer';
+          tr.title = `点击高亮循环图中 ${tr.dataset.pathway}`;
+          tr.addEventListener('click', () => {
+            document.querySelector('.em-tab[data-panel="cycle"]').click();
+            selectedPathway = tr.dataset.pathway;
+            applyHighlight(selectedPathway);
+            clickInfo.text(`🎯 从假说 claim "${c.claim_id}" 跳转到通路 ${tr.dataset.pathway}`);
+          });
+        }
+        tbody.appendChild(tr);
+      });
+      countSpan.textContent = `${list.length} 条`;
+    };
+    renderClaims(claims);
+
+    filterWrap.querySelector('.em-claim-search').addEventListener('input', (e) => {
+      const q = e.target.value.trim().toLowerCase();
+      if (!q) { renderClaims(claims); return; }
+      renderClaims(claims.filter(c =>
+        (c.claim_id || '').toLowerCase().includes(q) ||
+        (c.claim_type || '').toLowerCase().includes(q) ||
+        (c.explanation || '').toLowerCase().includes(q)
+      ));
+    });
+
+    let sortKey = null, sortAsc = true;
+    thead.querySelectorAll('th[data-key]').forEach(th => {
+      th.addEventListener('click', () => {
+        const key = th.dataset.key;
+        if (sortKey === key) sortAsc = !sortAsc; else { sortKey = key; sortAsc = true; }
+        const sorted = [...claims].sort((a, b) => {
+          const va = a[key], vb = b[key];
+          if (va == null && vb == null) return 0;
+          if (va == null) return 1;
+          if (vb == null) return -1;
+          if (typeof va === 'number' && typeof vb === 'number') {
+            return sortAsc ? va - vb : vb - va;
+          }
+          return sortAsc ? String(va).localeCompare(String(vb))
+                         : String(vb).localeCompare(String(va));
+        });
+        renderClaims(sorted);
+      });
+    });
+
+    const ws = hyp.weight_sensitivity_rows || [];
+    if (ws.length > 0) {
+      const wsH = document.createElement('h3');
+      wsH.style.margin = '20px 0 8px';
+      wsH.textContent = '权重敏感度（OAT ±20%）';
+      container.appendChild(wsH);
+      const wsTable = document.createElement('table');
+      wsTable.className = 'em-claim-table';
+      wsTable.innerHTML = `<thead><tr>
+        <th>Claim</th><th>Direction</th><th>New Weight</th>
+        <th>New Overall</th><th>New Label</th><th>Flipped</th>
+      </tr></thead><tbody></tbody>`;
+      const wsBody = wsTable.querySelector('tbody');
+      ws.forEach(r => {
+        const tr = document.createElement('tr');
+        if (r.flipped) tr.style.background = '#fef0ed';
+        tr.innerHTML = `
+          <td><code>${r.claim_id}</code></td>
+          <td>${r.direction}</td>
+          <td>${r.new_weight}</td>
+          <td>${r.new_overall}</td>
+          <td class="em-label-${r.new_label}">${r.new_label}</td>
+          <td>${r.flipped ? '⚠️ flipped' : '—'}</td>`;
+        wsBody.appendChild(tr);
+      });
+      container.appendChild(wsTable);
+    }
+  }
+
+  function buildGroupSummaryRows(data) {
+    if (data.hypothesis_by_group) {
+      return Object.entries(data.hypothesis_by_group).map(([g, h]) => ({
+        group: g,
+        overall_score: h.overall_score,
+        label: h.label,
+        null_p: h.null_p,
+        n_satisfied: h.n_satisfied,
+        n_total: h.n_total,
+        n_skipped: h.n_skipped,
+        vetoed: (h.veto_reasons || []).length > 0,
+      }));
+    }
+    if (data.hypothesis_by_group_summary) {
+      return data.hypothesis_by_group_summary.map(r => ({
+        group: r.group,
+        overall_score: r.overall_score != null ? Number(r.overall_score) : null,
+        label: r.label,
+        null_p: r.null_p != null ? Number(r.null_p) : null,
+        n_satisfied: r.n_satisfied,
+        n_total: r.n_total,
+        n_skipped: r.n_skipped,
+        vetoed: false,
+      }));
+    }
+    return [];
+  }
+
+  function renderHypothesisBlock(data, hypContainer) {
+    hypContainer.innerHTML = '';
+    hypContainer.classList.remove('em-placeholder');
+
+    const groupRows = buildGroupSummaryRows(data);
+    const hasGroupData = groupRows.length > 0;
+    const hasGroupDict = !!data.hypothesis_by_group;
+    const hasSingleHyp = !!data.hypothesis;
+
+    if (!hasGroupData && !hasSingleHyp) {
+      hypContainer.classList.add('em-placeholder');
+      hypContainer.innerHTML = '<h3>本次导出未附带假说评分</h3>' +
+        '<p>在 Streamlit 端运行「🧪 假说评分」后再导出 HTML 可查看本面板。</p>';
+      return;
+    }
+
+    if (!hasGroupData) {
+      renderHypothesisPanel(data.hypothesis, hypContainer);
+      return;
+    }
+
+    // 跨组优先布局
+    const h = document.createElement('h3');
+    h.style.margin = '0 0 8px';
+    h.innerHTML = '🔀 跨组评分概览 <span style="font-size:12px;color:#556;font-weight:400">' +
+      (hasGroupDict
+        ? '（点击组卡片 ↓ 可在下方展开该组完整 claim 详情）'
+        : '（汇总表格，详细 claim 需 Streamlit 端单组评分）') + '</span>';
+    hypContainer.appendChild(h);
+
+    const labels = [...new Set(groupRows.map(r => r.label).filter(Boolean))];
+    if (labels.length > 1) {
+      const banner = document.createElement('div');
+      banner.style.cssText = 'background:#fff7e0;border-left:4px solid #F39C12;' +
+        'padding:10px 14px;border-radius:3px;margin-bottom:12px;color:#7a4a10;font-size:13px';
+      banner.innerHTML = `<b>⚠️ 组间 label 差异：</b>不同组达到了不同的 label（${labels.join(' / ')}）—— ` +
+        `这是组间机制差异的关键证据，值得重点分析。`;
+      hypContainer.appendChild(banner);
+    }
+
+    let selectedIdx = 0;
+    let maxScore = -Infinity;
+    groupRows.forEach((r, i) => {
+      const s = r.overall_score != null ? Number(r.overall_score) : -1;
+      if (s > maxScore) { maxScore = s; selectedIdx = i; }
+    });
+
+    const cards = document.createElement('div');
+    cards.className = 'em-hyp-overall';
+    const cardEls = [];
+    const groupDetailHeader = document.createElement('h3');
+    groupDetailHeader.style.cssText = 'margin:24px 0 10px';
+    const groupDetailBody = document.createElement('div');
+
+    groupRows.forEach((r, i) => {
+      const card = document.createElement('div');
+      card.className = 'em-hyp-card';
+      if (hasGroupDict) {
+        card.style.cursor = 'pointer';
+        card.title = '点击下方查看该组完整 claim 详情';
+      }
+      if (i === selectedIdx && hasGroupDict) {
+        card.style.border = '2px solid #2c7fb8';
+        card.style.background = '#f0f7fd';
+      }
+      const labelCls = r.vetoed ? 'em-label-vetoed'
+        : ('em-label-' + (r.label || 'insufficient'));
+      const labelText = r.vetoed ? 'VETOED' : String(r.label || '?').toUpperCase();
+      const ovTxt = r.overall_score != null ? Number(r.overall_score).toFixed(3) : '—';
+      const pTxt = r.null_p == null ? 'N/A' : `p = ${Number(r.null_p).toFixed(3)}`;
+      const pColor = r.null_p != null && Number(r.null_p) < 0.05 ? '#27AE60' : '#E67E22';
+      card.innerHTML = `
+        <h4>[${r.group}] Overall</h4>
+        <div class="em-val">${ovTxt}</div>
+        <div class="em-sub" style="margin-top:6px">
+          <div class="${labelCls}" style="font-size:15px;font-weight:700;margin-bottom:3px">
+            ${labelText}
+          </div>
+          <div style="color:${pColor};font-weight:600">${pTxt}</div>
+          <div style="margin-top:3px">claims: ${r.n_satisfied ?? '?'}/${r.n_total ?? '?'} 通过
+            ${r.n_skipped ? `· ${r.n_skipped} skipped` : ''}</div>
+        </div>`;
+      if (hasGroupDict) {
+        card.addEventListener('click', () => {
+          cardEls.forEach(c => {
+            c.style.border = '1px solid #d0d7e1';
+            c.style.background = '#fff';
+          });
+          card.style.border = '2px solid #2c7fb8';
+          card.style.background = '#f0f7fd';
+          groupDetailHeader.innerHTML =
+            `📋 <b>[${r.group}]</b> 组 claim 详情 ` +
+            `<span style="font-size:12px;color:#556;font-weight:400">` +
+            `（点上方其他组卡片可切换）</span>`;
+          renderHypothesisPanel(data.hypothesis_by_group[r.group], groupDetailBody);
+        });
+      }
+      cards.appendChild(card);
+      cardEls.push(card);
+    });
+    hypContainer.appendChild(cards);
+
+    if (hasGroupDict) {
+      const defaultGroup = groupRows[selectedIdx].group;
+      groupDetailHeader.innerHTML =
+        `📋 <b>[${defaultGroup}]</b> 组 claim 详情 ` +
+        `<span style="font-size:12px;color:#556;font-weight:400">` +
+        `（点上方其他组卡片可切换）</span>`;
+      hypContainer.appendChild(groupDetailHeader);
+      hypContainer.appendChild(groupDetailBody);
+      renderHypothesisPanel(data.hypothesis_by_group[defaultGroup], groupDetailBody);
+    }
+
+    if (hasSingleHyp) {
+      const det = document.createElement('details');
+      det.className = 'em-details';
+      det.style.marginTop = '20px';
+      const sum = document.createElement('summary');
+      sum.innerHTML = `🌐 全组合并评分 <span style="font-size:12px;color:#556;font-weight:400">` +
+        `（overall=${Number(data.hypothesis.overall_score || 0).toFixed(3)}，` +
+        `所有样本不分组聚合；默认折叠，仅作对照）</span>`;
+      det.appendChild(sum);
+      const body = document.createElement('div');
+      body.className = 'em-details-body';
+      renderHypothesisPanel(data.hypothesis, body);
+      det.appendChild(body);
+      hypContainer.appendChild(det);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // renderCompareBlock
+  // ═══════════════════════════════════════════════════════
+  function renderCompareBlock(data, container) {
+    container.innerHTML = '';
+    container.classList.remove('em-placeholder');
+    const rows = data.compare_groups || [];
+    if (rows.length === 0) {
+      container.classList.add('em-placeholder');
+      container.innerHTML = '<h3>通路 × 组对比</h3>' +
+        '<p>本次导出未附带 compare_groups 数据。</p>';
+      return;
+    }
+
     const groups = [...new Set(rows.map(r => r.group))];
     const pwMap = new Map();
     rows.forEach(r => {
@@ -1709,7 +1763,6 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
       });
       pwMap.get(key).byGroup[r.group] = r;
     });
-    // 为每个 pathway 计算跨组衍生指标
     pwMap.forEach(pw => {
       const contribs = groups.map(g => {
         const r = pw.byGroup[g];
@@ -1727,7 +1780,6 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
     });
     const allPws = Array.from(pwMap.values());
 
-    // 标题 + 说明
     const h3 = document.createElement('h3');
     h3.style.margin = '0 0 6px';
     h3.textContent = '🆚 通路 × 组对比';
@@ -1741,11 +1793,9 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
       每条通路在不同组的活跃度（<b>total_contribution</b>）+ 承载者（<b>top MAG</b>）身份变化。<br>
       <span style="color:#556">回答「这条通路在 A/CK/B 哪组最活？谁承载？keystone 是否切换？」</span><br>
       <span style="color:#889;font-size:11px">
-        与上方「🧪 假说评分」不同：后者聚焦整个假说的统计显著性；
-        本页聚焦单通路级的组间机制差异。</span>`;
+        与「🧪 假说评分」不同：后者聚焦整个假说的统计显著性；本页聚焦单通路级组间机制差异。</span>`;
     container.appendChild(sub);
 
-    // 汇总卡
     const changedCount = allPws.filter(pw => pw.top_mag_changed).length;
     const summary = document.createElement('div');
     summary.className = 'em-hyp-overall';
@@ -1761,7 +1811,6 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
       `/ ${allPws.length} 通路 top_mag 跨组变化`));
     container.appendChild(summary);
 
-    // 控制栏：排序 + element 过滤 + "只看承载者切换"
     const allElements = [...new Set(allPws.map(p => p.element))].filter(Boolean);
     const ctrl = document.createElement('div');
     ctrl.style.cssText = 'display:flex;gap:12px;flex-wrap:wrap;align-items:center;' +
@@ -1789,7 +1838,6 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
         ${allPws.length} 条</span>`;
     container.appendChild(ctrl);
 
-    // 表格
     const table = document.createElement('table');
     table.className = 'em-claim-table';
     table.style.marginTop = '6px';
@@ -1807,12 +1855,9 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
           tr.style.background = '#fff9e0';
           tr.title = `承载者跨组变化：${pw.unique_genera.join(' → ')}`;
         }
-        const deltaTxt = pw.contrib_delta != null
-          ? pw.contrib_delta.toFixed(1)
-          : '—';
+        const deltaTxt = pw.contrib_delta != null ? pw.contrib_delta.toFixed(1) : '—';
         const changedIcon = pw.top_mag_changed
-          ? ' <span style="color:#E67E22;font-weight:700" title="承载者切换">⟳</span>'
-          : '';
+          ? ' <span style="color:#E67E22;font-weight:700" title="承载者切换">⟳</span>' : '';
         let cells = `<td style="font-size:11px">${pw.element || ''}</td>` +
           `<td><code style="font-size:11px">${pw.display_name || pw.pathway_id}</code>${changedIcon}</td>` +
           `<td style="font-weight:600;color:#1a365d">${deltaTxt}</td>`;
@@ -1865,7 +1910,6 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
     document.getElementById('em-cmp-elem').addEventListener('change', applyFilter);
     document.getElementById('em-cmp-changed-only').addEventListener('change', applyFilter);
 
-    // 图例
     const leg = document.createElement('div');
     leg.style.cssText = 'margin-top:12px;font-size:11px;color:#556';
     leg.innerHTML = `<b>图例：</b>
@@ -1876,27 +1920,16 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
     container.appendChild(leg);
   }
 
-  const compareContainer = document.getElementById('em-compare-container');
-  if (EM_DATA.compare_groups && EM_DATA.compare_groups.length > 0) {
-    renderComparePanel(EM_DATA.compare_groups, compareContainer);
-  }
-
-  // ═══════════════════════════════════════════════════════
-  // Meta 面板数据 dump
-  // ═══════════════════════════════════════════════════════
-  document.getElementById('em-params-dump').textContent =
-    JSON.stringify(EM_DATA.params || {}, null, 2);
-  document.getElementById('em-meta-dump').textContent =
-    JSON.stringify(EM_DATA.meta || {}, null, 2);
-
-  console.log('[EnvMeta] T2-β/γ 加载完成', {
+  console.log('[EnvMeta] 加载完成', {
     elements: (EM_DATA.elements || []).length,
-    nodes: nodes.length,
-    pathways: pathways.length,
-    couplings: couplingData.length,
+    nodes: state.nodes.length,
+    pathways: state.pathways.length,
+    chemicals: state.chemicals.length,
+    couplings_rendered: computeCouplings(state).length,
     has_hypothesis: !!EM_DATA.hypothesis,
-    has_hypothesis_by_group: !!EM_DATA.hypothesis_by_group,
+    has_hypothesis_by_group: !!(EM_DATA.hypothesis_by_group || EM_DATA.hypothesis_by_group_summary),
     has_compare: !!EM_DATA.compare_groups,
+    has_per_group_cycles: !!EM_DATA.cycles_by_group,
   });
 })();
 </script>

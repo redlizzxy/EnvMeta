@@ -202,20 +202,51 @@ def test_html_contains_render_env_panel(cycle_data):
     assert "T2-β 实现" not in html
 
 
-def test_html_coupling_precise_anchor_logic(cycle_data):
-    """ε.3: HTML 含 chemicalToPathway 函数 + 产物节点渲染。"""
+def test_html_coupling_only_products(cycle_data):
+    """Q2: 耦合线只连"产物↔产物"（不画底物节点间连线，不画中间产物节点）。"""
     html = build_interactive_html(cycle_data).decode("utf-8")
-    assert "chemicalToPathway" in html
-    assert "chemicalAnchors" in html
-    assert "em-coupling-product" in html
+    # 化学物节点系统
+    assert "em-chem-node" in html
+    assert "computeCouplings" in html
+    # 只连产物
+    assert "role === 'product'" in html or 'role: \'product\'' in html
+    # 旧中间产物节点已移除
+    assert "em-coupling-product" not in html
 
 
 def test_html_cross_group_overview_first(cycle_data):
-    """ε.4: 有分组时跨组概览逻辑存在（renderCrossGroupOverview）。"""
+    """Q4: 有分组时跨组概览逻辑存在（renderHypothesisBlock + 跨组评分概览）。"""
     html = build_interactive_html(cycle_data).decode("utf-8")
-    assert "renderCrossGroupOverview" in html
+    assert "renderHypothesisBlock" in html
     assert "跨组评分概览" in html
-    assert "组间 label 差异" in html  # 差异警告横幅
+    assert "组间 label 差异" in html
+
+
+def test_html_has_per_group_cycle_support(cycle_data):
+    """Q3: HTML 支持 per-group 循环图切换（cycles_by_group + group selector）。"""
+    html = build_interactive_html(cycle_data).decode("utf-8")
+    assert "cycles_by_group" in html
+    assert "installGroupSelector" in html
+    assert "em-group-selector" in html
+
+
+def test_html_panel_try_catch_isolation(cycle_data):
+    """Q1: 各 panel 渲染用 try-catch 隔离 + showPanelError 函数。"""
+    html = build_interactive_html(cycle_data).decode("utf-8")
+    assert "showPanelError" in html
+    # 3 处 try { renderXxxPanel } catch
+    assert html.count("catch (e) { showPanelError(") >= 3
+
+
+def test_cycle_to_json_per_group_cycles(cycle_data):
+    """Q3: cycle_to_json 接受 per_group_cycles 参数并输出 cycles_by_group。"""
+    payload = cycle_to_json(
+        cycle_data,
+        per_group_cycles={"A": cycle_data, "B": cycle_data},
+    )
+    assert "cycles_by_group" in payload
+    assert set(payload["cycles_by_group"].keys()) == {"A", "B"}
+    assert "elements" in payload["cycles_by_group"]["A"]
 
 
 def test_html_compare_tab_renamed_and_enhanced(cycle_data):
