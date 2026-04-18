@@ -19,6 +19,9 @@ env/
 *.swp
 *.swo
 
+# Claude Code 本地状态
+.claude/
+
 # OS
 .DS_Store
 Thumbs.db
@@ -27,9 +30,8 @@ Desktop.ini
 # Streamlit
 .streamlit/secrets.toml
 
-# 数据文件（原始数据不入库，样例数据除外）
-data/raw/
-data/processed/
+# 数据文件（本地数据不入库；样例数据在 tests/sample_data/ 例外）
+data/
 *.gephi
 
 # 图形输出
