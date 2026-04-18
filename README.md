@@ -135,19 +135,20 @@ envmeta/
 
 ## 论文引用
 
-EnvMeta 计划作为方法学论文发表。目标期刊：**iMeta / Bioinformatics / Frontiers in Microbiology**。
+EnvMeta 计划作为方法学论文发表。
 
 发表前引用本仓库 URL 即可；发表后会在此处追加 DOI。
 
 ## 致谢
 
-EnvMeta 源自一项砷渣-钢渣微生物修复宏基因组研究。感谢内测阶段的师弟师妹贡献反馈（名单见致谢页）。
+EnvMeta 源自一项砷渣-钢渣微生物修复宏基因组研究。感谢内测阶段的同学贡献反馈（名单在论文发表后见致谢页）。
 
 ## License
 
 TBD（投稿前确定；预计 MIT 或 Apache-2.0）。
 
-## 联系
+## 联系（建议优先邮件联系）
 
 - GitHub Issues：<https://github.com/redlizzxy/EnvMeta/issues>
-- Bug 反馈 / 功能请求：欢迎 PR
+- Bug 反馈 / 功能请求：18872605913@163.com
+
