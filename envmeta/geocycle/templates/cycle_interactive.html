@@ -405,6 +405,7 @@
       <svg id="em-cycle-canvas" viewBox="0 0 1200 720" preserveAspectRatio="xMidYMid meet">
         <g id="em-zoom-root">
           <g id="em-quadrants"></g>
+          <g id="em-chem-links"></g>
           <g id="em-couplings"></g>
           <g id="em-pathway-labels"></g>
           <g id="em-chemicals"></g>
@@ -581,27 +582,29 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
             y: cy + (Math.random() - 0.5) * 30,
             cx, cy, quad,
           });
-          // 收集该 MAG 的基因 substrate/product → 化学物候选
+          // Q3+Q4: 收集基因 substrate/product → 化学物候选
+          // 同一化学物可同时是底物 + 产物（两份独立节点），key 用 "role::norm"
           if (!chemBySpeciesPerEl[el.element_id]) {
             chemBySpeciesPerEl[el.element_id] = new Map();
           }
           const elMap = chemBySpeciesPerEl[el.element_id];
           (mc.genes || []).forEach(g => {
-            if (g.substrate) {
-              const k = normSpecies(g.substrate);
-              if (!elMap.has(k)) elMap.set(k, { name: g.substrate, role: 'substrate', occurs: 1 });
-              else elMap.get(k).occurs += 1;
-            }
-            if (g.product) {
-              const k = normSpecies(g.product);
-              // 同一化学物若既是底物又是产物，以"产物"优先（参与耦合）
-              if (!elMap.has(k)) elMap.set(k, { name: g.product, role: 'product', occurs: 1 });
-              else {
-                const existing = elMap.get(k);
+            const addChem = (rawName, role) => {
+              if (!rawName) return;
+              const key = `${role}::${normSpecies(rawName)}`;
+              if (!elMap.has(key)) {
+                elMap.set(key, {
+                  name: rawName, role, occurs: 1,
+                  pathway_ids: new Set([pw.pathway_id]),
+                });
+              } else {
+                const existing = elMap.get(key);
                 existing.occurs += 1;
-                if (existing.role === 'substrate') existing.role = 'product';
+                existing.pathway_ids.add(pw.pathway_id);
               }
-            }
+            };
+            addChem(g.substrate, 'substrate');
+            addChem(g.product, 'product');
           });
         });
       });
@@ -623,9 +626,11 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
         list.forEach((c, i) => {
           const y = axisTop + (i + 1) * (axisBot - axisTop) / (list.length + 1);
           chemicals.push({
-            id: `${elId}::${role}::${c.name}`,
+            id: `${elId}::${role}::${normSpecies(c.name)}`,
             name: c.name, role, element: elId,
-            occurs: c.occurs, quad,
+            occurs: c.occurs,
+            pathway_ids: Array.from(c.pathway_ids || []),
+            quad,
             x: quad.x + xOffset, y,
             anchor_x: quad.x + xOffset, anchor_y: y,
           });
@@ -639,19 +644,31 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
   }
 
   // ═══════════════════════════════════════════════════════
-  // computeCouplings(state) — 只连"产物 ↔ 产物"
+  // Q4: computeCouplings — 优先连产物，若化学物仅作底物出现则 fallback 底物
+  // （KB 里 Fe(III)/NO3- 这类氧化态通常只作 substrate 被微生物还原，不画耦合
+  //  会造成视觉丢线。所以策略：product > substrate > 丢弃）
   // ═══════════════════════════════════════════════════════
   function computeCouplings(state) {
-    const prodIndex = new Map();
-    state.chemicals.filter(c => c.role === 'product').forEach(c => {
-      prodIndex.set(normSpecies(c.name), c);
+    const byName = new Map();  // normSpecies → { product: node|null, substrate: node|null }
+    state.chemicals.forEach(c => {
+      const k = normSpecies(c.name);
+      if (!byName.has(k)) byName.set(k, { product: null, substrate: null });
+      byName.get(k)[c.role] = c;
     });
+    const findAnchor = (species) => {
+      const hit = byName.get(normSpecies(species));
+      if (!hit) return null;
+      return hit.product || hit.substrate;  // product 优先
+    };
     const couplings = EM_DATA.couplings || [];
     return couplings.map(cp => {
-      const a = prodIndex.get(normSpecies(cp.species_a));
-      const b = prodIndex.get(normSpecies(cp.species_b));
-      if (!a || !b) return null;  // 任一端不是当前数据的产物 → 不画
-      return { ...cp, nodeA: a, nodeB: b };
+      const a = findAnchor(cp.species_a);
+      const b = findAnchor(cp.species_b);
+      if (!a || !b) return null;
+      return {
+        ...cp, nodeA: a, nodeB: b,
+        roleA: a.role, roleB: b.role,
+      };
     }).filter(Boolean);
   }
 
@@ -760,20 +777,60 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
         updateCouplings();
       }));
 
-    // 化学物 tooltip
+    // Q2: 化学物 hover — 画连接线到相关 pathway cluster + 高亮 + tooltip
+    const linkGroup = d3.select('#em-chem-links');
     chemSel
       .on('mouseenter', function(event, d) {
         const role = d.role === 'product' ? '产物（可耦合）' : '底物（由微生物捕获转化）';
+        const pwNames = (d.pathway_ids || [])
+          .map(pid => {
+            const pw = state.pathways.find(p => p.pathway_id === pid);
+            return pw ? pw.display_name : pid;
+          });
+        const pwList = pwNames.length > 0
+          ? pwNames.map(n => `<div style="font-size:11px;margin-left:8px">↳ ${n}</div>`).join('')
+          : '<div style="font-size:11px;color:#aaa">（无关联通路）</div>';
         showTooltip(
           `<div style="font-size:13px;margin-bottom:4px"><b>${d.name}</b></div>` +
           `<div>角色：${role}</div>` +
           `<div>出现在 ${d.occurs} 个 gene 记录中</div>` +
+          `<div style="margin-top:4px;font-size:11px;color:#aaf">关联通路：</div>` +
+          pwList +
           `<div style="margin-top:4px;font-size:11px;color:#ccc">拖拽可调整位置</div>`,
           event,
         );
+        // 画临时关联线（chem → 每条 pathway cluster 中心）
+        linkGroup.selectAll('*').remove();
+        const relPwIds = new Set(d.pathway_ids || []);
+        const relPws = state.pathways.filter(p => relPwIds.has(p.pathway_id));
+        linkGroup.selectAll('line').data(relPws).enter().append('line')
+          .attr('x1', d.x).attr('y1', d.y)
+          .attr('x2', p => p.cx).attr('y2', p => p.cy)
+          .attr('stroke', d.quad.color)
+          .attr('stroke-width', 1.5)
+          .attr('stroke-dasharray', '3 3')
+          .attr('opacity', 0.55)
+          .attr('pointer-events', 'none');
+        // 相关 MAG 节点 + pathway label 高亮；其他 dim
+        if (renderCycle._sels && renderCycle._sels.nodeSel) {
+          renderCycle._sels.nodeSel
+            .classed('dimmed', n => !relPwIds.has(n.pathway_id))
+            .classed('selected', n => relPwIds.has(n.pathway_id));
+        }
+        d3.selectAll('.em-pathway-label')
+          .classed('dimmed', function() { return !relPwIds.has(this.dataset.pathway); });
+        // 其他化学物节点 dim（但当前 hover 保持高亮）
+        chemSel.classed('dimmed', cd => cd.id !== d.id && !cd.pathway_ids.some(pid => relPwIds.has(pid)));
       })
       .on('mousemove', moveTooltip)
-      .on('mouseleave', hideTooltip);
+      .on('mouseleave', function() {
+        hideTooltip();
+        linkGroup.selectAll('*').remove();
+        // 只在未选中具体 pathway 时恢复
+        if (!selectedPathway) {
+          clearHighlight();
+        }
+      });
 
     // MAG 节点
     const nodeSel = d3.select('#em-nodes').selectAll('circle')
@@ -838,10 +895,24 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
       .enter().append('path')
       .attr('class', 'em-coupling')
       .attr('stroke', d => d.color || '#666');
-    coupSel.append('title').text(d =>
-      `${d.species_a} ↔ ${d.species_b} → ${d.product}  (${d.type})\n${d.description || ''}\n\n` +
-      `锚点：${d.nodeA.name}（${d.nodeA.element}）↔ ${d.nodeB.name}（${d.nodeB.element}）`
-    );
+
+    // Q1: 统一 d3 自定义 tooltip（替代原生 <title>，与节点一致）
+    const roleZh = (r) => r === 'product' ? '产物' : r === 'substrate' ? '底物' : '?';
+    coupSel
+      .on('mouseenter', function(event, d) {
+        showTooltip(
+          `<div style="font-size:13px;margin-bottom:4px">
+             <b>${d.species_a}</b> ↔ <b>${d.species_b}</b> → <b>${d.product}</b></div>` +
+          `<div>类型：${d.type}</div>` +
+          `<div style="color:#ddd;margin:4px 0">${d.description || ''}</div>` +
+          `<div style="font-size:11px;color:#aaf">锚点：</div>` +
+          `<div style="font-size:11px">  ↳ <b>${d.nodeA.name}</b>（${d.nodeA.element} · ${roleZh(d.roleA)}）</div>` +
+          `<div style="font-size:11px">  ↳ <b>${d.nodeB.name}</b>（${d.nodeB.element} · ${roleZh(d.roleB)}）</div>`,
+          event,
+        );
+      })
+      .on('mousemove', moveTooltip)
+      .on('mouseleave', hideTooltip);
 
     function updateCouplings() {
       coupSel.attr('d', d => {
@@ -1104,22 +1175,13 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
   // ═══════════════════════════════════════════════════════
   // renderEnvPanel
   // ═══════════════════════════════════════════════════════
-  function renderEnvPanel(data, container) {
-    container.innerHTML = '';
-    container.classList.remove('em-placeholder');
-
-    const filtered = data.env_correlations || [];
-    const fullMatrix = data.full_corr_matrix || [];
-    const sensitivity = data.sensitivity || [];
-
-    const header = document.createElement('div');
-    header.innerHTML = `
-      <h3 style="margin:0 0 6px">🌡️ 环境相关性</h3>
-      <div style="font-size:12px;color:#556;margin-bottom:10px">
-        通路活性（按样本维度的 abundance × |KO∩pw|）与环境因子的 Spearman 相关，
-        经 <b>999 次置换</b>产生 <b>perm_p</b>，并用<b>阈值敏感度</b>校验得到 5 档可信度标签。
-      </div>`;
-    container.appendChild(header);
+  // Q6: env panel 支持 per-group 切换
+  // 先抽出单次渲染逻辑为 _renderEnvForSource(src, container)
+  // 再包一层 renderEnvPanel(data, container) 加顶部 group selector
+  function _renderEnvForSource(src, container) {
+    const filtered = src.env_correlations || [];
+    const fullMatrix = src.full_corr_matrix || [];
+    const sensitivity = src.sensitivity || [];
 
     const counter = { strong: 0, suggestive: 0, weak: 0, spurious: 0, unknown: 0 };
     filtered.forEach(r => {
@@ -1322,6 +1384,59 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
       det.appendChild(dbody);
       container.appendChild(det);
     }
+  }
+
+  // Q6: env panel wrapper — 加 per-group 切换
+  function renderEnvPanel(data, container) {
+    container.innerHTML = '';
+    container.classList.remove('em-placeholder');
+
+    const groups = data.cycles_by_group
+      ? Object.keys(data.cycles_by_group) : [];
+
+    // 顶部标题（常驻）
+    const header = document.createElement('div');
+    header.innerHTML = `
+      <h3 style="margin:0 0 6px">🌡️ 环境相关性</h3>
+      <div style="font-size:12px;color:#556;margin-bottom:10px">
+        通路活性（按样本维度的 abundance × |KO∩pw|）与环境因子的 Spearman 相关，
+        经 <b>999 次置换</b>产生 <b>perm_p</b>，并用<b>阈值敏感度</b>校验得到 5 档可信度标签。
+      </div>`;
+    container.appendChild(header);
+
+    if (groups.length === 0) {
+      _renderEnvForSource(data, container);
+      return;
+    }
+
+    // 组切换
+    let current = '__all__';
+    const sel = document.createElement('div');
+    sel.className = 'em-group-selector';
+    sel.style.cssText = 'display:inline-flex;margin-bottom:12px;align-items:center';
+    sel.innerHTML = '<label>📁 组：</label>';
+    const bodyDiv = document.createElement('div');
+
+    const opts = [{ id: '__all__', name: '全样本' },
+                  ...groups.map(g => ({ id: g, name: g }))];
+    opts.forEach(o => {
+      const btn = document.createElement('button');
+      btn.className = 'em-group-btn' + (o.id === current ? ' active' : '');
+      btn.textContent = o.name;
+      btn.addEventListener('click', () => {
+        if (current === o.id) return;
+        current = o.id;
+        sel.querySelectorAll('.em-group-btn').forEach(b =>
+          b.classList.toggle('active', b === btn));
+        const src = o.id === '__all__' ? data : data.cycles_by_group[o.id];
+        bodyDiv.innerHTML = '';
+        _renderEnvForSource(src, bodyDiv);
+      });
+      sel.appendChild(btn);
+    });
+    container.appendChild(sel);
+    container.appendChild(bodyDiv);
+    _renderEnvForSource(data, bodyDiv);  // 默认全样本
   }
 
   // 环境相关跳转接口（给 hypothesis claim 点击穿透用）

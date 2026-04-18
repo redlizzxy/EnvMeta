@@ -145,12 +145,14 @@ def cycle_to_json(
 
     # Q3: per-group cycle 数据（HTML 可切换查看 CK / A / B 的循环图）
     # 每组是独立的 CycleData（来自 infer(group_filter=g)）
-    # 仅存轻量字段（elements + env_correlations），避免 HTML 膨胀
+    # Q6: 补齐 full_corr_matrix + sensitivity，供 env panel 按组切换
     if per_group_cycles:
         payload["cycles_by_group"] = {
             g: {
                 "elements": [asdict(el) for el in cd.elements],
                 "env_correlations": [asdict(ec) for ec in cd.env_correlations],
+                "full_corr_matrix": [asdict(ec) for ec in cd.full_corr_matrix],
+                "sensitivity": [asdict(sr) for sr in cd.sensitivity],
                 "meta": dict(cd.meta),
             }
             for g, cd in per_group_cycles.items()

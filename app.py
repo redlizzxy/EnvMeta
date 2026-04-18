@@ -2052,6 +2052,34 @@ elif page == "生物地球化学循环图":
                     "环境相关 5 档可信度 + SVG / JSON 导出。"
                 ),
             )
+            # Q5: 状态透明面板 — 让用户一眼看到 HTML 里包含/缺失哪些数据
+            def _chk(v):
+                return "✅" if v is not None and v is not False else "❌"
+            _n_groups = (len(_per_group) if isinstance(_per_group, dict) else 0) or 0
+            _hyp_multi_n = 0
+            if _hyp_groups is not None:
+                try: _hyp_multi_n = len(_hyp_groups)
+                except Exception: _hyp_multi_n = 0
+            st.caption(
+                f"📋 **HTML 已注入数据**：  "
+                f"{_chk(_cycle_data)} 循环图（全样本）  ·  "
+                f"{_chk(_per_group)} per-group 循环（{_n_groups} 组）  ·  "
+                f"{_chk(_hyp)} 单组假说  ·  "
+                f"{_chk(_hyp_groups)} 跨组假说（{_hyp_multi_n} 行）  ·  "
+                f"{_chk(_cmp)} 通路×组对比"
+            )
+            _missing = []
+            if _hyp is None:
+                _missing.append("**单组假说** → 到「🧪 假说评分」页跑")
+            if _hyp_groups is None:
+                _missing.append("**跨组假说** → 「🧪 假说评分」页 ✓ 勾选「跨组对比」后再跑")
+            if _cmp is None:
+                _missing.append("**通路×组对比** → 展开下方「跨组对比表（回答...）」expander 并跑")
+            if _per_group is None and _n_groups == 0:
+                _missing.append("**per-group 循环切换** → metadata 需有 Group 列 + ≥ 2 组")
+            if _missing:
+                st.caption("ℹ️ HTML 里空白的模块是因为以下数据未生成：  \n- " +
+                           "  \n- ".join(_missing))
         except Exception as _e:  # noqa: BLE001
             import traceback as _tb
             st.caption(f"⚠️ 交互 HTML 导出失败：{_e}")
@@ -2384,7 +2412,9 @@ elif page == "生物地球化学循环图":
                 help="勾选后对 metadata.Group 里每个组分别评分，"
                      "生成 group × 指标 的对比表。"
                      "用于比较不同处理/条件下数据对同一假说的支持度差异，"
-                     "是论文 Results 里跨组对比叙事的直接素材。",
+                     "是论文 Results 里跨组对比叙事的直接素材。"
+                     "💡 **勾选后跨组评分会同步注入到 HTML 交互导出，"
+                     "在假说评分 tab 顶部显示跨组卡片组。**",
             )
             if hyp_file is not None and st.button("评分", key="hyp_score_go"):
                 try:

@@ -249,6 +249,49 @@ def test_cycle_to_json_per_group_cycles(cycle_data):
     assert "elements" in payload["cycles_by_group"]["A"]
 
 
+# ═══════════════════════════════════════════════════════════════
+# Q1-Q6 轮二精调（耦合 tooltip / 化学物 hover 关联 / 角色重合 /
+# env panel per-group 切换）
+# ═══════════════════════════════════════════════════════════════
+
+def test_per_group_cycles_include_full_corr_and_sensitivity(cycle_data):
+    """Q6: per_group_cycles payload 补齐 full_corr_matrix + sensitivity。"""
+    payload = cycle_to_json(
+        cycle_data,
+        per_group_cycles={"A": cycle_data},
+    )
+    g = payload["cycles_by_group"]["A"]
+    assert "full_corr_matrix" in g
+    assert "sensitivity" in g
+
+
+def test_html_chemical_hover_link_and_coupling_fallback(cycle_data):
+    """Q2 + Q4: 化学物 hover 画关联虚线（em-chem-links）+ 耦合 fallback 到 substrate。"""
+    html = build_interactive_html(cycle_data).decode("utf-8")
+    # Q2: chem-links 容器
+    assert 'id="em-chem-links"' in html
+    assert "linkGroup.selectAll" in html
+    # Q4: computeCouplings 不再强制 product-only
+    assert "product || hit.substrate" in html
+
+
+def test_html_env_panel_supports_per_group_selector(cycle_data):
+    """Q6: env panel wrapper 含 per-group 切换（groups.length 判定）。"""
+    html = build_interactive_html(cycle_data).decode("utf-8")
+    assert "_renderEnvForSource" in html
+    # wrapper 里对 cycles_by_group 的判断
+    assert "data.cycles_by_group" in html
+
+
+def test_html_coupling_uses_custom_tooltip(cycle_data):
+    """Q1: 耦合线使用 d3 自定义 showTooltip（不再依赖 <title>）。"""
+    html = build_interactive_html(cycle_data).decode("utf-8")
+    # coupSel 的 mouseenter 事件绑定存在
+    assert "coupSel" in html
+    # 耦合 tooltip 显示"锚点："含 role 描述
+    assert "锚点：" in html and "roleA" in html
+
+
 def test_html_compare_tab_renamed_and_enhanced(cycle_data):
     """ε.5: compare tab 改名 + 承载者切换高亮 + 排序控件。"""
     html = build_interactive_html(cycle_data).decode("utf-8")
