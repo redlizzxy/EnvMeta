@@ -197,12 +197,13 @@ Microbiology）。开发时持续积累：
 4. **开发日志量化**：每次日志加一行量化数据（代码行数、验证结果、耗时对比），
    写入 [DEBUG_NOTES.md](DEBUG_NOTES.md)
 
-## 当前进度（2026-04-19）
+## 当前进度（2026-04-21，v0.8.1）
 
-**v0.8 内测版（在线可用）**：
+**v0.8.1 内测版（在线可用）**：
 - Phase 0-3 全部完成
-- 测试 **291/291 全绿**
+- 测试 **293/293 全绿**
 - **12 种分析图表 + 独立交互 HTML**
+- 更新日志见 [CHANGELOG.md](CHANGELOG.md)
 
 ### 已完成（按架构层分组）
 
@@ -215,6 +216,7 @@ Microbiology）。开发时持续积累：
 - ✅ **T2 HTML 交互导出** 400-550 KB 独立 HTML（D3 嵌入）+ per-group 切换 + 化学物精确锚点 + 上下标
 - ✅ **在线部署** Streamlit Cloud + 本地 Windows/Linux 行为一致性修复
 - ✅ **内测素材** 腾讯问卷 + 海报 + 部署指南 + 小白安装
+- ✅ **v0.8.1 Mac 端修复** conda ToS / pip protobuf resolver / macOS YAML 评分 ENAMETOOLONG / HTML 切组后 chem-link 失效
 
 ## Backlog（投稿前 + Phase 4）
 

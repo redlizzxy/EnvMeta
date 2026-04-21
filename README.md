@@ -78,6 +78,26 @@ streamlit run app.py
 
 浏览器自动打开 `http://localhost:8501`。
 
+## 📜 更新日志（近期）
+
+内测期频繁修 bug / 加功能，完整列表见 **[CHANGELOG.md](CHANGELOG.md)**。
+
+### v0.8.1 — 2026-04-21（Mac 端首批内测反馈修复）
+
+- 🐛 修 HTML 交互导出切组后化学物-通路连线失效（拖拽不跟随、hover 不高亮）
+- 🐛 修 macOS 上传 YAML 假说评分报 `[Errno 63] File name too long`
+- 📚 小白安装指南补 Mac 3 大坑 FAQ（conda ToS / protobuf resolver / Streamlit 欢迎邮箱）
+- 📚 README 新增"更新到新版本"章节
+
+### v0.8.0 — 2026-04-19（v0.8 内测版 "Sunday Sprint"）
+
+- ✨ 新手落地包（数据准备指南 / 图表向导 / 14 图解读 / 一键加载样例）
+- ✨ 导出中心 4-tab 统一入口 + 批量 ZIP
+- ✨ HTML 交互导出 v1.3（D3 inline 嵌入 + 独立离线）
+- ✨ Streamlit Cloud 在线部署
+
+---
+
 ## 🔄 更新到新版本（内测阶段）
 
 内测阶段 EnvMeta 会**频繁修 bug / 加功能**，建议每周 pull 一次拿最新代码。

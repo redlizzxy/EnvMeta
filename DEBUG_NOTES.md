@@ -17,6 +17,103 @@
 
 > 每次 session 结束前更新此区块。新对话开始时 Claude Code 自动读取，了解当前进度。
 
+### 2026-04-21（**v0.8.1 发布** — Mac 端首批内测反馈修复）
+
+**背景**：师妹在 Mac（Apple Silicon）上本地部署跑内测，从装环境到跑假说评分
+到导出 HTML 连撞 5 个坑。逐个定位 + 修复 + 文档化 + 打标签发版。
+
+**5 个坑的定位与修复**：
+
+1. **`CondaToSNonInteractiveError`**（装 conda 环境阶段）
+   - 根因：Anaconda 2024 年起对 `pkgs/main` / `pkgs/r` 加了 ToS 接受门槛，
+     新版 conda 拒绝默认源直到用户显式 `conda tos accept`
+   - 修：不改代码。文档加 Q1.1（方案 A：接受 ToS / 方案 B：换 conda-forge 源）
+
+2. **`ResolutionImpossible: protobuf ... no matching distributions`**（pip 装依赖阶段）
+   - 根因：conda 新环境里 pip 版本偏旧，旧 resolver 在 Apple Silicon 选到
+     protobuf 3.x（官方没给 arm64 Mac 发 wheel），整包安装回滚失败 →
+     连带 `import streamlit` 报 `ModuleNotFoundError`
+   - 修：不改代码。文档加 Q1.2（方法 1：`pip install --upgrade pip` 然后重试，
+     新版 pip 24+ 会选 protobuf 4.x/5.x 有 arm64 wheel）
+
+3. **`Welcome to Streamlit! ... Email:`**（首次启动）
+   - 根因：不是报错。Streamlit 首次启动的邀请订阅提示
+   - 修：文档加 Q1.3（留空回车跳过）
+
+4. **假说评分报 `[Errno 63] File name too long: '#`**（上传 YAML 阶段）
+   - 根因：`load_hypothesis(src: str | Path)` 对字符串入参先 `Path(src).exists()`
+     试探是否文件路径。YAML 正文常达数 KB，macOS `stat()` 抛 `ENAMETOOLONG`
+     (errno 63)。Python 3.11 的 `Path._IGNORED_ERRNOS` 白名单不含该 errno →
+     Linux / Win 上旧 Python 也可能触发，但 macOS errno 表现最"裸"
+   - 修：双重保护 —— 启发式（含换行 / 长度 ≥1024 直判 YAML）+ try/except
+     OSError 兜底；加回归测试 `test_load_hypothesis_from_long_yaml_string`
+   - 技术笔记：Python 3.12 把 `ENAMETOOLONG` / `EINVAL` 加入 `_IGNORED_ERRNOS`。
+     本项目要求 Python 3.11+，修法里的双重保护为未来 Python 版本兼容
+
+5. **HTML 交互导出切组后化学物-通路连线失效** ⭐ **主角 bug**
+   - 症状：初次打开正常；点任意分组按钮触发 renderCycle 重渲染后，
+     拖化学物连线不跟随 / hover 化学物连线不亮 / 刷新整页才恢复 /
+     化学物-化学物耦合线正常（cycles_by_group / em-couplings 清理正确）
+   - 根因：`renderCycle(state)` 开头清理 5 个兄弟容器（quadrants / couplings /
+     pathway-labels / chemicals / nodes）但**漏了 `#em-chem-links`**。
+     D3 data join key = `${chem_id}::${pathway_id}`，切组后新 chemicals 的
+     id（`element::role::normSpecies`）和旧的完全相同 → `.enter()` 返回空集合
+     → 没有新 `<line>` 被 append → DOM 留着旧 line，绑着 stale chemical 引用
+     → 用户拖新 chemical 和旧 line 毫无引用关系；同理 hover 时新 linkSel 为空，
+     `attr('opacity')` 作用在 0 个元素上
+   - 修：清理清单补一行
+     `d3.select('#em-chem-links').selectAll('*').remove();`
+     加回归测试 `test_html_renderCycle_clears_chem_links_container` 断言五个
+     兄弟容器清理调用都在
+   - 用户诊断贡献：师妹系统性报告"初次正常 → 切组失效 → 切回仍坏 → 刷新恢复 →
+     耦合线不受影响"四条判据精准定位到 renderCycle 的清理清单问题，
+     比我单纯看代码猜更准确
+
+**配套文档**：
+
+- 新建 `CHANGELOG.md`（Keep a Changelog 中文版格式）
+  - 倒序列 v0.8.1 / v0.8.0 / v0.7.0 / v0.5.0 / v0.1.0
+  - 每条带 commit 短 hash 超链接 GitHub
+  - 顶部写清"新手用户 `git pull origin master` 即可更新"
+- README 首屏加"📜 更新日志（近期）"章节
+  - 倒序 2 个版本 inline（v0.8.1 / v0.8.0 各 4 条要点）
+  - 完整列表链接到 CHANGELOG.md
+  - 放在"更新到新版本"章节前面（用户先看 changelog 知道有什么变 →
+    再看更新方法）
+- `envmeta/__init__.py` 版本号 `"0.1.0"` → `"0.8.1"`：历史遗留的 0.1.0
+  是项目骨架期 placeholder，和 README / CLAUDE.md 长期使用的 "v0.8" 内测叙事
+  脱钩。HTML 导出顶部 "EnvMeta v0.8.1" 徽章 + cycle_to_json 输出的
+  `envmeta_version` 字段会自动同步
+- CLAUDE.md 当前进度节点从 v0.8 → v0.8.1
+
+**量化**：
+- 代码修改：17 行（HTML 清理 1 + hypothesis 启发式 12 + 2 个回归测试断言）
+- 测试：291 → **293 全绿**
+- 文档：CHANGELOG.md 新建 114 行 / install_for_beginners.md +54 行 /
+  README +24 行 / DEBUG_NOTES.md +此段
+- 提交：4 commits（4742b6c / 8085d14 / 977ef83 / 6667ae3）+ 本次 changelog
+  commit
+- 用户反馈闭环：师妹从装 conda 报错到跑通完整假说评分 + 循环图交互，
+  约 2 小时跨大洋异步协作完成
+
+**经验总结**：
+
+- **用户反馈结构化 = 最快定位手段**：师妹第二次复现 bug 时按"初次 vs 切组 vs
+  切回 vs 刷新"四条判据描述，比我单纯读 800 行 D3 代码猜效率高 10 倍。
+  以后鼓励内测用户用"触发前状态 / 触发动作 / 观察结果 / 恢复方式"四段式反馈
+- **跨平台 stat errno 边角**：`Path.exists()` 表面看是简单布尔检查，
+  实际会因 `stat()` 在不同 errno 下行为分叉。Python 3.12 之前在
+  `ENAMETOOLONG` / `EINVAL` 上不 ignore。处理用户上传字符串时，
+  路径试探必须用 try/except 兜底而不是 `.exists()` 单测
+- **D3 data join key 的"更新语义"陷阱**：`.data(newArr, keyFn).enter()` 只
+  返回 keyFn 不在旧 DOM 里的新数据。相同 key → 认作"存在"，不 append。
+  如果 key 是对象身份无关的纯数据 hash（如 `element::role::name`），
+  切组后 key 碰撞是必然的，必须在重渲染前清理容器
+- **changelog 选择格式**：Keep a Changelog 格式 + Semantic Versioning 是
+  Python 社区（pip / pandas / streamlit）默认约定，审稿人 / 用户都认。
+  README inline 2 条 + CHANGELOG.md 完整列表是最优实践，比放 GitHub Releases
+  页面更适合内测期（不强制打 tag，每次 push 就能看到日志）
+
 ### 2026-04-18（**env 全样本 baseline ⭐** — 循环图筛选与环境相关面板解耦）
 
 **背景**：T2 v1.3 用户对比两份 HTML（自己下载的 vs paper/bundles v1）发现
