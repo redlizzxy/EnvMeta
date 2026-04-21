@@ -78,6 +78,55 @@ streamlit run app.py
 
 浏览器自动打开 `http://localhost:8501`。
 
+## 🔄 更新到新版本（内测阶段）
+
+内测阶段 EnvMeta 会**频繁修 bug / 加功能**，建议每周 pull 一次拿最新代码。
+
+**在线版用户**无需任何操作，云端会自动部署。
+
+**本地安装用户**，在 Terminal（Mac）或 Anaconda Prompt（Windows）里执行：
+
+```bash
+# 1) 如果 streamlit 正在跑，先 Ctrl+C 停掉
+# 2) 进入 EnvMeta 目录
+cd ~/Desktop/EnvMeta              # Mac
+# cd %USERPROFILE%\Desktop\EnvMeta  # Windows
+
+# 3) 激活环境
+conda activate envmeta
+
+# 4) 拉最新代码（这就是核心更新命令）
+git pull origin master
+
+# 5) 仅在终端提示 requirements 变化 / 启动报 ModuleNotFoundError 时才跑
+pip install -r requirements.txt
+
+# 6) 重新启动
+streamlit run app.py
+```
+
+### 常见场景
+
+**场景 A：`git pull` 提示 `Already up to date.`**
+已经是最新，直接启动即可。
+
+**场景 B：`git pull` 报 `Your local changes ... would be overwritten`**
+说明你在本地改过文件。先暂存再拉：
+```bash
+git stash              # 暂存本地改动
+git pull origin master
+git stash pop          # 如果想恢复本地改动
+```
+
+**场景 C：更新后启动报错 `No module named 'xxx'`**
+跑一次 `pip install -r requirements.txt` 补齐新依赖。
+
+### 怎么知道有没有更新
+
+- 看 [GitHub 仓库首页](https://github.com/redlizzxy/EnvMeta)的 commits 列表，有新 commit 就是有更新
+- 或 `git fetch && git log HEAD..origin/master --oneline` 查看本地落后的 commit 数
+- 遇到 bug 前建议先 pull 一次，可能早已修好
+
 ## 数据格式
 
 读 [docs/data_preparation_zh.md](docs/data_preparation_zh.md)（也可在 app 内「数据准备指南」页面浏览）：覆盖 CoverM / HUMAnN3 / eggNOG / DRAM / GTDB-Tk / CheckM2 / KofamScan / QIIME2 / Kraken2+Bracken / MetaPhlAn4 / iCAMP 等 11 种上游工具的输出 → EnvMeta 输入格式映射。
