@@ -718,6 +718,7 @@ const EM_DATA = {{CYCLE_DATA_JSON}};
     if (currentSim) { currentSim.stop(); currentSim = null; }
 
     d3.select('#em-quadrants').selectAll('*').remove();
+    d3.select('#em-chem-links').selectAll('*').remove();
     d3.select('#em-couplings').selectAll('*').remove();
     d3.select('#em-pathway-labels').selectAll('*').remove();
     d3.select('#em-chemicals').selectAll('*').remove();

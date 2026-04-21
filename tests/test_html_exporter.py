@@ -295,6 +295,20 @@ def test_html_chem_links_default_persistent(cycle_data):
     assert "updateChemLinks" in html
 
 
+def test_html_renderCycle_clears_chem_links_container(cycle_data):
+    """回归：切换分组再渲染时，#em-chem-links 必须和其他容器一起清空。
+
+    历史 bug：renderCycle 的清理清单漏了 #em-chem-links，切组后新 chemicals
+    对象和旧 <line> 元素的 data-join key 相同 → enter() 返回空 → 旧 line 留在
+    DOM 里但绑的是旧 chemical 引用，导致拖拽 / hover 对新 chemical 都不响应。
+    """
+    html = build_interactive_html(cycle_data).decode("utf-8")
+    # renderCycle 开头的 5 个兄弟容器清理调用必须都在
+    assert "d3.select('#em-chem-links').selectAll('*').remove()" in html
+    assert "d3.select('#em-couplings').selectAll('*').remove()" in html
+    assert "d3.select('#em-chemicals').selectAll('*').remove()" in html
+
+
 def test_html_has_formatChemName_subsuper(cycle_data):
     """v1.3: formatChemName 格式化化学式下标/上标。"""
     html = build_interactive_html(cycle_data).decode("utf-8")
