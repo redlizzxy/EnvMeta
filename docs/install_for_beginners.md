@@ -181,6 +181,60 @@ streamlit run app.py
 - Windows 从开始菜单搜「Anaconda Prompt」打开那个终端
 - Mac 彻底退出 Terminal（Cmd+Q）再打开
 
+### Q1.1（Mac 专属）：`conda create` 报 `CondaToSNonInteractiveError: Terms of Service have not been accepted`
+
+**原因**：新版 conda（24.x+）要求显式接受 Anaconda 官方源（`pkgs/main` / `pkgs/r`）的服务条款。和你的 Python 版本、网络都无关，是 Anaconda 2024 年起的合规策略。个人 / 学术使用仍然免费，但需要"按一下确认"。
+
+**解决**（两种任选一种）：
+
+**方法 A**：接受 ToS（最快，照报错提示走）
+```
+conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main
+conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
+conda create -n envmeta python=3.11 -y
+```
+
+**方法 B**：改用 conda-forge 社区源（推荐，包更新更快，无 ToS）
+```
+conda create -n envmeta -c conda-forge --override-channels python=3.11 -y
+```
+
+### Q1.2（Mac 专属）：`pip install -r requirements.txt` 报 `ResolutionImpossible: protobuf ... no matching distributions available`
+
+**原因**：Apple Silicon (M1/M2/M3) Mac 上，新装的 conda 环境里 pip 默认版本偏旧，旧 resolver 会挑到一个在 arm64 Mac 上**没有 wheel** 的 protobuf 版本（通常是 protobuf 3.x，官方没给 arm64 Mac 发 3.x 的二进制）。于是整包安装回滚失败，streamlit 也跟着没装上（后续 `import streamlit` 就报 `ModuleNotFoundError`）。
+
+**解决**（优先试方法 1）：
+
+**方法 1**：先升级 pip 再装（90% 的情况这步就能过）
+```
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+新版 pip（24+）能正确选到 protobuf 4.x/5.x（都有 arm64 wheel）。
+
+**方法 2**：国内网络用清华源 + 升级 pip 组合拳
+```
+pip install --upgrade pip -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+```
+
+**方法 3**：让 conda 先装二进制包，再用 pip 装剩下的
+```
+conda install -c conda-forge scikit-bio numpy scipy pandas protobuf -y
+pip install -r requirements.txt
+```
+
+装完再跑一次验证：
+```
+python -c "import streamlit; print('EnvMeta 依赖 OK')"
+```
+
+### Q1.3（Mac / Windows 都可能遇到）：首次 `streamlit run app.py` 弹出 `Welcome to Streamlit! ... Email:`
+
+**原因**：不是报错，是 Streamlit 首次启动的推广邀请（收集邮箱推新闻 / 周边），**不是必填**。
+
+**解决**：直接**按回车**（不输任何东西）跳过。Streamlit 会在 `~/.streamlit/credentials.toml` 里记一个空邮箱，下次启动不再弹这个。回车后它会继续启动，浏览器自动打开 `http://localhost:8501`。
+
 ### Q2：`pip install` 中途卡住 / 下载慢
 
 **原因**：国内访问 PyPI 慢。
