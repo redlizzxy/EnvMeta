@@ -141,8 +141,20 @@ def load_hypothesis(src: str | Path | dict) -> Hypothesis:
     if isinstance(src, dict):
         raw = src
     elif isinstance(src, (str, Path)):
-        p = Path(src) if not isinstance(src, Path) else src
-        if p.exists() and p.is_file():
+        # 区分"文件路径"与"YAML 文本内容"
+        # macOS 上 Path("很长的 YAML 正文").exists() 会抛 OSError
+        # [Errno 63] ENAMETOOLONG（Python 3.11 的 Path 不吞这个 errno），
+        # 故需启发式 + try/except 双重保护。
+        if isinstance(src, Path):
+            p: Path | None = src
+        else:
+            # 含换行或超长 → 必是 YAML 正文，跳过路径判断
+            p = Path(src) if ("\n" not in src and len(src) < 1024) else None
+        try:
+            is_file = p is not None and p.exists() and p.is_file()
+        except OSError:
+            is_file = False
+        if is_file:
             with open(p, "r", encoding="utf-8") as f:
                 raw = yaml.safe_load(f)
         else:

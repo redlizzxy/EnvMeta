@@ -60,6 +60,27 @@ def test_load_hypothesis_from_dict():
     assert hyp.claims[0].id == "c1"
 
 
+def test_load_hypothesis_from_long_yaml_string():
+    """回归测试：Streamlit 上传文件 → .read().decode() 得到的 YAML 正文字符串
+    不能被误当作"文件路径"去 stat()。
+
+    macOS Python 3.11 之前会抛 [Errno 63] File name too long，因为
+    Path.exists() 的 _IGNORED_ERRNOS 白名单不含 ENAMETOOLONG。"""
+    yaml_text = """# 这是假说 YAML 注释（以 # 开头，曾触发 macOS [Errno 63]）
+name: long_string_test
+description: 从字符串载入
+claims:
+  - id: c1
+    type: pathway_active
+    params: {pathway: Arsenate reduction}
+"""
+    # 再塞一堆 padding 把长度推过任何平台的 NAME_MAX
+    yaml_text = yaml_text + "# padding " * 200
+    hyp = load_hypothesis(yaml_text)
+    assert hyp.name == "long_string_test"
+    assert len(hyp.claims) == 1
+
+
 def test_load_hypothesis_schema_errors():
     with pytest.raises(ValueError, match="name"):
         load_hypothesis({"claims": []})
