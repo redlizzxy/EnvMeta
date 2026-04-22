@@ -34,6 +34,9 @@ Desktop.ini
 data/
 *.gephi
 
+# 行政材料 / 软著 / 项目申报 / 期刊评价等机构内部文档（本地保留，不入公开仓库）
+software/
+
 # 图形输出
 figures/
 *.png
