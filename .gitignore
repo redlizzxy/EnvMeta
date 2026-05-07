@@ -70,10 +70,11 @@ logs/
 *:Zone.Identifier
 *Zone.Identifier
 
-# 超过 GitHub 100MB 限制的论文 TIFF 原图（本地保留，不入仓库）
-# 论文复现用：高分辨率 PDF/PNG 同名替代，或本地原图
-paper/figures_thesis/paper_en/Fig3-3_MAG_gene_profile_EN.tiff
-paper/figures_thesis/paper_en/Fig3-4_MAG_abundance_top30_EN.tiff
+# 学位论文（课题）资产已迁出本仓库到本地 d:\workdata\envmeta_thesis\
+# 防御性条目：万一这些目录被误新建，仍然不被追踪
+paper/figures_thesis/
+paper/tables_thesis/
+paper/config_thesis/
 
 # 杂项
 --group

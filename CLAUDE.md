@@ -52,23 +52,33 @@ envmeta/
 ├── docs/
 │   ├── data_preparation_zh.md     # 上游工具 → EnvMeta 输入映射
 │   ├── install_for_beginners.md   # 小白安装指南
-│   └── legacy/                    # 早期 / 已替换文档（INSTALL / 项目细化方案 v1）
-├── paper/
+│   └── legacy/                    # 早期 EnvMeta 文档（INSTALL / 项目细化方案 v1）
+├── paper/                         # EnvMeta 方法学论文素材（开源）
 │   ├── manuscript/                # 论文稿件
 │   ├── benchmarks/                # 验证数据 + 效率对比
 │   ├── bundles/                   # 论文 Fork Bundle 示例
 │   ├── hypotheses/                # 假说 YAML 示例
-│   ├── figures/                   # EnvMeta app 截图 + mockup（活跃）
-│   ├── figures_thesis/            # 原学位论文图集（paper_en / thesis_cn / supplementary，冻结）
-│   ├── tables_thesis/             # 原学位论文表格（实验设计 / 测序 QC / 拼接统计）
-│   ├── config_thesis/             # 原学位论文绘图配置（matplotlib / ggplot2，论文 R 对照用）
+│   ├── figures/                   # EnvMeta app 截图 + mockup
+│   ├── tool_comparison.md
 │   └── user_study/                # 评测问卷设计 + 海报 + 部署指南
 ├── tests/
 │   ├── sample_data/               # 论文精简数据（首页一键加载）
 │   └── test_*.py                  # 293 case 全绿
-├── scripts/                       # 原论文脚本（参考实现，不改）
-│   └── legacy/                    # 历史 shell 笔记（环境配置 / sed 转换）
+├── scripts/                       # EnvMeta KB CLI 工具
+│   ├── build_kegg_snapshot.py     # KB 重建 CLI（envmeta kb-build）
+│   └── seed_ko_list.json          # KB 种子 KO 列表
 └── requirements.txt
+```
+
+**学位论文（课题）资产**位于本地 `d:\workdata\envmeta_thesis\`（非 git repo），
+与本仓库严格分离：
+
+```
+d:\workdata\envmeta_thesis\        # 本地工作区，不入 GitHub
+├── figures/                       # 论文图集（paper_en + thesis_cn + supplementary）
+├── tables/                        # 论文表格（实验设计 / 测序 QC / 拼接统计）
+├── config/                        # 学位论文绘图配置（matplotlib + ggplot2）
+└── scripts/                       # 原研究分析脚本（R + python + shell + legacy）
 ```
 
 ## 元素循环知识库
