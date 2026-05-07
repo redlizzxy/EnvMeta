@@ -37,6 +37,11 @@ data/
 # 行政材料 / 软著 / 项目申报 / 期刊评价等机构内部文档（本地保留，不入公开仓库）
 software/
 
+# 用户问卷原始数据（含邮箱 / 姓名 / IP，不入公开仓库）
+# README.md 在该目录是说明文件，单独豁免
+paper/user_study/raw/*
+!paper/user_study/raw/README.md
+
 # 图形输出
 figures/
 *.png
