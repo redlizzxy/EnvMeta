@@ -64,8 +64,16 @@ figures/
 # 日志
 logs/
 
-# Zone.Identifier（Windows 下载标记）
+# Zone.Identifier（Windows NTFS ADS 流，标记下载来源）
+# 不同 shell 上 ADS 流分隔符可能显示为 ':' 或 unicode '\357\200\272' (U+F03A)，
+# 用更宽松的 *Zone.Identifier 模式覆盖两者
 *:Zone.Identifier
+*Zone.Identifier
+
+# 超过 GitHub 100MB 限制的论文 TIFF 原图（本地保留，不入仓库）
+# 论文复现用：高分辨率 PDF/PNG 同名替代，或本地原图
+paper/figures_thesis/paper_en/Fig3-3_MAG_gene_profile_EN.tiff
+paper/figures_thesis/paper_en/Fig3-4_MAG_abundance_top30_EN.tiff
 
 # 杂项
 --group

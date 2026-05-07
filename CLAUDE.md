@@ -51,17 +51,23 @@ envmeta/
 │   └── tools/                     # Fork Bundle / KB builder / Gephi prep / hypothesis validator
 ├── docs/
 │   ├── data_preparation_zh.md     # 上游工具 → EnvMeta 输入映射
-│   └── install_for_beginners.md   # 小白安装指南
+│   ├── install_for_beginners.md   # 小白安装指南
+│   └── legacy/                    # 早期 / 已替换文档（INSTALL / 项目细化方案 v1）
 ├── paper/
-│   ├── bundles/                   # 论文 Fork Bundle 示例
+│   ├── manuscript/                # 论文稿件
 │   ├── benchmarks/                # 验证数据 + 效率对比
+│   ├── bundles/                   # 论文 Fork Bundle 示例
 │   ├── hypotheses/                # 假说 YAML 示例
-│   ├── figures/                   # 截图 + mockup
+│   ├── figures/                   # EnvMeta app 截图 + mockup（活跃）
+│   ├── figures_thesis/            # 原学位论文图集（paper_en / thesis_cn / supplementary，冻结）
+│   ├── tables_thesis/             # 原学位论文表格（实验设计 / 测序 QC / 拼接统计）
+│   ├── config_thesis/             # 原学位论文绘图配置（matplotlib / ggplot2，论文 R 对照用）
 │   └── user_study/                # 评测问卷设计 + 海报 + 部署指南
 ├── tests/
 │   ├── sample_data/               # 论文精简数据（首页一键加载）
-│   └── test_*.py                  # 291 case 全绿
+│   └── test_*.py                  # 293 case 全绿
 ├── scripts/                       # 原论文脚本（参考实现，不改）
+│   └── legacy/                    # 历史 shell 笔记（环境配置 / sed 转换）
 └── requirements.txt
 ```
 
