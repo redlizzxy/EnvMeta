@@ -32,7 +32,7 @@ EnvMeta 正在收集第二轮内测反馈用于方法学论文（目标：iMeta 
   <img src="paper/user_study/survey_poster_v2_qrcode.png" width="280" alt="EnvMeta 内测问卷二维码海报"/>
 </a>
 
-（手机扫码或点图直接打开。完整海报文案见 [survey_poster.md](paper/user_study/survey_poster.md)）
+（手机扫码或点图直接打开问卷）
 
 > 之前填过 v1 长版问卷的同学，**这次仍欢迎再填一次** v2 —— 问卷结构变了，新数据无法和旧版直接拼接。v2 真的快很多 🙇
 
