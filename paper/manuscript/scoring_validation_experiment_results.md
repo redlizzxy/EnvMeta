@@ -1,9 +1,10 @@
 # 假说评分对照实验 — 结果与结论（Stage 2 进行中）
 
-> **更新日期**：2026-05-08（Stage 2 加 Grettenberger + Ayala，用户后续多数据集要求）
+> **更新日期**：2026-05-08（自检修正：narrative 由 demonstration 改为 calibration）
 > **状态**：4 Arm 中 3 Arm 完成（A/B/C1/C2-A），1 Arm 待 GhostKOALA 异步结果（C2-B）
 > **关联**：[scoring_validation_experiment.md](scoring_validation_experiment.md)（实验设计）+
-> [hypothesis_scoring_analysis.md](hypothesis_scoring_analysis.md)（4 路径分析）
+> [hypothesis_scoring_analysis.md](hypothesis_scoring_analysis.md)（4 路径分析）+
+> [scoring_validation_self_critique.md](scoring_validation_self_critique.md)（**严肃自检** ⚠️）
 
 ---
 
@@ -70,33 +71,49 @@
   - Grettenberger N fixation 4 active 100% completeness 与 AMD 寡营养偶发文献一致
   - 这些都是 **数据驱动的真实结果**，不是为复现而调
 
-## 5. 论文叙事路径锁定 — 路径 X 增强版
+## 5. 论文叙事路径锁定 — 路径 X（已经过自检修正）
+
+> ⚠️ **本节叙事已根据 [scoring_validation_self_critique.md](scoring_validation_self_critique.md) 修正**：
+> "demonstration / establishes" 改为 "calibration"，主动承认未做 risky-claim
+> stress test，避免过度声称 discrimination power。
 
 按 [hypothesis_scoring_analysis.md §4 路径 X](hypothesis_scoring_analysis.md)，
 最终叙事段落（投稿用，写在 Paper 3 Discussion）：
 
-> "We tested EnvMeta's hypothesis scoring on **four** independent metagenomic
-> datasets representing different annotation breadths and topics: (1) our
-> in-house steel-slag arsenic dataset (full KEGG annotation, 57 KOs across 4
-> elements; STRONG); (2) Wei et al. (2024 *Microbiome*, ROCker-only annotation
-> of 14 selected genes; INSUFFICIENT); (3) Liu et al. (2023 *npj Biofilms*,
-> deep sea cold seep arsenic, DRAM KEGG-curated; STRONG, 4/4 claims including
-> a pre-registered exploratory hypothesis on arsM methylation that returned
-> 572 active MAGs); and (4) Grettenberger & Hamilton (2021 *AEM*, **non-arsenic
-> AMD stream, METABOLIC KEGG-curated; STRONG, 4/4 claims**, demonstrating
-> domain-neutral applicability beyond arsenic research).
+> "We **calibrated** EnvMeta's hypothesis scoring on four independent
+> metagenomic datasets spanning a gradient of annotation breadth and study
+> topics: (1) our in-house steel-slag arsenic dataset (full KEGG annotation,
+> 57 KOs across 4 elements; STRONG); (2) Wei et al. (2024 *Microbiome*,
+> ROCker-only annotation of 14 selected genes; INSUFFICIENT); (3) Liu et al.
+> (2023 *npj Biofilms*, deep sea cold seep arsenic, DRAM KEGG-curated;
+> STRONG, 4/4 claims, including a pre-registered exploratory hypothesis on
+> arsM methylation that — to our surprise — returned 572 active MAGs, far
+> exceeding the limited reports we cited from Yin et al. 2011); and (4)
+> Grettenberger & Hamilton (2021 *AEM*, non-arsenic AMD stream, METABOLIC
+> KEGG-curated; STRONG, 4/4 claims), suggesting domain-neutral applicability
+> beyond arsenic research.
 >
-> The contrast among the four — same scoring engine, identical default
-> thresholds, all hypothesis YAMLs pre-registered before running EnvMeta —
-> establishes that EnvMeta's INSUFFICIENT label on Wei reflects faithful
-> annotation-coverage diagnostics, not tool malfunction. KEGG-curated
-> datasets (n=3 across both arsenic-themed and non-arsenic AMD topics) all
-> received STRONG, while only the ROCker-only dataset returned INSUFFICIENT.
-> This generalizes beyond EnvMeta: any KEGG-grounded downstream tool would
-> face the same limitation when confronted with author-selected gene sets.
-> We recommend metagenomic studies publish full KEGG annotation alongside
-> any custom ROCker / DRAM hits to ensure secondary analyses remain
-> reproducible."
+> All hypothesis YAMLs were pre-registered (committed to git before running
+> EnvMeta) and constructed to reference only biogeochemical priors published
+> before the target papers' publication years; default thresholds were not
+> tuned. The contrast among the four — same scoring engine, identical
+> thresholds — provides **calibration evidence** that EnvMeta's INSUFFICIENT
+> label on Wei tracks annotation coverage as designed.
+>
+> We caution that all KEGG-curated 'STRONG' results were obtained with
+> claims targeting **backbone biogeochemical pathways** that are
+> near-universally expected in their respective environments. This is
+> calibration, not a stress test of the engine's discrimination power.
+> Stronger evidence would come from blind hypothesis-writing studies, in
+> which authors unaware of dataset findings construct claims — including
+> deliberately risky ones (e.g. predicting nitrification dominance in AMD).
+> We leave such studies to future user-study iterations.
+>
+> The practical recommendation generalizes beyond EnvMeta: any KEGG-grounded
+> downstream tool would face the same coverage-driven limitation when
+> confronted with author-selected gene sets. We therefore recommend
+> metagenomic studies publish full KEGG annotation alongside any custom
+> ROCker / DRAM hits to ensure secondary analyses remain reproducible."
 
 ## 6. KB v1.2 待办（实验暴露的 backlog）
 
