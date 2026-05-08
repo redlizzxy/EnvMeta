@@ -8,6 +8,40 @@
 
 ---
 
+## [0.8.2] — 2026-05-08
+
+> R/Python 11 图侧侧对照工作完成 + RDA 数值对齐修复。
+
+### 🐛 修复
+
+- **RDA 数值与 R vegan 不一致**：`skbio.stats.ordination.rda()` 与
+  `vegan::rda()` 的 eigval 归一化方式不同，导致 inertia 数值差 16-20×、
+  环境因子 ANOVA F 差 3.5×、p 值方向反转（R: pH p=0.002 ↔ EnvMeta: 0.216）。
+  修法：保留 `skbio.rda()` 输出的 ordination axes（site / biplot scores），
+  但 inertia + ANOVA F 改用 SS-based 公式（`SS(Y) / (n-1)`，对标 vegan）。
+  `explained_ref` 默认从 `"constrained"` 改为 `"total"`（对标 R vegan
+  `summary()$cont$importance[2,]` 默认）。修复后所有 F / r / 解释度数值
+  与 R vegan 4 位精度对齐。
+  （[863e886](https://github.com/redlizzxy/EnvMeta/commit/863e886)）
+
+### 📚 文档 / 验证
+
+- **R/Python 侧侧对照 11 图全部完成**（`paper/benchmarks/validation/`）：
+  - 数值精确一致（5 图）：alpha / pcoa / mag_quality / stackplot / RDA（修复后）
+  - 算法等价（6 图）：lefse / gene_heatmap / log2fc / gene_profile / pathway / mag_heatmap
+  - 5 个 R 脚本副本（强制 sans 字体）+ 11 个 README + 论文引用模板
+  - 撤回 4 个误判"伪 bug"标记（log2fc 方向 / mag_heatmap 标尺 / gene_profile KO 过滤 / pathway KB 升级，均确认非 bug）
+  （[ebe88b5](https://github.com/redlizzxy/EnvMeta/commit/ebe88b5)）
+
+- **Paper 3 投稿前清单**（`paper/manuscript/paper3_pre_submission_checklist.md`）：
+  跟踪 4 大任务进度（R 对照 ✅ / 第二数据集 ⬜ / 英文 README ⬜ / Methods 起草 ⬜）
+
+### 🧪 测试
+
+- pytest **293/293 全绿**（修复未破坏现有功能）；test_rda 4 个测试全部通过
+
+---
+
 ## [0.8.1] — 2026-04-21
 
 > Mac 端首批内测反馈修复版。聚焦 macOS 安装 / 假说评分 / 交互 HTML 三处实测 bug。

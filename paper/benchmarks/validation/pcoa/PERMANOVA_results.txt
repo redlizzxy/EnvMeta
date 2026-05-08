@@ -1,0 +1,26 @@
+=== PERMANOVA分析结果 (组间差异检验) ===
+
+Permutation test for adonis under reduced model
+Permutation: free
+Number of permutations: 999
+
+adonis2(formula = dist_obj ~ metadata[[opts$group]], permutations = 999)
+         Df SumOfSqs    R2      F Pr(>F)   
+Model     2  0.29338 0.654 6.6157  0.003 **
+Residual  7  0.15521 0.346                 
+Total     9  0.44858 1.000                 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+=== 两两比较结果 ===
+CK vs A: R²=0.598, p=0.0330
+CK vs B: R²=0.656, p=0.1000
+A vs B: R²=0.510, p=0.0350
+
+=== PCoA解释度 ===
+PCo1: 50.91%
+PCo2: 20.29%
+PCo3: 10.38%
+PCo4: 7.28%
+PCo5: 4.74%
+前2轴累计: 71.20%

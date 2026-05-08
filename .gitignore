@@ -56,6 +56,10 @@ figures/
 !paper/**/*.svg
 !paper/**/*.tiff
 
+# 例外：paper/benchmarks/validation/ 下的 TIFF 是原研究 Python 脚本输出的
+# 出版级图（240MB / 700MB 超 GitHub 100MB 限制），PDF/PNG 已足够论文 SI 用
+paper/benchmarks/validation/**/*.tiff
+
 # R
 .Rhistory
 .RData

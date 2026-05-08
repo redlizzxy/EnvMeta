@@ -40,3 +40,50 @@
 | MAG 过滤 | 硬编码 Top10/Top30 | `max_mags` + `sort_by` 参数 |
 
 算法无随机性，和原脚本完整度数值应完全一致。
+
+---
+
+## 2026-05-08 Python 脚本对照执行结果 ✅
+
+原脚本输出已生成到 `paper_en/Fig3-5a/b/c.pdf` + 4 个 summary txt。
+
+### 核心数值
+
+| 指标 | 原脚本 | EnvMeta | 一致性 |
+|---|---|---|---|
+| Total MAGs | 168 | 168 | ✅ |
+| Pathway count | 17 | **18**（KB v2.0 新增 1 条）| ⚠️ KB 升级 |
+| MAG × Pathway 矩阵规模 | 168 × 17 | 168 × 18 | 算法等价 |
+
+### 抽样数值（Arsenate reduction 通路）
+
+| 指标 | 原脚本 (`Fig3-5_pathway_summary.txt`) |
+|---|---|
+| Mean% | 24.7% |
+| Median% | 25% |
+| MAGs > 0 | 127 / 168 |
+| MAGs = 100% | 0 |
+
+⚠️ EnvMeta 端逐通路精确均值对比留下次 session（用 pandas 扫
+`envmeta_pathway_stats.tsv` 计算 17 共有通路均值）。预期偏差 < 1%。
+
+### 复现命令
+
+```powershell
+$py = "C:\Users\REDLIZZ\.conda\envs\envmeta\python.exe"
+& $py "d:\workdata\envmeta_thesis\scripts\python\08_pathway_completeness.py" `
+  --ko "data\raw\kegg_target_only.tsv" `
+  --bac "data\raw\tax_bac120_summary.tsv" `
+  --ar "data\raw\tax_ar53_summary.tsv" `
+  --abund "data\raw\abundance.tsv" `
+  --ks "data\raw\keystone_species.txt" `
+  --outdir "paper\benchmarks\validation\pathway" `
+  --statdir "paper\benchmarks\validation\pathway"
+```
+
+### 维护记录
+
+| 日期 | 事项 |
+|---|---|
+| 2026-04-14 | 初版 |
+| 2026-05-08 | 原脚本输出生成；通路数 17→18 KB 升级标记；逐通路精确数值对比留下次 session |

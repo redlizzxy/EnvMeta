@@ -20,3 +20,40 @@
 
 ## 与原 Python 脚本对比
 原脚本 `scripts/python/05_gene_heatmap_log2fc.py` 后半段同样使用 Welch's + BH，所以 padj 和 log2FC 数值本应一致。下次可跑原脚本做侧侧对比。
+
+---
+
+## 2026-05-08 Python 脚本对照执行结果 ✅
+
+原脚本同时生成 Fig2-8（热图）和 Fig2-9（log2FC），输出在
+`paper/benchmarks/validation/gene_heatmap/` 下：
+- `Fig2-9_log2fc_combined.pdf` — 原脚本 log2FC 柱图（3 组对比合一）
+- `gene_log2fc_all_comparisons.txt` — 全 51 KO × 3 比较的 log2FC + p + padj
+
+### 数值对照（抽样：K11811 arsH）
+
+| 比较 | 原脚本 | EnvMeta |
+|---|---|---|
+| `CK_vs_A` | log2FC=-0.6448, p=0.1357, padj=1.0 | `A_vs_CK`: +0.6448 |
+| Welch's t-test | ✅ | ✅ |
+| BH FDR 校正 | ✅ | ✅ |
+| pseudocount +0.5 | ✅ | ✅ |
+
+📌 **方向由用户决定**（不是 bug）：
+- 用户传入 `group_a, group_b` → EnvMeta 算 `log2(mean_a / mean_b)`
+- xlabel 自动写 `log2({group_a}/{group_b})` 明确方向
+- 原脚本固定 CK_vs_A 即 `log2(CK/A)`；EnvMeta 用 group_a=A, group_b=CK 时即 `log2(A/CK)`
+- log2FC 绝对值一致，符号取决于参数顺序
+
+**约定建议**：在论文中保持 baseline (e.g. CK) 做 `group_b`（分母），treatment 做 `group_a`（分子），符号语义"treatment vs baseline"。
+
+### 复现命令
+
+见 `gene_heatmap/README.md`（Fig2-8 + Fig2-9 同一脚本）。
+
+### 维护记录
+
+| 日期 | 事项 |
+|---|---|
+| 2026-04-14 | 初版（仅 EnvMeta 3 组对比 PDF + stats）|
+| 2026-05-08 | 原脚本 log2fc 输出 + 数值对照（小样本 padj > 0.05 双方一致；命名方向反转已记录）|

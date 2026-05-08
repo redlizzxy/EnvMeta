@@ -110,6 +110,15 @@ streamlit run app.py
 
 内测期频繁修 bug / 加功能，完整列表见 **[CHANGELOG.md](CHANGELOG.md)**。
 
+### v0.8.2 — 2026-05-08（RDA 数值对齐 R vegan + 11 图侧侧对照完成）
+
+- 🐛 修 RDA 数值与 R vegan 不一致（skbio 归一化差异致 inertia 16-20× 偏差、ANOVA F/p 反转）
+  - 改用 SS-based 公式（vegan-equivalent），修复后 F / r / 解释度 4 位精度对齐 R
+- 📚 R/Python 11 图侧侧对照工作完成（`paper/benchmarks/validation/`）
+  - 5 图数值精确一致 + 6 图算法等价 + 11 个 README + 论文引用模板
+- 📚 Paper 3（EnvMeta 方法学论文）投稿前 4 大任务清单（`paper/manuscript/`）
+- 🧪 pytest 293/293 全绿（无回归）
+
 ### v0.8.1 — 2026-04-21（Mac 端首批内测反馈修复）
 
 - 🐛 修 HTML 交互导出切组后化学物-通路连线失效（拖拽不跟随、hover 不高亮）

@@ -1,0 +1,25 @@
+=== Pathway Completeness Summary ===
+
+Total MAGs: 168
+Pathways: 18
+
+Pathway                   Element  KOs   Mean%   Med%  MAGs>0  MAGs=100
+----------------------------------------------------------------------
+Arsenate reduction        As       4   24.7%    25%     127         0
+Arsenite oxidation        As       2    6.8%     0%      16         7
+Resp. arsenate red.       As       2    0.0%     0%       0         0
+As transport/detox        As       6   19.6%    17%     127         0
+As methylation            As       2   35.4%    50%     119         0
+As regulation             As       1   79.2%   100%     133       133
+Nitrate reduction         N        6   19.0%     0%      80         0
+Nitrite reduction         N        4   22.2%    25%     112         0
+NO reduction              N        1   38.1%     0%      64        64
+N2O reduction             N        1   27.4%     0%      46        46
+Ammonia oxidation         N        3    1.2%     0%       4         1
+N fixation                N        2    8.3%     0%      15        13
+Assim. sulfate red.       S        4   28.4%    25%      94         2
+Dissim. sulfate red.      S        4   12.5%     0%      39         8
+Sulfide oxidation         S        6   20.2%    17%     104        13
+Thiosulfate metab.        S        1   67.3%   100%     113       113
+Fe transport              Fe       6   54.3%    67%     157        10
+Fe uptake regulation      Fe       2   75.6%   100%     153       101

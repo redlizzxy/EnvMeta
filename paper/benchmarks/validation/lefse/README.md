@@ -43,4 +43,26 @@
 | 多版本输出 | main / full / genus_species 三版 | 单图 + `tax_levels` / `max_features` 参数控制 |
 | 一键复现 | 需 Galaxy + R + 多包 | `pip install envmeta` 点 3 下 |
 
-装 R + Galaxy LEfSe 后可做完整算法对齐验证。
+---
+
+## 2026-05-07 R 重绘对照执行结果
+
+R 侧 PDF 输出已生成（基于 `data/raw/input.res` 中 Galaxy LEfSe 的 91 个显著特征）：
+- `r_lefse_LDA_main.pdf` — 正文版（属+种，LDA > 4，14 个特征）
+- `r_lefse_LDA_genus_species.pdf` — 推荐版（属+种，LDA > 3，37 个特征）
+- `r_lefse_LDA_full.pdf` — 完整版（全层级，LDA > 2，91 个特征）
+- `LEfSe_significant_features.txt` — 91 显著特征清单（CK 富集 54 / A 富集 22 / B 富集 15）
+
+⚠️ **算法层数值对照（vs Galaxy input.res 的 91 个特征）尚未做** —— 留作下次 session：
+- EnvMeta 跑同一个 Species.txt 输出 ~39 个显著种（α=0.1, LDA≥2）
+- Galaxy 输出 91 个特征但跨多个 tax level
+- 需筛 Galaxy 的 Genus/Species 部分（约 42 个）后逐 feature 比对：Group 标注一致性 + LDA 数值偏差
+
+### 复现命令（R 侧）
+```powershell
+$Rscript = "F:\Program Files\R\R-4.5.0\bin\Rscript.exe"
+& $Rscript "paper\benchmarks\validation\r_scripts\04_LEfSe.R" `
+  --input "data\raw\input.res" `
+  --output "paper\benchmarks\validation\lefse\r_lefse" `
+  --stat_dir "paper\benchmarks\validation\lefse" --style paper
+```

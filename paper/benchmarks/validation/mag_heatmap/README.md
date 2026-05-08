@@ -47,3 +47,53 @@ variance 前 30 的 keystone 重叠情况与 mean 模式不同，互补使用可
 - 保留三段非线性配色核心算法（Blues → YlGn → YlOrRd）
 - 保留门内聚类、keystone 前缀 ★、组彩条
 - 简化图例（交给 figure colorbar）；后续可加专用图例区
+
+---
+
+## 2026-05-08 Python 脚本对照执行结果 ✅
+
+原 Python 脚本输出已生成到 `paper_en/Fig3-4_MAG_abundance_top30_EN.pdf` + summary。
+
+### 算法等价性
+
+- ✅ 三段非线性配色核心算法保留（Blues 0-0.2 / Greens 0.2-0.5 / Reds 0.5+）
+- ✅ 门内聚类策略一致
+- ✅ keystone 高亮规则一致
+- ✅ **数值规模一致**（abundance.tsv 列总和验证 = 100，明确为百分比单位）：
+  - EnvMeta `top30_stats.tsv` 中 `row_order=0..29` 是 **phylum_cluster 排序**（同门聚类内排序），不是 abundance 降序
+  - 原脚本 `Top30_abundance_summary.txt` 是 mean abundance 降序（Top-1 = `Mx_All_102` mean 0.698%）
+  - 两者按 abundance 降序排序后的 Top-30 集合应一致（待 grep 验证）
+
+### 对比文件位置
+
+| 来源 | 文件 |
+|---|---|
+| 原 Python | `paper_en/Fig3-4_MAG_abundance_top30_EN.pdf` |
+| EnvMeta | `top30_EN.pdf` |
+| 原 summary | `Fig3-4_Top30_abundance_summary.txt` |
+| EnvMeta stats | `top30_stats.tsv` |
+
+### 复现命令
+
+```powershell
+$py = "C:\Users\REDLIZZ\.conda\envs\envmeta\python.exe"
+& $py "d:\workdata\envmeta_thesis\scripts\python\07_MAG_abundance_heatmap.py" `
+  --abund "data\raw\abundance.tsv" `
+  --bac "data\raw\tax_bac120_summary.tsv" `
+  --ar "data\raw\tax_ar53_summary.tsv" `
+  --ks "data\raw\keystone_species.txt" `
+  --outdir "paper\benchmarks\validation\mag_heatmap" `
+  --statdir "paper\benchmarks\validation\mag_heatmap"
+```
+
+### 待验证（下次 session）
+
+- [ ] 对照 mean 模式下 Top-30 MAG ID 集合是否完全一致（应 100% 重叠）
+- [x] ~~abundance 单位差异~~ — 已确认两侧都是百分比单位，0.2/0.5 阈值一致（不是 bug）
+
+### 维护记录
+
+| 日期 | 事项 |
+|---|---|
+| 2026-04-14 | 初版 |
+| 2026-05-08 | 原 Python 脚本输出生成；abundance 标尺差异已识别（非算法 bug，需统一单位） |

@@ -39,7 +39,7 @@ DEFAULTS = {
     "drop_unclassified": True,
     "random_seed": 123,
     "use_alias_labels": True,    # True → 用 metadata 的 Group+Replicate 生成 CK_1 风格标签
-    "explained_ref": "constrained",  # "constrained"（R 风格，占约束方差）| "total"（占总方差）
+    "explained_ref": "total",  # "total"（R vegan summary 默认，占总惯量）| "constrained"（占约束方差）
     "anova_by": "terms",         # "terms"（R 序贯，对标 anova.cca by="terms"）| "margin"（边际）
 }
 
@@ -157,13 +157,42 @@ def analyze(
     site = ord_res.samples.iloc[:, :2].to_numpy()
     biplot = ord_res.biplot_scores.iloc[:, :2].to_numpy()
 
-    # 解释度：占约束方差（R vegan 风格）或占总方差
-    all_eigvals = ord_res.eigvals.to_numpy()
-    n_constrained = min(len(all_eigvals), X.shape[1])
-    constrained_inertia = float(all_eigvals[:n_constrained].sum())
-    total_inertia = float(all_eigvals.sum())
+    # 解释度 + inertia：vegan-equivalent SS-based 公式
+    # （历史问题：skbio.rda 与 vegan::rda 的 eigval 归一不同，绝对数值差 16-20×；
+    #  改用 SS / (n-1) 直接算，与 R vegan::rda 数值精确对齐）
+    n_samples = Y.shape[0]
+
+    def _ss(arr: np.ndarray) -> float:
+        """vegan inertia convention: sum of squares / (n-1)."""
+        return float(np.sum(arr ** 2) / (n_samples - 1))
+
+    Y_centered = Y - Y.mean(axis=0)
+    total_inertia = _ss(Y_centered)
+
+    def _fit_ss(X_in: np.ndarray) -> tuple[float, np.ndarray]:
+        """对 Y_centered ~ X_in 做最小二乘拟合，返回 (constrained SS, Y_fitted)."""
+        if X_in.size == 0 or X_in.shape[1] == 0:
+            return 0.0, np.zeros_like(Y_centered)
+        beta, _, _, _ = np.linalg.lstsq(X_in, Y_centered, rcond=None)
+        Y_fit = X_in @ beta
+        return _ss(Y_fit), Y_fit
+
+    constrained_inertia, Y_fitted = _fit_ss(X)
+    residual_inertia = max(total_inertia - constrained_inertia, 0.0)
+
+    # 约束轴 eigvals 用 Y_fitted 的 SVD（vegan 等价；skbio 内部归一不同）
+    try:
+        _, s_vals, _ = np.linalg.svd(Y_fitted, full_matrices=False)
+        constrained_eigvals = (s_vals ** 2) / (n_samples - 1)
+    except np.linalg.LinAlgError:
+        constrained_eigvals = np.array([constrained_inertia, 0.0])
+    if len(constrained_eigvals) < 2:
+        constrained_eigvals = np.concatenate([constrained_eigvals, np.zeros(2 - len(constrained_eigvals))])
+
     if p["explained_ref"] == "constrained" and constrained_inertia > 0:
-        explained = all_eigvals[:2] / constrained_inertia
+        explained = constrained_eigvals[:2] / constrained_inertia
+    elif total_inertia > 0:
+        explained = constrained_eigvals[:2] / total_inertia
     else:
         explained = ord_res.proportion_explained.iloc[:2].to_numpy()
 
@@ -180,32 +209,29 @@ def analyze(
         sample_labels = list(kept_cols)
 
     # 各因子显著性（置换 F 检验，anova_by 控制序贯 vs 边际）
-    n_samples = Y.shape[0]
+    # 用 SS-based 拟合（lstsq），与 vegan::anova.cca() 数值对齐
     k = X.shape[1]
-    residual_inertia = total_inertia - constrained_inertia
     df_resid = max(n_samples - k - 1, 1)
     rng = np.random.default_rng(p["random_seed"])
 
-    def _constrained_sum(X_in: np.ndarray) -> float:
-        if X_in.shape[1] == 0:
-            return 0.0
-        ord_r = skbio_rda(Y, X_in, sample_ids=kept_cols,
-                          feature_ids=ab.index.tolist())
-        n_c = min(len(ord_r.eigvals), X_in.shape[1])
-        return float(ord_r.eigvals.to_numpy()[:n_c].sum())
+    def _seq_contrib(X_in: np.ndarray, j: int) -> float:
+        """序贯 SS：前 j+1 列 fit - 前 j 列 fit（Type I, vegan by='terms'）。"""
+        before, _ = _fit_ss(X_in[:, :j]) if j > 0 else (0.0, None)
+        after, _ = _fit_ss(X_in[:, :j + 1])
+        return after - before
+
+    def _marginal_contrib(X_in: np.ndarray, j: int) -> float:
+        """边际 SS：full fit - (剔除 j 列的 reduced fit)（Type II/III, vegan by='margin'）。"""
+        full_ss, _ = _fit_ss(X_in)
+        X_red = np.delete(X_in, j, axis=1)
+        red_ss, _ = _fit_ss(X_red)
+        return full_ss - red_ss
+
+    contrib_fn = _seq_contrib if p["anova_by"] == "terms" else _marginal_contrib
 
     anova_rows = []
     for j, factor in enumerate(env_num_cols):
-        if p["anova_by"] == "terms":
-            # 序贯：前 j 列 vs 前 j+1 列
-            before = _constrained_sum(X[:, :j]) if j > 0 else 0.0
-            after = _constrained_sum(X[:, :j + 1])
-            contrib_obs = after - before
-        else:
-            # 边际：完整模型 vs 去掉第 j 列
-            X_reduced = np.delete(X, j, axis=1)
-            contrib_obs = constrained_inertia - _constrained_sum(X_reduced)
-
+        contrib_obs = contrib_fn(X, j)
         F_obs = (contrib_obs / 1.0) / (residual_inertia / df_resid) if residual_inertia > 0 else np.nan
 
         perm_F = []
@@ -213,18 +239,10 @@ def analyze(
             X_perm = X.copy()
             X_perm[:, j] = rng.permutation(X_perm[:, j])
             try:
-                if p["anova_by"] == "terms":
-                    before_p = _constrained_sum(X_perm[:, :j]) if j > 0 else 0.0
-                    after_p = _constrained_sum(X_perm[:, :j + 1])
-                    contrib_perm = after_p - before_p
-                    p_full = _constrained_sum(X_perm)
-                    p_residual = total_inertia - p_full
-                else:
-                    X_perm_red = np.delete(X_perm, j, axis=1)
-                    p_full = _constrained_sum(X_perm)
-                    contrib_perm = p_full - _constrained_sum(X_perm_red)
-                    p_residual = total_inertia - p_full
-                F_perm = (contrib_perm / 1.0) / (p_residual / df_resid) if p_residual > 0 else 0.0
+                contrib_perm = contrib_fn(X_perm, j)
+                full_perm_ss, _ = _fit_ss(X_perm)
+                resid_perm = max(total_inertia - full_perm_ss, 0.0)
+                F_perm = (contrib_perm / 1.0) / (resid_perm / df_resid) if resid_perm > 0 else 0.0
                 perm_F.append(F_perm)
             except Exception:
                 perm_F.append(0.0)
