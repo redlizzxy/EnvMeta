@@ -1,0 +1,114 @@
+# EnvMeta 假说评分器 — Grettenberger & Hamilton 2021 AEM Cabin Branch AMD 溪流
+#
+# Source: Grettenberger CL, Hamilton TL (2021) "Metagenome-assembled genomes
+#         of novel taxa from an acid mine drainage environment"
+# DOI:    10.1128/AEM.00772-21
+# Site:   Cabin Branch acid mine drainage stream (Pennsylvania, USA)
+# Data:   29 MAGs + DRAM + METABOLIC, processed data in ASM Suppl
+# License: CC BY 4.0
+#
+# ═══════════════════════════════════════════════════════════════════════
+#  PRE-DATA HYPOTHESIS（pre-registration 证据）
+# ═══════════════════════════════════════════════════════════════════════
+#
+# 本 YAML 在跑 EnvMeta **之前** commit，作为对照实验 Arm C2-A pre-registration
+# 证据。git timestamp 锁定。
+#
+# 假设构成原则：
+#
+#   1. 仅基于 Grettenberger 2018-2020 设计实验时**先验已知**的 AMD 溪流
+#      生物地球化学知识（1990s-2010s 文献综述层）
+#   2. 不引用 Grettenberger 2021 论文的任何具体发现（如哪些 phyla 主导 /
+#      29 MAGs 具体物种 / Cabin Branch 5 sites 具体功能差异等）
+#   3. 不为复现作者结论而调阈值或 weight
+#   4. EnvMeta 默认阈值（min_completeness=30 / strong=0.75 / suggestive=0.40）
+#
+# Pre-data 推理路径（AMD 溪流通用先验）:
+#
+#   A. AMD 酸性矿排溪流 = pH 2-4 + 高 SO₄²⁻ + 高 Fe + 寡营养（Bigham & Nordstrom 2000；
+#      Bond et al. 2000 AEM 综述）
+#   B. 流水 + 局部氧化 → 应有 sulfide oxidation（sqr / soxXYZAB），
+#      Acidithiobacillus / Leptospirillum / "Ferrovum" 等 acidophilic chemolithotrophs
+#      （Bond et al. 2000；Schippers 1999）
+#   C. 沉积物 / 滞水缺氧界面 → 局部 dissimilatory sulfate reduction（dsrAB + aprAB）
+#      （Cabrera et al. 2006 acidophilic SRB；Sánchez-Andrea 2014）
+#   D. AMD 极酸抑制 nitrification → N 循环活性预期偏弱；但深层 / 沉积物局部
+#      仍可能 nitrate reduction 或 N fixation
+#      （Tan et al. 2009; Auld et al. 2017 AMD 寡营养 diazotrophy）
+#
+# 不可写入（Grettenberger 2021 specific findings）:
+#   ❌ 29 MAGs 哪些 phylum 主导
+#   ❌ 5 sites 各自的功能特征
+#   ❌ "novel taxa" 具体身份（这是论文 main result）
+#   ❌ 哪条通路在哪个 site 最强
+#
+# 因此预设：1 confirmatory required + 3 exploratory
+
+name: "Grettenberger2021_amd_stream_pre-data_hypothesis"
+description: |
+  Grettenberger & Hamilton 2021 AEM AMD 溪流 29 MAGs 的 pre-data 假设复现。
+  基于 1990-2010 AMD 溪流文献综述层的先验生物地球化学知识，不引用论文
+  具体发现（Cabin Branch 物种身份、site-specific 功能等），避免循环论证。
+
+version: "1.0"
+strong_threshold: 0.75
+suggestive_threshold: 0.40
+
+claims:
+  # ─────────────────────────────────────────────────────────────────────
+  # H1（confirmatory, REQUIRED）: AMD 流水氧化环境 sulfide oxidation 应主导
+  # 先验依据: Bond et al. 2000 AEM AMD 综述; Schippers 1999 sulfide oxidation 综述
+  # ─────────────────────────────────────────────────────────────────────
+  - id: sulfide_oxidation_active_in_amd_stream
+    type: pathway_active
+    weight: 1.5
+    required: true
+    params:
+      pathway: "Sulfide oxidation"
+      min_completeness: 30
+    explanation: |
+      Pre-data 预测: AMD 流水氧化环境 + 高 sulfide → 应有 sqr / sox XYZAB
+      mediated S 氧化菌（known acidophilic chemolithotrophs since 2000s）。
+      这是 AMD 溪流硫循环的 backbone 通路。required veto: 无 active 整体失败。
+
+  # ─────────────────────────────────────────────────────────────────────
+  # H2（exploratory, NOT required）: 沉积物缺氧界面 SRB
+  # 先验依据: Cabrera et al. 2006 acidophilic SRB; Sánchez-Andrea 2014 综述
+  # ─────────────────────────────────────────────────────────────────────
+  - id: dissim_sulfate_reduction_anoxic_sediment
+    type: pathway_active
+    weight: 1.0
+    params:
+      pathway: "Dissim. sulfate red."
+      min_completeness: 30
+    explanation: |
+      Pre-data exploration: 流水沉积物 / 滞水区缺氧界面可能有 dsrAB / aprAB
+      mediated 硫酸盐还原。AMD 极酸条件下 SRB 报告稀少但确证存在。
+
+  # ─────────────────────────────────────────────────────────────────────
+  # H3（exploratory, NOT required）: 缺氧界面 nitrate reduction
+  # 先验依据: Tan et al. 2009 AMD N 循环综述
+  # ─────────────────────────────────────────────────────────────────────
+  - id: nitrate_reduction_explored
+    type: pathway_active
+    weight: 0.5
+    params:
+      pathway: "Nitrate reduction"
+      min_completeness: 30
+    explanation: |
+      Pre-data exploration: AMD 极酸抑制 nitrification → 上游 NO₃ 供应可能
+      有限。但深层 / 沉积物局部仍可能 narG / napA mediated 还原。
+
+  # ─────────────────────────────────────────────────────────────────────
+  # H4（exploratory, NOT required）: 寡营养 AMD N fixation 偶发
+  # 先验依据: Auld et al. 2017 AMD diazotrophy
+  # ─────────────────────────────────────────────────────────────────────
+  - id: nitrogen_fixation_explored
+    type: pathway_active
+    weight: 0.3
+    params:
+      pathway: "N fixation"
+      min_completeness: 30
+    explanation: |
+      Pre-data exploration: 寡营养 AMD 偶有 nifHDK 报告（Auld 2017）。
+      Cabin Branch 类似系统未知。低 weight 反映 exploratory 性质。
