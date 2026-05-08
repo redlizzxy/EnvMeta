@@ -126,6 +126,72 @@ def test_pathway_active_missing_pathway_is_skipped(cycle_data):
     assert result.label == "insufficient"
 
 
+def test_pathway_inactive_satisfied_when_no_active_mags(cycle_data):
+    """negative claim: 选一个样例里没有的通路 → n_active=0 → satisfied (符合 not-active 预期)。
+
+    注意：必须是 KB 已知但样例数据里没有 active 的通路；否则会 skipped。
+    样例数据是砷渣，N fixation 在数据里弱（适合做 inactive 预期的目标）。
+    """
+    # 先 introspect 找一条 n_active=0 的通路
+    target_pw_name = None
+    for el in cycle_data.elements:
+        for pw in el.pathways:
+            if pw.n_active_mags == 0:
+                target_pw_name = pw.display_name
+                break
+        if target_pw_name:
+            break
+    if target_pw_name is None:
+        pytest.skip("样例数据所有通路都活跃，无法测 inactive satisfied 情况")
+    hyp = Hypothesis(name="t", claims=[Claim(
+        id="c", type="pathway_inactive", weight=1.0,
+        params={"pathway": target_pw_name, "max_completeness": 50},
+    )])
+    result = score(hyp, cycle_data)
+    cr = result.claim_results[0]
+    assert cr.status == "satisfied", f"got {cr}"
+    assert cr.score == 1.0
+
+
+def test_pathway_inactive_unsatisfied_when_pathway_dominant(cycle_data):
+    """negative claim: 故意选一个明显活跃的通路（Arsenate reduction）→ unsatisfied。
+
+    这模拟 stress test 场景：写一条 risky claim 故意违背先验，期望 EnvMeta reject。
+    """
+    hyp = Hypothesis(name="t", claims=[Claim(
+        id="c", type="pathway_inactive", weight=1.0,
+        params={"pathway": "Arsenate reduction", "max_completeness": 50},
+    )])
+    result = score(hyp, cycle_data)
+    cr = result.claim_results[0]
+    assert cr.status == "unsatisfied", f"got {cr}"
+    assert cr.score == 0.0
+    assert "活跃" in cr.explanation
+
+
+def test_pathway_inactive_skipped_when_pathway_not_in_data(cycle_data):
+    """negative claim: 数据里找不到通路 → skipped（不能反驳/支持）。"""
+    hyp = Hypothesis(name="t", claims=[Claim(
+        id="c", type="pathway_inactive", weight=1.0,
+        params={"pathway": "_DOES_NOT_EXIST_PATHWAY_"},
+    )])
+    result = score(hyp, cycle_data)
+    cr = result.claim_results[0]
+    assert cr.status == "skipped"
+
+
+def test_pathway_inactive_in_claim_types_whitelist():
+    """load_hypothesis 接受 pathway_inactive type。"""
+    hyp = load_hypothesis({
+        "name": "h",
+        "claims": [{
+            "id": "neg", "type": "pathway_inactive",
+            "params": {"pathway": "X"},
+        }],
+    })
+    assert hyp.claims[0].type == "pathway_inactive"
+
+
 def test_coupling_possible_satisfied(cycle_data):
     # S2.5-14 修复后，As(V) 和 Fe(III) 都应在观测 species 里
     hyp = Hypothesis(name="t", claims=[Claim(

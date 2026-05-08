@@ -9,12 +9,13 @@
 - skipped 不扣分：YAML claim 指向 KB 没有 / data 里没跑到的对象 → 分母剔除，
   不让用户因"写多了无关 claim"被压低分数
 
-支持 5 类 claim（v2 / S3.5）：
+支持 6 类 claim（v3 / Paper 4 stress test 加 pathway_inactive）：
 1. `pathway_active`        —— 某通路活跃
-2. `coupling_possible`     —— 某两物种 KB 有耦合 AND 数据里两端 species 都观测到
-3. `env_correlation`       —— (通路, 环境因子) 相关性符号 + confidence 达阈
-4. `keystone_in_pathway`   —— 某通路包含 ≥N 个 keystone contributor
-5. `group_contrast`        —— 跨组 total_contribution 比值 ≥ min_ratio (S3.5)
+2. `pathway_inactive`      —— 某通路**不应**活跃（Popperian falsifiability，stress test 用）
+3. `coupling_possible`     —— 某两物种 KB 有耦合 AND 数据里两端 species 都观测到
+4. `env_correlation`       —— (通路, 环境因子) 相关性符号 + confidence 达阈
+5. `keystone_in_pathway`   —— 某通路包含 ≥N 个 keystone contributor
+6. `group_contrast`        —— 跨组 total_contribution 比值 ≥ min_ratio (S3.5)
 
 S3.5 三大可信度指标：
 - **null_p**：排列检验（Fisher 1935 风格），999 次 shuffle 算 P(null ≥ observed)
@@ -41,6 +42,7 @@ from envmeta.geocycle.model import CycleData, EnvCorrelation, PathwayActivity
 
 CLAIM_TYPES = (
     "pathway_active",
+    "pathway_inactive",
     "coupling_possible",
     "env_correlation",
     "keystone_in_pathway",
@@ -316,6 +318,72 @@ def _eval_pathway_active(claim: Claim, data: CycleData) -> ClaimResult:
             f"{pw.display_name}: 活跃但未达阈值 "
             f"(completeness {pw.mean_completeness:.0f}%/{min_comp:.0f}%, "
             f"contribution {pw.total_contribution:.1f}/{min_contrib:.1f})"
+        ),
+    )
+
+
+def _eval_pathway_inactive(claim: Claim, data: CycleData) -> ClaimResult:
+    """Negative claim: 某通路**不应**活跃（Popperian falsifiability）。
+
+    stress test 用：把先验颠倒（如"AMD 不应有 nitrification 主导"）或领域错配
+    （如"无砷环境不应有 arsenate reduction 主导"），看 EnvMeta 是否能 reject。
+
+    评估逻辑（与 pathway_active 反转）：
+    - 数据里找不到通路 → skipped（KB 缺失，数据不能反驳/支持）
+    - n_active_mags == 0 → satisfied（完全 inactive，符合 negative 预期）
+    - n_active_mags > 0 但 mean_completeness < max_completeness → partial（弱信号违反）
+    - n_active_mags > 0 且 mean_completeness >= max_completeness → unsatisfied（明显违反）
+    """
+    p = claim.params
+    pw_name = p.get("pathway")
+    if not pw_name:
+        return ClaimResult(
+            claim.id, claim.type, "skipped", 0.0, claim.weight,
+            evidence={"reason": "missing params.pathway"},
+            explanation="未指定 pathway 名",
+        )
+    match = _find_pathway(data, pw_name)
+    if match is None:
+        return ClaimResult(
+            claim.id, claim.type, "skipped", 0.0, claim.weight,
+            evidence={"pathway_query": pw_name},
+            explanation=f"数据里找不到通路 {pw_name!r}（KB 缺失，无法判断 negative claim）",
+        )
+    pw, element = match
+    max_comp = float(p.get("max_completeness", 50))
+    ev = {
+        "pathway_id": pw.pathway_id,
+        "element": element,
+        "n_active_mags": pw.n_active_mags,
+        "mean_completeness": round(pw.mean_completeness, 2),
+        "total_contribution": round(pw.total_contribution, 2),
+        "max_completeness_threshold": max_comp,
+    }
+    if pw.n_active_mags <= 0:
+        return ClaimResult(
+            claim.id, claim.type, "satisfied", 1.0, claim.weight,
+            evidence=ev,
+            explanation=(
+                f"{pw.display_name}: 无活跃 MAG（符合 negative claim 预期：不应活跃）"
+            ),
+        )
+    if pw.mean_completeness < max_comp:
+        return ClaimResult(
+            claim.id, claim.type, "partial", 0.5, claim.weight,
+            evidence=ev,
+            explanation=(
+                f"{pw.display_name}: 检出 {pw.n_active_mags} 活跃 MAG 但弱 "
+                f"(平均完整度 {pw.mean_completeness:.0f}% < {max_comp:.0f}%)"
+                f" — 部分违反 negative 预期"
+            ),
+        )
+    return ClaimResult(
+        claim.id, claim.type, "unsatisfied", 0.0, claim.weight,
+        evidence=ev,
+        explanation=(
+            f"{pw.display_name}: {pw.n_active_mags} 活跃 MAG，"
+            f"平均完整度 {pw.mean_completeness:.0f}%（≥{max_comp:.0f}%）"
+            f" — 明显违反 negative 预期：通路实际活跃"
         ),
     )
 
@@ -613,6 +681,7 @@ def _eval_group_contrast(
 
 _DISPATCH = {
     "pathway_active": _eval_pathway_active,
+    "pathway_inactive": _eval_pathway_inactive,
     "coupling_possible": _eval_coupling_possible,
     "env_correlation": _eval_env_correlation,
     "keystone_in_pathway": _eval_keystone_in_pathway,
