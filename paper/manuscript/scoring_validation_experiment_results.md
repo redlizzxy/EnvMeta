@@ -1,7 +1,7 @@
 # 假说评分对照实验 — 结果与结论（Stage 2 进行中）
 
-> **更新日期**：2026-05-08（自检修正：narrative 由 demonstration 改为 calibration）
-> **状态**：4 Arm 中 3 Arm 完成（A/B/C1/C2-A），1 Arm 待 GhostKOALA 异步结果（C2-B）
+> **更新日期**：2026-05-09（凌晨）—— Ayala C2-B 完成，n=4 全部 done
+> **状态**：✅ **4 Arm 全部完成**（A/B/C1/C2-A/C2-B），含 stress test n=3
 > **关联**：[scoring_validation_experiment.md](scoring_validation_experiment.md)（实验设计）+
 > [hypothesis_scoring_analysis.md](hypothesis_scoring_analysis.md)（4 路径分析）+
 > [scoring_validation_self_critique.md](scoring_validation_self_critique.md)（**严肃自检** ⚠️）
@@ -16,7 +16,7 @@
 | **B** ROCker treatment | Wei 2024 *Microbiome* | ROCker 14 基因 | 0.627 | **INSUFFICIENT** | 3/5 (veto) | 砷+N 稻田 |
 | **C1** KEGG-curated #1 | Liu 2023 *npj Biofilms* | DRAM (KEGG) | **1.000** | **STRONG** | 4/4 | 砷+冷泉 |
 | **C2-A** KEGG-curated #2 (跨主题) | Grettenberger 2021 *AEM* | METABOLIC step (KEGG) | **1.000** | **STRONG** | 4/4 | **AMD 溪流（无砷）** ⭐ |
-| **C2-B** KEGG-curated #3 (跨主题) | Ayala 2020 *Microorganisms* | GhostKOALA | TBD | **pending** ⏸ | — | AMD pit lake (深层) |
+| **C2-B** KEGG-curated #3 (跨主题) | Ayala 2020 *Microorganisms* | GhostKOALA | **1.000** | **STRONG** | 4/4 | **AMD pit lake 深层（无砷）** ⭐ |
 
 ### 用户最初担忧"统计学样本不足"已通过加做 Arm C2 解决：
 
@@ -204,23 +204,28 @@ scorer 加第 6 类 claim type **`pathway_inactive`**（commit `14bc01b`）：
 |---|---|---|---|---|
 | Liu 2023 cold seep | STRONG (1.000) | **suggestive (0.625)** | n=2/3 satisfied | **B 级** — gap 存在但二元阈值 limit 暴露 |
 | Grettenberger 2021 AMD | STRONG (1.000) | **weak (0.250)** | n=1/3 satisfied | **A 级** — 干净 discrimination evidence ⭐ |
-| Ayala 2020 pit lake | pending | pending | — | — |
+| **Ayala 2020 pit lake** | **STRONG (1.000)** | **suggestive (0.455)** | **n=2/4 satisfied** | **B 级** — 同 Liu，二元阈值 limit |
 
 ### 9.4 关键发现
 
-**1. Grettenberger Arm B 是 paper 最强单条证据**：cross-topic claim
-"arsenate_reduction should dominate" 在无砷 AMD 数据上**实测 unsatisfied (n=0 active MAGs)**。
-推翻 "universal arsC 解毒会污染 cross-topic stress" 担忧。**支持 EnvMeta 领域中立性**。
+**1. Cross-topic arsenate_reduction 在 2/2 无砷数据集双双 reject** ⭐⭐：
+- Grettenberger AMD：n=0 active MAGs
+- Ayala pit lake：n=0 active MAGs
+- **双重证据**推翻 "universal arsC 解毒会污染 cross-topic stress" 担忧
+- **EnvMeta 领域中立性铁证** — 论文 Discussion 必须突出引用
 
-**2. Liu Arm A 暴露 EnvMeta 二元阈值 limit**：As oxidation stress claim 意外
-satisfied，因为 Liu 冷泉**确实**含 2 个 MAG 携带 aoxAB（与 Stolz 2006 综述零星
-报道一致），mean_comp=50% 刚过 threshold 但 contribution 极弱（0.3）。
-- ❌ 不是 stress test fail（信号真实）
+**2. Liu A + Ayala A 暴露 EnvMeta 二元阈值 limit**（B 级 in 2/3 stress test）：
+- Liu As oxidation: 2 MAG, contrib=0.3 vs As reduction contrib=6.4 (21× 弱)
+- Ayala S oxidation: 1 MAG, contrib=66.7 vs S reduction contrib=675 (10× 弱)
+- 都 mean_comp ≥ 50% 阈值 → satisfied，但 contribution 相对极弱
+- ❌ 不是 stress test fail（信号真实，Stolz 2006 海洋零星报告一致）
 - ❌ 不是 EnvMeta 鉴别力 fail
 - ✅ 是 **二元 satisfied/unsatisfied 报告方式过粗**（丢失"主导 vs 微弱"信息）
+- → 加强 v0.9 / Paper 4 的 dominance_score 改进必要性
 
-**3. pathway_inactive (negative claim) 工作正常**：Grettenberger C 项 + Liu C 项
-都 unsatisfied，符合 Popperian falsifiability 设计。
+**3. pathway_inactive (negative claim) 工作正常**：Grettenberger C + Liu C + Ayala C
+**3/3 都 unsatisfied**，符合 Popperian falsifiability 设计 → negative claim 评估
+跑分逻辑稳定。
 
 ### 9.5 Pre-registration 全栈证据
 
@@ -252,3 +257,4 @@ evidence (Grettenberger) + same-topic 二元阈值 limit (Liu)。
 | 2026-05-08（晚）| 自检 narrative 由 demonstration 改为 calibration（commit 1b358fb） |
 | 2026-05-08（深夜）| **Stage 3 stress test：pathway_inactive feature + 双层假说写作教程 + 3 stress YAML 盲预测固化（commit 14bc01b + 50c4687）** |
 | 2026-05-08（深夜）| **Liu + Grettenberger stress 跑分完成；Grettenberger A 级 discrimination evidence；Liu B 级（二元阈值 limit 暴露）** |
+| **2026-05-09（凌晨）**| **GhostKOALA 1h 完成 → Ayala C2-B reshape + 跑分；Calibration STRONG (4/4) + Stress SUGGESTIVE (0.455)；B 级 discrimination；cross-topic arsenate_reduction 在 2/2 无砷数据集双双 n=0，领域中立性铁证** |
