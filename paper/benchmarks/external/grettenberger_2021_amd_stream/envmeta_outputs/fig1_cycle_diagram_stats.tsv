@@ -1,0 +1,37 @@
+type	element	pathway_id	display_name	n_active_mags	mean_completeness	total_contribution	top_mag
+pathway	arsenic	Arsenate reduction	Arsenate reduction	0	0.0	0.0	
+pathway	arsenic	Arsenite oxidation	Arsenite oxidation	0	0.0	0.0	
+pathway	arsenic	Resp. arsenate red.	Resp. arsenate red.	0	0.0	0.0	
+pathway	arsenic	As transport/detox	As transport/detox	0	0.0	0.0	
+pathway	arsenic	As methylation	As methylation	0	0.0	0.0	
+pathway	arsenic	As regulation	As regulation	0	0.0	0.0	
+pathway	nitrogen	N fixation	N fixation	4	100.0	400.0	GWA2-66-18 sp. Mx_27
+pathway	nitrogen	Nitrate reduction	Nitrate reduction	4	83.33333333333334	333.33333333333337	Cabin_Combined_90
+pathway	nitrogen	NO reduction	NO reduction	2	100.0	200.0	GWA2-66-18 sp. Mx_27
+pathway	nitrogen	Nitrite reduction	Nitrite reduction	2	50.0	100.0	Gallionella sp. Mx_27
+pathway	nitrogen	N2O reduction	N2O reduction	1	100.0	100.0	Cabin_Combined_77
+pathway	nitrogen	Ammonia oxidation	Ammonia oxidation	0	0.0	0.0	
+pathway	sulfur	Assim. sulfate red.	Assim. sulfate red.	6	100.0	600.0	Cabin_B_29
+pathway	sulfur	Sulfide oxidation	Sulfide oxidation	4	83.33333333333334	333.33333333333337	GWA2-66-18 sp. Mx_27
+pathway	sulfur	Dissim. sulfate red.	Dissim. sulfate red.	2	75.0	150.0	Cabin_Combined_18
+pathway	sulfur	Thiosulfate metab.	Thiosulfate metab.	0	0.0	0.0	
+pathway	iron	Fe transport	Fe transport	17	54.90196078431372	933.3333333333333	RAAP-2 sp. Mx_60
+pathway	iron	Fe uptake regulation	Fe uptake regulation	0	0.0	0.0	
+sensitivity	arsenic	Arsenate reduction	Arsenate reduction	0	0.0		None|None|None
+sensitivity	arsenic	Arsenite oxidation	Arsenite oxidation	0	0.0		None|None|None
+sensitivity	arsenic	Resp. arsenate red.	Resp. arsenate red.	0	0.0		None|None|None
+sensitivity	arsenic	As transport/detox	As transport/detox	0	0.0		None|None|None
+sensitivity	arsenic	As methylation	As methylation	0	0.0		None|None|None
+sensitivity	arsenic	As regulation	As regulation	0	0.0		None|None|None
+sensitivity	nitrogen	Nitrate reduction	Nitrate reduction	12	1.0		Cabin_Combined_90|Cabin_Combined_90|Cabin_Combined_90
+sensitivity	nitrogen	Nitrite reduction	Nitrite reduction	4	0.0		Gallionella|Gallionella|None
+sensitivity	nitrogen	NO reduction	NO reduction	6	1.0		GWA2-66-18|GWA2-66-18|GWA2-66-18
+sensitivity	nitrogen	N2O reduction	N2O reduction	3	1.0		Cabin_Combined_77|Cabin_Combined_77|Cabin_Combined_77
+sensitivity	nitrogen	Ammonia oxidation	Ammonia oxidation	0	0.0		None|None|None
+sensitivity	nitrogen	N fixation	N fixation	12	1.0		GWA2-66-18|GWA2-66-18|GWA2-66-18
+sensitivity	sulfur	Assim. sulfate red.	Assim. sulfate red.	18	1.0		Gallionella|Gallionella|Gallionella
+sensitivity	sulfur	Dissim. sulfate red.	Dissim. sulfate red.	5	1.0		Cabin_Combined_18|Cabin_Combined_18|Cabin_Combined_18
+sensitivity	sulfur	Sulfide oxidation	Sulfide oxidation	12	1.0		GWA2-66-18|GWA2-66-18|GWA2-66-18
+sensitivity	sulfur	Thiosulfate metab.	Thiosulfate metab.	0	0.0		None|None|None
+sensitivity	iron	Fe transport	Fe transport	34	0.0		RAAP-2|RAAP-2|None
+sensitivity	iron	Fe uptake regulation	Fe uptake regulation	0	0.0		None|None|None
