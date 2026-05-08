@@ -1,0 +1,112 @@
+# EnvMeta 假说评分器 — Ayala-Muñoz et al. 2020 Microorganisms 酸性矿坑湖深层
+#
+# Source: Ayala-Muñoz D, Burgos WD, Sánchez-España J, Couradeau E, Falagán C,
+#         Macalady JL (2020) "Metagenomic and Metatranscriptomic Study of
+#         Microbial Metal Resistance in an Acidic Pit Lake"
+# DOI:    10.3390/microorganisms8091350
+# Site:   Cueva de la Mora pit lake (Iberian Pyrite Belt, Spain), deep layer 35 m
+# Data:   13 MAGs in BioProject PRJNA646106
+# License: CC BY 4.0
+#
+# ═══════════════════════════════════════════════════════════════════════
+#  PRE-DATA HYPOTHESIS（pre-registration 证据）
+# ═══════════════════════════════════════════════════════════════════════
+#
+# 本 YAML 在跑 EnvMeta **之前** commit，作为对照实验 Arm C2 的 pre-registration
+# 证据。git timestamp 锁定。
+#
+# 假设构成原则：
+#
+#   1. 仅基于 Ayala-Muñoz 2018-2019 设计实验时**先验已知**的 IPB AMD pit lake
+#      生物地球化学知识（1990s-2010s 文献综述层）
+#   2. 不引用 Ayala-Muñoz 2020 / 2022 论文的任何具体发现（如 Coccomyxa onubensis /
+#      Ca. Acidulodesulfobacterium / Thermoplasmatales archaeon 优势 / "硫化物沉淀
+#      not limited by genetic potential" 等）
+#   3. 不为复现作者结论而调阈值或 weight
+#   4. EnvMeta 默认阈值（min_completeness=30 / strong=0.75 / suggestive=0.40）
+#
+# Pre-data 推理路径（IPB AMD 通用先验）:
+#
+#   A. AMD 酸性矿坑湖深层 = 缺氧 + 高 SO₄²⁻ + 高金属（Fe/As/Cu/Zn/...）+ 低 pH
+#      （Sánchez-España 2008/2014 IPB 综述；Falagán & Johnson 2014）
+#   B. 缺氧 + 高 SO₄ → 应有 dissimilatory sulfate reduction（dsrAB + aprAB），
+#      产 H₂S → biosulfidogenesis 修复机制的微生物基础
+#      （Johnson & Hallberg 2005 修复综述；Diaby et al. 2007）
+#   C. 缺氧 + 微氧界面（Fe/S 共存）→ 局部 sulfide oxidation 仍可能（sqr / soxXYZ AB）
+#      （Falagán et al. 2014）
+#   D. 寡营养 + AMD 极酸抑制 nitrification → N 循环活性预期偏弱；但深层局部
+#      仍可能 nitrate reduction 或 N fixation
+#      （Tan et al. 2009; Auld et al. 2017）
+#
+# 因此预设：1 个 confirmatory required + 1 个 confirmatory not-required + 2 个 exploratory
+
+name: "Ayala2020_pitlake_deep_pre-data_hypothesis"
+description: |
+  Ayala-Muñoz et al. 2020 Microorganisms 酸性矿坑湖深层 13 MAGs 的 pre-data
+  假设复现。基于 IPB pit lake 1990-2010 文献综述层的先验生物地球化学知识，
+  不引用 2020/2022 论文具体发现，避免循环论证。
+
+version: "1.0"
+strong_threshold: 0.75
+suggestive_threshold: 0.40
+
+claims:
+  # ─────────────────────────────────────────────────────────────────────
+  # H1（confirmatory, REQUIRED）: 缺氧 + 高 SO₄ → dissim sulfate reduction 应主导
+  # 先验依据: Johnson & Hallberg 2005; Diaby et al. 2007 IPB AMD 综述
+  # ─────────────────────────────────────────────────────────────────────
+  - id: dissim_sulfate_reduction_active_in_deep_anoxic
+    type: pathway_active
+    weight: 1.5
+    required: true
+    params:
+      pathway: "Dissim. sulfate red."
+      min_completeness: 30
+    explanation: |
+      Pre-data 预测: AMD pit lake 深层缺氧 + 高 SO₄²⁻ → 应有 dsrAB / aprAB
+      mediated dissimilatory 硫酸盐还原，是 biosulfidogenesis 修复机制的
+      backbone 通路。required veto: 若无 active，整体假说失败。
+
+  # ─────────────────────────────────────────────────────────────────────
+  # H2（confirmatory, NOT required）: 微氧/缺氧界面 → sulfide oxidation 局部存在
+  # 先验依据: Falagán et al. 2014 IPB pit lake 微氧界面研究
+  # ─────────────────────────────────────────────────────────────────────
+  - id: sulfide_oxidation_microaerophilic
+    type: pathway_active
+    weight: 1.0
+    params:
+      pathway: "Sulfide oxidation"
+      min_completeness: 30
+    explanation: |
+      Pre-data 预测: 深层局部微氧界面（如 chemocline edge / 沉积物界面）
+      可能有 sqr / soxXYZ AB 介导的 sulfide → S(0) / SO₄²⁻ 氧化。NOT required:
+      纯严格缺氧条件下可能 absent。
+
+  # ─────────────────────────────────────────────────────────────────────
+  # H3（exploratory, NOT required）: 缺氧深层 nitrate reduction
+  # 先验依据: Tan et al. 2009 AMD N 循环综述
+  # ─────────────────────────────────────────────────────────────────────
+  - id: nitrate_reduction_explored
+    type: pathway_active
+    weight: 0.5
+    params:
+      pathway: "Nitrate reduction"
+      min_completeness: 30
+    explanation: |
+      Pre-data exploration: AMD 极酸 + 寡营养抑制 nitrification → 上游 NO₃
+      供应可能有限。但深层局部仍可能有 narG / napA mediated 还原。EnvMeta
+      是否检测到 nitrate reduction 信号？
+
+  # ─────────────────────────────────────────────────────────────────────
+  # H4（exploratory, NOT required）: AMD 寡营养环境 N fixation 可能偶发
+  # 先验依据: Auld et al. 2017 AMD diazotrophy 报告
+  # ─────────────────────────────────────────────────────────────────────
+  - id: nitrogen_fixation_explored
+    type: pathway_active
+    weight: 0.3
+    params:
+      pathway: "N fixation"
+      min_completeness: 30
+    explanation: |
+      Pre-data exploration: 寡营养 AMD 偶有 nifHDK 报告（Auld 2017）。但
+      AMD 深层 diazotrophy 普遍程度未知。低 weight 反映 exploratory 性质。
