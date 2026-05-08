@@ -26,22 +26,33 @@
 - 论文有"As(III) 氧化 + 反硝化共发生"的明确假说，可写为 YAML 喂 S3.5 评分器
 - 2024 *Microbiome* 高引（IF 12+）
 
-### 🟢 异方向（跨主题）：Wilson et al. 2024 MUCC v2 永冻土 ⭐ 最强卖点
+### 🟢 异方向（跨主题）：Tara Oceans MAGs (Meren Lab curated) ⭐
+
+> **2026-05-08 调研后修正**：原推荐 MUCC v2 (Zenodo 14532347) 实测仅含 Methanoregula 单属子集；Wilson 2024 真实数据散落 4 处且缺丰度矩阵。改选 Tara Oceans，原因：唯一已发布完整四件套的非砷大数据集 + Meren Lab 文档化最完整 + 中国可稳定下载 + 海洋 N/S 命中 EnvMeta 4-元素 KB（N+S）。
 
 | 项 | 内容 |
 |---|---|
-| 论文 | "Microbiome-metabolite linkages drive greenhouse gas dynamics over a permafrost thaw gradient" *Nat Microbiol* 9:2892–2908 (2024) |
-| DOI | [10.1038/s41564-024-01800-z](https://doi.org/10.1038/s41564-024-01800-z) |
-| 🎯 数据 | **Zenodo 已发布处理好的 MAG + KO + 元数据**：<https://zenodo.org/records/14532347> |
-| 规模 | 4745 medium/high-quality MAGs；palsa/bog/fen 三生境 |
-| 主题 | 永冻土融化梯度，CH₄ + N 循环（与砷彻底异主题） |
+| 论文 | Delmont et al. 2018 *Nat Microbiol* "Nitrogen-fixing populations of Planctomycetes and Proteobacteria are abundant in surface ocean metagenomes" + 后续多篇 |
+| 入口 | <https://merenlab.org/data/tara-oceans-mags/> |
+| 规模 | 1888 MAGs × 64 站点（surface / DCM / mesopelagic 三深度）|
+| 数据 | MAG fasta + **Anvi'o profile DB（含 mapping coverage 即丰度）** + KEGG/COG 注释 + 样本 metadata 全套 |
+| 大小 | ~15 GB（曾被国内多组镜像）|
+| 主题 | 海洋 N 固定 + S 循环（与陆地砷修复完全异主题）|
 
 **选这个的理由**：
-- **唯一不需要重跑大流程的候选**（其他全部需 100+ GB raw FASTQ → MEGAHIT → KofamScan）
-- Zenodo 直下，中国稳定
-- 三生境天然 3 组对照（对位作者 CK/A/B 设计）
-- 永冻土 vs 砷修复 = 彻底不同主题，是审稿人最想看到的"跨主题泛化"证据
-- *Nat Microbiol* 2024，引用价值最高
+- ✅ **唯一已发布完整四件套**（MAG / KO / 丰度 / metadata）的非砷数据集
+- ✅ Anvi'o profile DB 直接给 MAG mapping coverage（不必从 raw reads 重 mapping）
+- ✅ 海洋 N/S 循环 = EnvMeta 4-元素 KB 中 2 个元素的命中
+- ✅ Meren Lab 文档化是行业标杆，复现叙事强
+- ✅ 64 站点 + 3 深度 = 多组对照天然存在
+
+### 备选（若 Tara 失败）：SMAG 土壤 MAGs（中科院南土所）
+
+Ma et al. 2023 *Nat Commun* "A genomic catalogue of soil microbiomes"：
+- DOI 10.1038/s41467-023-43000-z
+- 40,039 MAGs + KEGG + GTDB-Tk + abundance（已发表处理后表）
+- 中国课题组发布，国内访问稳定
+- 切片版（grassland 子集）压到 ~20 GB
 
 ---
 
