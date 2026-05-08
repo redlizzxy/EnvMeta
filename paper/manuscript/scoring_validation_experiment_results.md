@@ -173,7 +173,75 @@ Claude 应当：
 
 无论结果，路径 X 站住。
 
-## 8. 维护记录
+## 9. Stress Test (Discrimination Power) — Paper 4 / Stage 3
+
+> ⭐ **新增章节**（2026-05-08 晚）：响应 self_critique §3 "Claim 设计代表性 C 级" 批评。
+> 设计 risky/cross-topic stress claims 测试 EnvMeta 的 **discrimination power**
+> （而非仅 calibration），是 Paper 4 方法学贡献的核心证据。
+
+### 9.1 设计原则
+
+为每个 KEGG-curated dataset 写**第二份 YAML**（`*_stress.yaml`），含 4 claim：
+- 1 反向预测 (A 类) — 把先验颠倒
+- 1 领域错配 (B 类) — 把 X 主题机制套到 Y 主题环境
+- 1 negative claim (C 类) — 用 pathway_inactive 否定本应主导 backbone
+- 1 calibration anchor (D 类) — 验证跑分系统正常
+
+详见 [docs/hypothesis_writing_guide.md](../../docs/hypothesis_writing_guide.md) +
+[stress_test_predictions.md](stress_test_predictions.md)（**冻结的盲预测**）+
+[stress_test_results.md](stress_test_results.md)（实测对照）。
+
+### 9.2 工程支持
+
+scorer 加第 6 类 claim type **`pathway_inactive`**（commit `14bc01b`）：
+- `n_active_mags == 0` → satisfied（符合 negative）
+- `n_active_mags > 0` 且 `mean_completeness >= max_completeness` → unsatisfied
+- 297/293 测试套件全绿（+4 新 pathway_inactive 测试）
+
+### 9.3 实测结果（2 / 3 done）
+
+| Dataset | Calibration label | Stress label | Stress overall | Discrimination 等级 |
+|---|---|---|---|---|
+| Liu 2023 cold seep | STRONG (1.000) | **suggestive (0.625)** | n=2/3 satisfied | **B 级** — gap 存在但二元阈值 limit 暴露 |
+| Grettenberger 2021 AMD | STRONG (1.000) | **weak (0.250)** | n=1/3 satisfied | **A 级** — 干净 discrimination evidence ⭐ |
+| Ayala 2020 pit lake | pending | pending | — | — |
+
+### 9.4 关键发现
+
+**1. Grettenberger Arm B 是 paper 最强单条证据**：cross-topic claim
+"arsenate_reduction should dominate" 在无砷 AMD 数据上**实测 unsatisfied (n=0 active MAGs)**。
+推翻 "universal arsC 解毒会污染 cross-topic stress" 担忧。**支持 EnvMeta 领域中立性**。
+
+**2. Liu Arm A 暴露 EnvMeta 二元阈值 limit**：As oxidation stress claim 意外
+satisfied，因为 Liu 冷泉**确实**含 2 个 MAG 携带 aoxAB（与 Stolz 2006 综述零星
+报道一致），mean_comp=50% 刚过 threshold 但 contribution 极弱（0.3）。
+- ❌ 不是 stress test fail（信号真实）
+- ❌ 不是 EnvMeta 鉴别力 fail
+- ✅ 是 **二元 satisfied/unsatisfied 报告方式过粗**（丢失"主导 vs 微弱"信息）
+
+**3. pathway_inactive (negative claim) 工作正常**：Grettenberger C 项 + Liu C 项
+都 unsatisfied，符合 Popperian falsifiability 设计。
+
+### 9.5 Pre-registration 全栈证据
+
+| 证据 | Git anchor |
+|---|---|
+| pathway_inactive feature | commit `14bc01b` |
+| Stress YAML + 盲预测固化 | commit `50c4687` ⭐ |
+| Stress runner | `tools/external_benchmarks/run_stress_yaml.py` |
+| 实测对照 | `paper/manuscript/stress_test_results.md` |
+
+reviewer 可独立 verify：commit `50c4687` 的 stress YAML 时间戳早于跑结果 commit。
+
+### 9.6 论文叙事更新
+
+更新 §5 叙事段落（增加 stress test 段）见 [stress_test_results.md §4](stress_test_results.md)。
+核心改动：在原 calibration narrative 后新增一段，论述 cross-topic discrimination
+evidence (Grettenberger) + same-topic 二元阈值 limit (Liu)。
+
+---
+
+## 10. 维护记录
 
 | 日期 | 事项 |
 |---|---|
@@ -181,3 +249,6 @@ Claude 应当：
 | 2026-05-08（中）| 用户提"统计学样本不足"担忧 → 决定加 Stage 2 多数据集 |
 | 2026-05-08（晚）| Stage 2: Grettenberger C2-A STRONG 完成（plug-and-play） |
 | 2026-05-08（晚）| Ayala C2-B 数据准备完成，提交 GhostKOALA 异步等结果 |
+| 2026-05-08（晚）| 自检 narrative 由 demonstration 改为 calibration（commit 1b358fb） |
+| 2026-05-08（深夜）| **Stage 3 stress test：pathway_inactive feature + 双层假说写作教程 + 3 stress YAML 盲预测固化（commit 14bc01b + 50c4687）** |
+| 2026-05-08（深夜）| **Liu + Grettenberger stress 跑分完成；Grettenberger A 级 discrimination evidence；Liu B 级（二元阈值 limit 暴露）** |
