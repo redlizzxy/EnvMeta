@@ -60,6 +60,11 @@ figures/
 # 出版级图（240MB / 700MB 超 GitHub 100MB 限制），PDF/PNG 已足够论文 SI 用
 paper/benchmarks/validation/**/*.tiff
 
+# 第三方公开数据集 reshape 后的 EnvMeta 输入（受原 license 限制不入仓库）
+# CC BY-NC-ND 4.0 等 NoDerivatives license 禁止 redistribute derivative work
+# 复现路径：用户本地下载原 supplementary → 运行 tools/external_benchmarks/*_reshape.py
+paper/benchmarks/external/*/input_data_local/
+
 # R
 .Rhistory
 .RData
