@@ -97,49 +97,80 @@ Wilson 2024 论文的真实数据散落在：
 - [ ] Supplementary Tables 已下载（特别留意 Table S2 / S3 / S4 等可能含 KO 矩阵的表）
 - [ ] BioProject 样本列表已浏览（确认 36 samples 是否齐全）
 
-### Suppl Tables 清单（实测）
+### Suppl Tables 清单（2026-05-08 实测）
 
-> 用户翻完 Suppl 后填入：
+**MOESM1_ESM.docx**（仅图）：Fig. S1-S18 — 系统发育/地理位置/物化参数对比/亚社区分类等
 
-```
-[此处列每张 Suppl 表的标题 + 内容简述]
-例：
-Table S1 — Sample metadata (n=36, pH/EC/As 等)
-Table S2 — MAG list (高质量 20 个，含 GTDB-Tk taxonomy)
-Table S3 — ROCker hits (As-related KO/gene)
-Table S4 — KO matrix (MAG × KO)？？？  ← 关键，需确认
-```
+**MOESM2_ESM.xlsx**（数据表，关键）：
 
-### EnvMeta 兼容性核对
-
-| 必需输入 | Suppl 中是否提供 | 备注 |
+| Table | 内容 | EnvMeta 用途 |
 |---|---|---|
-| 样本 metadata + pH | ⬜ | |
-| MAG 丰度（MAG × sample） | ⬜ | |
-| KO 注释（MAG × KO） | ⬜ | **决定 A/B/C 路径的关键** |
-| GTDB-Tk taxonomy | ⬜ | |
+| **S1** | Sample metadata（n=36） | metadata.tsv（样本分组：As-contaminated vs noncontaminated）|
+| **S2** | Physicochemical parameters of paddy soil | env.tsv（pH / EC / As / NO₃⁻ / NH₄⁺ 等环境因子，喂 RDA + 假说评分）|
+| S3 | Metagenomic dataset statistics | （读图统计，跑图非必需）|
+| S4 | Metatranscriptomic dataset statistics | （RNA 层，可选）|
+| S5 | UniProt IDs for ROCker references | （注释方法学）|
+| S6 | As genes-carrying reads in transcriptomes | （RNA 层）|
+| **S7** | **179 MAGs with completeness > 50% & contamination < 10% — Taxa + relative abundance** | **mag_abundance.tsv + mag_taxonomy.tsv + checkm.tsv 三合一** ⭐ |
+| **S8** | **Functional genes (As ox/red + denitrification + DNRA + methane oxidation) in MAGs** | **ko_long.tsv（精选 KO，5 大功能基因×179 MAG）** ⭐ |
+| **S9** | **20 MAGs carrying As(III) ox + denitrification/DNRA gene** | **作者核心假说证据 → 喂 EnvMeta YAML 评分器** ⭐ |
+| S10 | Transcriptional activity of functional genes | （可选 RNA 层对照）|
 
-### 决策（A/B/C 路径）
+### EnvMeta 兼容性核对（实测）
 
-- **路径 A**：Suppl 含 KO 矩阵 + MAG 丰度 → 直接 reshape，1-2 天
-- **路径 B**：Suppl 缺 KO 矩阵但有 MAG fasta → ENA 下 fasta + 跑 KofamScan，3-5 天
-- **路径 C**：Suppl 仅有 ROCker hits（不含 full KO）→ 子采样 8 样本重跑全流程，1-2 周
-- **路径 D（搁置）**：Suppl 完全不够 → 暂搁置 Wei，只做 MUCC
+| 必需输入 | Suppl 中是否提供 | 来源 | 备注 |
+|---|---|---|---|
+| 样本 metadata + pH 等 | ✅ | S1 + S2 | 36 paddy samples, As-contaminated vs noncontaminated |
+| MAG 丰度（MAG × sample） | ✅ | S7 | 179 高质量 MAG (completeness>50%) |
+| KO 注释（MAG × KO） | ⚠️ **精选版** | S8 | **不是 KEGG 全 KO**，是论文核心 5 类基因（aioA/arxA/arrA/arsC1/arsC2 + denit + DNRA + mcrA）|
+| GTDB-Tk taxonomy | ✅ | S7 | 同行 |
+| 环境因子 (env.tsv) | ✅ | S2 | pH / EC / As / NO₃⁻ / NH₄⁺ 等齐全 |
+| MAG 质量 | ✅ | S7 | completeness + contamination 列 |
 
-实际决策：⬜（待填）
+### 决策
+
+✅ **路径 A'（修正版）确立**：
+
+- Wei Suppl 提供"精选 KO"（不是 KEGG 全集），但**正中 EnvMeta 砷+N 循环图卖点**
+- 1-2 天可跑通：直接 xlsx → reshape → EnvMeta
+- 跑得通的图（≥ 8 张）：
+  1. 物种堆叠图（179 MAG taxonomy）
+  2. α 多样性（As-cont vs noncont 两组）
+  3. β-PCoA + PERMANOVA（基于 MAG 丰度）
+  4. RDA（基于 S2 物化参数 vs MAG 丰度，pH 主轴）
+  5. LEfSe（As-cont vs noncont 差异 MAG）
+  6. 基因热图（精选 KO × MAG）
+  7. MAG 丰度热图
+  8. **🔑 循环图（As + N 元素，从 S8 精选 KO 推断）— EnvMeta 独家**
+  9. **🔑 YAML 假说评分**：直接写"As(III) oxidation 与 denitrification 共发生"假说（S9 是金标准） → 喂评分器 → 复现作者结论
+- 跑不通/简化的图（≤ 6 张）：MAG 质量散点（S7 给了 comp/cont 但缺 N50 等）/ 通路完整度（精选 KO 不全 KEGG module）/ MAG 基因谱（精选）/ 共现网络（缺 sample × MAG 共现）
+
+**License 注意**：Wei 论文为 CC BY-NC-ND 4.0。Suppl 原始 xlsx **不入 EnvMeta git repo**，仅本地保留 + reshape 脚本入仓库；EnvMeta 跑出的图作为新生成产物可入仓库 + 论文使用，并 cite Wei 2024。
+
+实际决策：✅ **路径 A'（2026-05-08 确立）**
 
 ---
 
-## 3. Phase 0 完成后的下一步
+## 3. Phase 0 决策（2026-05-08 收尾）
 
-填完上述两份清单后，根据决策结果选节奏：
+### 最终路径
 
-| MUCC | Wei | 节奏 | 预计完成 |
-|---|---|---|---|
-| ✅ 路径 1 | A | **节奏 2 激进**：MUCC + Wei 双管齐下 | 5-7 天 |
-| ✅ 路径 1 | B | 节奏 1.5：MUCC 优先 + Wei 中等耗时 | 7-10 天 |
-| ✅ 路径 1 | C/D | **节奏 1 保守**：仅 MUCC | 3-5 天 |
-| ❌ MUCC 退备选 | — | 重新评估，可能换 Tara Oceans | TBD |
+| 数据集 | 决策 | 理由 |
+|---|---|---|
+| **Wei 2024 砷稻田** | ✅ **首选 — 路径 A' 确立** | Suppl Table S1/S2/S7/S8/S9 全提供，1-2 天跑通；正中 EnvMeta 假说评分卖点 |
+| **Tara Oceans (Meren)** | ⏸ **次选，待 Wei 完成后视情况启动** | ~15 GB + 装 anvi'o 麻烦；Wei 完成后若叙事已强可省略 |
+| ~~MUCC v2~~ | ❌ **废弃** | 数据散落 4 处 + 丰度矩阵无独立发布 |
+
+### 节奏
+
+**Phase 1 — Wei 复现**（2026-05-08 至 2026-05-10，2-3 天）：
+- Day 1：reshape Wei MOESM2.xlsx → EnvMeta 6 个 input file
+- Day 2：跑 9 张图 + 写 YAML 假说 + 截图归档
+- Day 3：写 README + compare_to_original.md + Methods 段落初稿
+
+**Phase 1.5 决策点**（2026-05-10）：
+- 如 Wei 复现叙事已强 → 跳 Tara Oceans，进 Methods 全稿
+- 如需"跨主题"加强 → 启动 Tara Oceans Phase 1（再加 3-5 天）
 
 ---
 
