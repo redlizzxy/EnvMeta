@@ -163,11 +163,14 @@ paper/benchmarks/validation/second_dataset/
 
 | 子任务 | 工时 | 状态 |
 |---|---|---|
-| `LICENSE` 文件添加（MIT）| 5 min | ⬜ |
-| `README.md` 翻译为英文（中文迁 `README_CN.md`）| 3-4h | ⬜ |
-| GitHub release v1.0 创建 | 30 min | ⬜ |
-| Zenodo 关联 GitHub repo + 触发 DOI | 30 min | ⬜ |
-| Zenodo metadata 填写 + DOI 嵌入 README | 30 min | ⬜ |
+| `LICENSE` 文件添加（MIT）| 5 min | ✅ **完成**（2026-05-08，commit `84e1ac4`）|
+| `README.md` 翻译为英文（中文迁 `README_CN.md`）| 3-4h | ✅ **完成**（同上）|
+| GitHub release v1.0 创建 | 30 min | ⏸ **待投稿时执行**（v1.0.0 = 投稿版）|
+| Zenodo 关联 GitHub repo + 触发 DOI | 30 min | ⏸ **待投稿时执行**（步骤档：[zenodo_doi_steps.md](zenodo_doi_steps.md)）|
+| Zenodo metadata 填写 + DOI 嵌入 README | 30 min | ⏸ **待投稿时执行** |
+
+> 投稿版 v1.0.0 + Zenodo DOI 的完整 5 步操作流见 [zenodo_doi_steps.md](zenodo_doi_steps.md)。
+> 当前内测阶段（v0.8.x）保持不归档 Zenodo，避免 metadata 锁定与 DOI 频繁变更。
 
 ---
 
