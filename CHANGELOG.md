@@ -8,6 +8,84 @@
 
 ---
 
+## [0.9.0] — 2026-05-09
+
+> **假说评分对照实验完成 + Stress test discrimination evidence**：4 Arm KEGG-curated
+> 数据集 calibration 全 STRONG + n=3 stress test 暴露 discrimination power。
+> Paper 3 投稿核心证据全部就位。
+
+### ✨ 新增
+
+- **`pathway_inactive` claim type**（第 6 类）：Popperian falsifiability 主力。
+  评估：n_active_mags == 0 → satisfied；> 0 且 mean_comp ≥ max_completeness →
+  unsatisfied。default `max_completeness=50`；不破坏旧 YAML（向后兼容）。
+  4 个新测试 case，全套 297/293 全绿（[14bc01b](https://github.com/redlizzxy/EnvMeta/commit/14bc01b)）
+
+- **假说写作教程** 双层结构：
+  - [`docs/hypothesis_writing_guide.md`](docs/hypothesis_writing_guide.md) — 用户教程
+    （含双层 calibration+stress 模板、pre-registration 纪律、pre-prediction 模板、
+    6 类 claim 选择指南、Bradford-Hill 对应）
+  - [`paper/hypotheses/HYPOTHESIS_DESIGN_PRINCIPLES.md`](paper/hypotheses/HYPOTHESIS_DESIGN_PRINCIPLES.md) — 论文方法学
+    （含设计哲学、4 类局限、引用建议）
+
+- **通用 stress runner**：[`tools/external_benchmarks/run_stress_yaml.py`](tools/external_benchmarks/run_stress_yaml.py)
+  接受 `--dataset` + `--yaml` 或 `--all`，跑任一 external dataset 的任一 YAML
+  → 输出 `fig6_<yaml_stem>_score.md`
+
+### 📊 假说评分对照实验完成（Paper 3 核心证据）
+
+**Arm C2-B 完成（Ayala 2020 pit lake）**：GhostKOALA 1h 完成 → reshape user_ko.txt
+（11243 MAG-KO records × 13 MAGs）→ Calibration STRONG (1.000) + Stress SUGGESTIVE (0.455)。
+n=4 KEGG-curated calibration 全 STRONG。([60a5be4](https://github.com/redlizzxy/EnvMeta/commit/60a5be4))
+
+**Stress test n=3（Liu / Grettenberger / Ayala）**：
+
+| Dataset | Calibration | Stress | Discrimination |
+|---|---|---|---|
+| Liu 2023 (冷泉同主题) | STRONG (1.000) | suggestive (0.625) | B 级 |
+| Grettenberger 2021 (AMD 跨主题) | STRONG (1.000) | **weak (0.250)** | **A 级** ⭐ |
+| Ayala 2020 (pit lake 跨主题) | STRONG (1.000) | suggestive (0.455) | B 级 |
+
+**最强单条证据**：cross-topic `arsenate_reduction_should_dominate` 在 **2/2 无砷
+数据集**（Grettenberger + Ayala）都正确 unsatisfied (n=0 active MAGs) → 双重
+推翻 universal arsC 担忧 → EnvMeta 领域中立性铁证。
+([50c4687](https://github.com/redlizzxy/EnvMeta/commit/50c4687) +
+[ba2055c](https://github.com/redlizzxy/EnvMeta/commit/ba2055c) +
+[60a5be4](https://github.com/redlizzxy/EnvMeta/commit/60a5be4))
+
+### 📚 文档
+
+- **stress test 双层文档**：
+  - [`stress_test_predictions.md`](paper/manuscript/stress_test_predictions.md)（冻结盲预测）
+  - [`stress_test_results.md`](paper/manuscript/stress_test_results.md)（实测对照 + 论文叙事段落）
+
+- **假说评分对照实验主结果**：[`scoring_validation_experiment_results.md`](paper/manuscript/scoring_validation_experiment_results.md)
+  §10 stress test 章节加 n=3 实测；§5 narrative 由 demonstration 改为 calibration（[1b358fb](https://github.com/redlizzxy/EnvMeta/commit/1b358fb)）
+
+- **严肃自检**：[`scoring_validation_self_critique.md`](paper/manuscript/scoring_validation_self_critique.md)
+  Direct/Inferred/Weak 提炼度评估；calibration claim 设计代表性 C 级 自批
+
+- **引用审计**：[`hypothesis_references_audit.md`](paper/manuscript/hypothesis_references_audit.md)
+  16 claim × 13 文献 DOI 表；Agent verify 暴露 4 处引用错误（详见 fix(refs)）
+
+### 🐛 修复（hypothesis YAML metadata only）
+
+- **6 个 hypothesis YAML 引用 metadata 修订**（不动 claim 实体）：
+  4 处错引：(1) Yin 2011 期刊 ES&T → Plant Physiol；(2) Bothe "2007 FEMS Rev"
+  实际不存在 → Bothe et al. 2000 FEMS Microbiol Rev 24:673-690；(3) Cabrera 2006
+  期刊 Process Biochem → J Hazard Mater，且主题是金属毒性 SRB 实验非
+  acidophilic SRB 综述 → Sánchez-Andrea 2014 升 primary；(4) Auld 2017 主题是
+  seasonal community variation 非 diazotrophy → 该 claim N fixation 文献支持
+  降级 weak（Methods 应改引 Korehi 2014 / Mendez-Garcia 2015 verified 文献）。
+  每 YAML 末尾追加 § REFERENCES 完整 Vancouver + DOI 表。
+  ([ddd3098](https://github.com/redlizzxy/EnvMeta/commit/ddd3098))
+
+### 🧪 测试
+
+- pytest **297/297 全绿**（+4 pathway_inactive 测试，未破坏现有功能）
+
+---
+
 ## [0.8.2] — 2026-05-08
 
 > R/Python 11 图侧侧对照工作完成 + RDA 数值对齐修复。

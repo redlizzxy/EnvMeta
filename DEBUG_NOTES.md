@@ -17,6 +17,91 @@
 
 > 每次 session 结束前更新此区块。新对话开始时 Claude Code 自动读取，了解当前进度。
 
+### 2026-05-08-09（**v0.9.0 — 假说评分对照实验完成 + Stress test ⭐⭐**）
+
+**背景**：v0.8.2 完成 R 对照后开始 Paper 3 投稿核心证据收集。Wei 2024 INSUFFICIENT
+触发"假说评分会不会被审稿人质疑过严"担忧 → 用户决定不动 app，加做 KEGG-curated
+多数据集复现性测试（Liu / Grettenberger / Ayala 三连）+ 用户后续要求 stress test
+discrimination power → 全套交付。
+
+**关键决策**（按时间顺序）：
+
+1. **不动评分阈值，加数据集复现** —— 防 p-hacking，每条 hypothesis YAML 跑前 commit
+   作 git timestamp anchor。Liu YAML `42168da` / Grettenberger `44d7f5f` / Ayala `76a4f77`
+
+2. **从 RIS 文件挑选 cross-topic 数据集** —— 用户 D:\\download\\导出的条目.ris 22 篇
+   候选中选 Grettenberger 2021 AEM（METABOLIC step Present 矩阵 plug-and-play 4 秒
+   出结果）+ Ayala 2020 Microorganisms（GhostKOALA 重跑 1h 异步）
+
+3. **加 pathway_inactive claim type**（v0.9.0 工程改动）—— Popperian falsifiability
+   主力。Stress test 要 discrimination evidence 必需 negative claim 支持。
+   `n_active_mags == 0 → satisfied`；`> 0 且 mean_comp ≥ max_completeness → unsatisfied`。
+   不破坏旧 YAML（向后兼容），4 个新测试，全套 297/293 全绿（commit `14bc01b`）
+
+4. **双层假说写作教程** —— 给所有 EnvMeta 用户用的 [`docs/hypothesis_writing_guide.md`](docs/hypothesis_writing_guide.md)
+   含 calibration + stress 双层模板、pre-registration 纪律、pre-prediction
+   模板、6 类 claim 选择指南、Bradford-Hill 对应。论文方法学版
+   [`paper/hypotheses/HYPOTHESIS_DESIGN_PRINCIPLES.md`](paper/hypotheses/HYPOTHESIS_DESIGN_PRINCIPLES.md)
+   含设计哲学、4 类局限、引用建议
+
+5. **Pre-registration 不是文件冻结，是 git audit trail 完整 + claim 实体不动**
+   —— 用户问"为什么不能改 YAML"，承认前面"不能改"过严了。引用 metadata 修订
+   不构成 p-hacking 风险（不影响评分输出）；只要 commit 透明 + 不动 claim 实体
+   （type/pathway/threshold/weight/required/expected_label）就是允许的。
+   未发表前 git 是 working artifact，论文 Methods 报告"投稿时的最终 anchor commit"
+   即可，不需要解释每个中间 commit。
+
+**结果**：
+
+| Arm | 数据集 | Calibration | Stress | Discrimination 等级 |
+|---|---|---|---|---|
+| A | 作者 168 MAG (砷渣) | STRONG | — | (positive control) |
+| B | Wei 2024 (砷+N ROCker) | INSUFFICIENT | — | — |
+| C1 | Liu 2023 (冷泉砷 DRAM) | STRONG (1.000) | suggestive (0.625) | B 级 |
+| C2-A | Grettenberger 2021 (AMD 跨主题 METABOLIC) | STRONG (1.000) | **weak (0.250)** | **A 级** ⭐ |
+| C2-B | Ayala 2020 (pit lake 跨主题 GhostKOALA) | STRONG (1.000) | suggestive (0.455) | B 级 |
+
+**最强单条证据**：cross-topic `arsenate_reduction_should_dominate` 在 **2/2 无砷
+数据集**（Grettenberger n=0 + Ayala n=0）都正确 unsatisfied → 双重推翻
+"universal arsC 解毒会污染 cross-topic stress" 担忧 → EnvMeta 领域中立性铁证。
+
+**遗留 limit**（论文 Discussion 自指 future work）：
+- Liu A + Ayala A stress claim 意外 satisfied — 数据真有少量 oxidizer
+  carrier（Liu As ox contrib=0.3 vs As red=6.4 = 21× 弱；Ayala S ox 66.7 vs
+  S red 675 = 10× 弱），但二元 mean_comp ≥ 50% 阈值过粗，丢失"主导 vs 微弱"
+  信息 → 加 `dominance_score = contribution / element_total` 字段（v0.9.x backlog）
+
+**引用审计 + 错引纠正**：
+- 后台 Agent verify 9 篇文献 DOI，发现 **4 处引用错误**：
+  (1) Yin 2011 期刊 ES&T → Plant Physiol 156(3):1631-1638；
+  (2) Bothe "2007 FEMS Rev" 不存在文献，应为 Bothe et al. 2000 FEMS Microbiol Rev 24:673-690；
+  (3) Cabrera 2006 期刊 Process Biochem → J Hazard Mater，且主题是金属毒性 SRB 实验非 acidophilic SRB 综述；
+  (4) Auld 2017 主题是 seasonal community variation 非 diazotrophy → nitrogen_fixation_explored claim 文献支持降级 weak
+- 6 YAML metadata 修订（commit `ddd3098`）— 不动 claim 实体；每 YAML 末尾追加 § REFERENCES Vancouver + DOI 表
+- `paper/manuscript/hypothesis_references_audit.md` 含完整 13 文献 DOI + 提炼度评估（Direct 9 / Inferred 5 / Weak 2）+ Methods 透明纠正声明
+
+**今日 git commits（按时间顺序）**：
+- `14bc01b` feat(hypothesis): pathway_inactive claim type + 假说写作教程（双层 calibration+stress）
+- `50c4687` feat(benchmarks): stress test pre-registration — 3 YAMLs + 12 claim 盲预测固化
+- `ba2055c` feat(benchmarks): stress test 实测 — Grettenberger A 级 + Liu B 级 discrimination
+- `1b358fb` docs(paper3): 假说评分对照实验自检 — narrative 由 demonstration 改为 calibration
+- `09a0048` docs(paper3): 对照实验进度存档 — 4 Arm 完成 3 / 待 1 (Ayala GhostKOALA 异步)
+- `7787938` docs(paper3): 假说引用审计 — Agent verify 暴露 4 处引用错误
+- `60a5be4` feat(benchmarks): Ayala 2020 C2-B 完成 — n=4 calibration STRONG + cross-topic 双重 reject
+- `ddd3098` fix(refs): 6 hypothesis YAML metadata 修订 — 不动 claim 实体
+
+**量化**：
+- 新增代码：`pathway_inactive` claim type ~80 行 + 4 测试 ~60 行 + `run_stress_yaml.py` ~190 行 + `ayala2020_reshape.py` ~140 行 ≈ 470 行
+- 新增/更新文档：`hypothesis_writing_guide.md` (430 行) + `HYPOTHESIS_DESIGN_PRINCIPLES.md` (160 行) + `scoring_validation_self_critique.md` (190 行) + `scoring_validation_experiment_results.md` 大改 + `stress_test_predictions.md` (130 行) + `stress_test_results.md` (250 行) + `hypothesis_references_audit.md` (200 行) + 3 README + 6 YAML 修订 ≈ 2500 行
+- 测试覆盖：293 → 297（+4 pathway_inactive 测试），全绿 147 秒
+- 数据集：Liu 87 samples × 1084 MAGs + Grettenberger 29 MAGs + Ayala 13 MAGs，共计 **n=4 KEGG-curated calibration 全 STRONG + n=3 stress test discrimination evidence**
+
+**下次 session 起点**：论文 Methods 4.6 + Results stress test 章节起草（素材完全就位，
+[`stress_test_results.md`](paper/manuscript/stress_test_results.md) 含 ready-to-copy
+英文叙事段落）
+
+---
+
 ### 2026-04-21（**v0.8.1 发布** — Mac 端首批内测反馈修复）
 
 **背景**：师妹在 Mac（Apple Silicon）上本地部署跑内测，从装环境到跑假说评分

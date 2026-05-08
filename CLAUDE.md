@@ -213,12 +213,12 @@ Microbiology）。开发时持续积累：
 4. **开发日志量化**：每次日志加一行量化数据（代码行数、验证结果、耗时对比），
    写入 [DEBUG_NOTES.md](DEBUG_NOTES.md)
 
-## 当前进度（2026-04-21，v0.8.1）
+## 当前进度（2026-05-09，v0.9.0）
 
-**v0.8.1 内测版（在线可用）**：
-- Phase 0-3 全部完成
-- 测试 **293/293 全绿**
-- **12 种分析图表 + 独立交互 HTML**
+**v0.9.0 — 假说评分对照实验完成 + Stress test discrimination evidence**：
+- Phase 0-3 全部完成 + Paper 3 投稿核心证据全部就位
+- 测试 **297/297 全绿**（+4 pathway_inactive 测试）
+- **12 种分析图表 + 独立交互 HTML + 6 类 claim 假说评分器**
 - 更新日志见 [CHANGELOG.md](CHANGELOG.md)
 
 ### 已完成（按架构层分组）
@@ -233,6 +233,14 @@ Microbiology）。开发时持续积累：
 - ✅ **在线部署** Streamlit Cloud + 本地 Windows/Linux 行为一致性修复
 - ✅ **内测素材** 腾讯问卷 + 海报 + 部署指南 + 小白安装
 - ✅ **v0.8.1 Mac 端修复** conda ToS / pip protobuf resolver / macOS YAML 评分 ENAMETOOLONG / HTML 切组后 chem-link 失效
+- ✅ **v0.8.2 R 侧侧对照** 11 图全部完成 + RDA 数值与 R vegan 对齐
+- ✅ **v0.9.0 假说评分对照实验** Paper 3 核心证据：
+  - 4 Arm KEGG-curated calibration 全 STRONG（作者 / Liu / Grettenberger / Ayala）
+  - n=3 stress test discrimination evidence（Grettenberger A 级 + Liu/Ayala B 级）
+  - **领域中立性铁证**：cross-topic arsenate_reduction 在 2/2 无砷数据集双双 n=0 active MAGs ⭐
+  - 第 6 类 claim `pathway_inactive`（Popperian falsifiability 主力）
+  - 双层假说写作教程（[`docs/hypothesis_writing_guide.md`](docs/hypothesis_writing_guide.md) + [`paper/hypotheses/HYPOTHESIS_DESIGN_PRINCIPLES.md`](paper/hypotheses/HYPOTHESIS_DESIGN_PRINCIPLES.md)）
+  - 引用审计 + 6 YAML 引用 metadata 修订（4 处错引透明纠正）
 
 ## Backlog（投稿前 + Phase 4）
 
@@ -241,15 +249,18 @@ Microbiology）。开发时持续积累：
 | 任务 | 工时 | 理由 |
 |---|---|---|
 | **English README + LICENSE + Zenodo DOI** | ~4-6h | iMeta 投稿硬性要求；LICENSE 先选 MIT |
-| **R 侧侧对比验证** | 1-2 天 | 论文 Methods 关键证据，需装 R 环境跑 6 图 |
-| **第二数据集复现** | 2-3 天 | 审稿人必问；候选：Oak Ridge 铀污染 / 秘鲁砷湖 / 阿拉斯加冻土 |
-| **论文 Methods + Results + Discussion 起草** | 1-2 周 | 素材已齐（S1 去偏 + S2 置换 + S3/S3.5 评分器 + S4 Bundle + 全 12 图 + S8-ux + T1 + T2 HTML） |
+| ~~R 侧侧对比验证~~ | ✅ 完成 v0.8.2 | 11 图对照完成 + RDA 数值对齐 |
+| ~~第二数据集复现~~ | ✅ 完成 v0.9.0 | **超额完成**：Wei + Liu + Grettenberger + Ayala 共 4 数据集 + 3 stress test |
+| **论文 Methods + Results + Discussion 起草** | 1-2 周 | 素材完全就位（v0.9.0 stress test 证据加 Discussion 杀手锏；Methods 4.6 假说评分章节素材 = `paper/manuscript/scoring_validation_experiment_results.md` + `stress_test_results.md` 直接拷叙事段落） |
 | **User study 数据回收分析** | 1 周 | 问卷已发（2026-04-19），1 周内回收，汇总 `paper/user_study/results.md` |
+| **Verify Korehi 2014 / Mendez-Garcia 2015 真正 AMD diazotrophy 引用** | 10 min | 替换 Auld 2017 错引（详见 `paper/manuscript/hypothesis_references_audit.md`）|
 
 ### 🟡 加分项（推荐做）
 
 | 任务 | 工时 | 理由 |
 |---|---|---|
+| **`dominance_score` 字段**（pathway contribution / element_total）| ~1.5h | 解决 Liu A + Ayala A stress test 的二元阈值 limit；让 stress claim 能区分"主导 vs 微弱"信号；论文 Discussion 自指 future work |
+| **盲法 stress test**（请师弟独立写 stress YAML）| 1-2 周 | reviewer 杀手锏的 selection bias 反驳；当前所有 stress YAML 是作者写，存在隐性 bias |
 | Q7 新手 UX 精调 | ~1h | HTML 控件分组 / SVG-JSON 下拉 / 3 步 onboarding / tab 重排 / 参数 debug mode |
 | 大数据集性能 benchmark | 1 天 | 500+ MAG × 50+ sample，证明可扩展性 |
 | tool_comparison.md 细化 | 4h | 表格对比 Krona / Anvi'o / MicrobiomeAnalyst / 测序公司云平台 |
@@ -269,10 +280,13 @@ Microbiology）。开发时持续积累：
 ## 下次 session 建议起点
 
 按优先级：
-1. **English README + LICENSE** — 最小工时收益最大（4-6h → 扫清投稿硬指标 2/4）
-2. **R 对照** — 要装 R 环境，时间成本高但论文必需
-3. **论文 Methods 起草** — 素材已齐，可先写 Methods 3000 字 demo
-4. **User study 回收** — 等 1 周问卷，并行做前三项
+1. **论文 Methods 4.6 + Results stress test 章节起草** — 素材**完全就位**
+   （[`scoring_validation_experiment_results.md`](paper/manuscript/scoring_validation_experiment_results.md)
+   + [`stress_test_results.md`](paper/manuscript/stress_test_results.md) 含 ready-to-copy 英文叙事段落）
+2. **English README + LICENSE + Zenodo DOI** — 4-6h 扫清投稿硬指标 2/4
+3. **dominance_score 字段实现** — ~1.5h，解决 stress test 的二元阈值 limit + Discussion 自指 future work
+4. **Verify Korehi 2014 / Mendez-Garcia 2015 替代 Auld 2017** — 10 min Agent task，论文引用更稳
+5. **User study 回收** — 问卷 2026-04-19 发，本周可能有数据回收
 
 ---
 
