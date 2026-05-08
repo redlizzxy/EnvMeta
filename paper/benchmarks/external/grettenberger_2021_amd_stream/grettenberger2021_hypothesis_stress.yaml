@@ -1,0 +1,99 @@
+# EnvMeta 假说评分器 — Grettenberger & Hamilton 2021 AEM — STRESS TEST
+#
+# Source: Grettenberger CL, Hamilton TL (2021) "Metagenome-assembled genomes
+#         of novel taxa from an acid mine drainage environment"
+# DOI:    10.1128/AEM.00772-21
+#
+# ═══════════════════════════════════════════════════════════════════════
+#  PRE-REGISTERED STRESS HYPOTHESIS (Paper 4 / v0.9)
+# ═══════════════════════════════════════════════════════════════════════
+#
+# 配套 calibration YAML: grettenberger2021_hypothesis.yaml (commit 44d7f5f → STRONG 4/4)
+#
+# 目的：测试 EnvMeta scorer 在 AMD 溪流（无砷）环境下的 discrimination power。
+# 设计 3 stress + 1 calibration anchor。
+#
+# 期望 overall_score:
+#   - 强 discrimination：~0.20 (weak)
+#   - 弱 discrimination：~1.00 (strong, 鉴别力 fail)
+#
+# 见 docs/hypothesis_writing_guide.md §3-§5。
+
+name: "Grettenberger2021_amd_stream_stress_hypothesis"
+description: |
+  Stress test hypothesis (pre-registered). AMD 溪流故意 risky claims:
+  反向 (nitrification / nitrogen fixation 主导预测) + 领域错配 (arsenic 机制套到无砷环境)
+  + negative (sulfide oxidation 否定本应主导 backbone)。
+
+version: "1.0"
+strong_threshold: 0.75
+suggestive_threshold: 0.40
+
+claims:
+  # ═════════════════════════════════════════════════════════
+  #  A. 反向预测 — AMD 极酸抑制 nitrification，故意预测 nitrification 主导
+  # ═════════════════════════════════════════════════════════
+  - id: nitrification_should_dominate_stress_A
+    type: pathway_active
+    weight: 1.5
+    required: false
+    description: |
+      [PREDICTION] expected_label=unsatisfied
+      [REASONING] AMD pH 2-4 抑制 amoA/B/C ammonia oxidation（Tan et al. 2009
+      AMD N cycle review；Bothe 2007 FEMS）。故意预测 nitrification 应主导。
+      期望 EnvMeta reject。如意外 satisfied，说明 Cabin Branch 含微氧界面
+      ammonia oxidizer 或数据 amo gene 来自上游 well-aerated 区域。
+    params:
+      pathway: "Nitrification"
+      min_completeness: 30
+
+  # ═════════════════════════════════════════════════════════
+  #  B. 领域错配 — AMD 无砷环境，故意预测 arsenate_reduction 主导
+  # ═════════════════════════════════════════════════════════
+  - id: arsenate_reduction_should_dominate_stress_B
+    type: pathway_active
+    weight: 1.5
+    required: false
+    description: |
+      [PREDICTION] expected_label=unsatisfied
+      [REASONING] Cabin Branch AMD 系统主背景金属是 Fe/Cu/Zn/SO4（综述
+      Bigham & Nordstrom 2000；Bond et al. 2000），无砷主题。故意把砷代谢
+      套上去预测主导。期望 EnvMeta reject。⚠️ 风险点：arsC 是 universal
+      解毒型（Rosen 2002），即使无砷环境的菌也可能有 arsC carrier，
+      可能意外 satisfied。这是 stress test 重点观察项。
+    params:
+      pathway: "Arsenate reduction"
+      min_completeness: 30
+
+  # ═════════════════════════════════════════════════════════
+  #  C. Negative claim — backbone sulfide oxidation 应 inactive (故意否定)
+  # ═════════════════════════════════════════════════════════
+  - id: sulfide_oxidation_should_NOT_dominate_stress_C
+    type: pathway_inactive
+    weight: 1.5
+    required: false
+    description: |
+      [PREDICTION] expected_label=unsatisfied (即 pathway 实际 active)
+      [REASONING] AMD 流水 sulfide oxidation 是 acidophilic chemolithotroph
+      backbone（Bond et al. 2000）。用 pathway_inactive 故意否定它，期望
+      EnvMeta reject。这是 Popperian falsifiability 测试。如意外 satisfied
+      (= inactive)，说明 KEGG 注释 sox/sqr 缺失或样品偏向沉积物缺氧界面。
+    params:
+      pathway: "Sulfide oxidation"
+      max_completeness: 50
+
+  # ═════════════════════════════════════════════════════════
+  #  D. Calibration anchor — 沉积物缺氧 dissim sulfate red 应活跃
+  # ═════════════════════════════════════════════════════════
+  - id: dissim_sulfate_reduction_calibration_anchor_D
+    type: pathway_active
+    weight: 1.0
+    required: false
+    description: |
+      [PREDICTION] expected_label=satisfied
+      [REASONING] AMD 沉积物缺氧界面常有 acidophilic SRB（Cabrera et al.
+      2006；Sánchez-Andrea 2014）。配套 calibration anchor，验证 stress YAML
+      跑分系统正常。
+    params:
+      pathway: "Dissim. sulfate red."
+      min_completeness: 30

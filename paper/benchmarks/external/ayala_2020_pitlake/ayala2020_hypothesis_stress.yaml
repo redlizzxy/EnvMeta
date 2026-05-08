@@ -1,0 +1,102 @@
+# EnvMeta 假说评分器 — Ayala-Muñoz et al. 2020 Microorganisms — STRESS TEST
+#
+# Source: Ayala-Muñoz D, Burgos WD, Sánchez-España J, Couradeau E, Falagán C,
+#         Macalady JL (2020) "Metagenomic and Metatranscriptomic Study of
+#         Microbial Metal Resistance in an Acidic Pit Lake"
+# DOI:    10.3390/microorganisms8091350
+#
+# ═══════════════════════════════════════════════════════════════════════
+#  PRE-REGISTERED STRESS HYPOTHESIS (Paper 4 / v0.9)
+# ═══════════════════════════════════════════════════════════════════════
+#
+# 配套 calibration YAML: ayala2020_hypothesis.yaml (commit 76a4f77, calibration
+# 数据未跑 — 待 GhostKOALA 异步结果)
+#
+# ⚠️ 注意：本 stress YAML 也是数据未跑前 commit，与 calibration 同步 pre-register。
+#
+# 目的：测试 EnvMeta scorer 在 AMD pit lake 深层（缺氧 + 高 SO4 + 寡营养）
+# 环境下的 discrimination power。设计 3 stress + 1 calibration anchor。
+#
+# 期望 overall_score:
+#   - 强 discrimination：~0.20 (weak)
+#   - 弱 discrimination：~1.00 (strong, 鉴别力 fail)
+#
+# 见 docs/hypothesis_writing_guide.md §3-§5。
+
+name: "Ayala2020_pitlake_deep_stress_hypothesis"
+description: |
+  Stress test hypothesis (pre-registered). AMD pit lake 深层故意 risky claims:
+  反向 (sulfide oxidation 主导预测，应是 sulfate reduction) + 领域错配 (arsenic
+  机制套到无砷环境) + negative (dissim sulfate red 否定本应主导 backbone)。
+
+version: "1.0"
+strong_threshold: 0.75
+suggestive_threshold: 0.40
+
+claims:
+  # ═════════════════════════════════════════════════════════
+  #  A. 反向预测 — pit lake 深层缺氧应 SR 主导，故意预测 sulfide 氧化主导
+  # ═════════════════════════════════════════════════════════
+  - id: sulfide_oxidation_should_dominate_stress_A
+    type: pathway_active
+    weight: 1.5
+    required: false
+    description: |
+      [PREDICTION] expected_label=unsatisfied
+      [REASONING] Cueva de la Mora pit lake 深层 35 m 缺氧（Sánchez-España 2008/
+      2014 IPB 综述；Falagán & Johnson 2014），sulfide oxidation 需 O2/Fe(III)
+      电子受体，深层应受抑。故意预测 sulfide oxidation 主导。期望 EnvMeta
+      reject。如意外 satisfied，说明深层 chemocline 微氧界面 sox carrier 存在。
+    params:
+      pathway: "Sulfide oxidation"
+      min_completeness: 30
+
+  # ═════════════════════════════════════════════════════════
+  #  B. 领域错配 — pit lake 含金属耐性研究但深层无砷主导，故意预测砷还原主导
+  # ═════════════════════════════════════════════════════════
+  - id: arsenate_reduction_should_dominate_stress_B
+    type: pathway_active
+    weight: 1.5
+    required: false
+    description: |
+      [PREDICTION] expected_label=unsatisfied
+      [REASONING] IPB pit lake 主背景金属是 Fe/Cu/Zn/SO4（Sánchez-España 2008），
+      As 浓度有但非主导（Falagán 2014）。故意预测砷还原主导。期望 EnvMeta
+      reject。⚠️ 风险点：arsC 是 universal 解毒（Rosen 2002），意外 satisfied
+      说明数据中 arsC carrier 普遍。
+    params:
+      pathway: "Arsenate reduction"
+      min_completeness: 30
+
+  # ═════════════════════════════════════════════════════════
+  #  C. Negative claim — backbone dissim sulfate red 应 inactive (故意否定)
+  # ═════════════════════════════════════════════════════════
+  - id: dissim_sulfate_reduction_should_NOT_dominate_stress_C
+    type: pathway_inactive
+    weight: 1.5
+    required: false
+    description: |
+      [PREDICTION] expected_label=unsatisfied (即 pathway 实际 active)
+      [REASONING] pit lake 深层缺氧 + 高 SO4 是经典 dissim sulfate reduction
+      场景（Johnson & Hallberg 2005；Diaby 2007 IPB AMD review）。用
+      pathway_inactive 故意否定它。期望 EnvMeta reject。如意外 satisfied
+      (= inactive)，说明 KEGG 注释 dsrAB/aprAB 缺失或 GhostKOALA 注释丢失。
+    params:
+      pathway: "Dissim. sulfate red."
+      max_completeness: 50
+
+  # ═════════════════════════════════════════════════════════
+  #  D. Calibration anchor — 寡营养偶发 nitrate reduction
+  # ═════════════════════════════════════════════════════════
+  - id: nitrate_reduction_calibration_anchor_D
+    type: pathway_active
+    weight: 1.0
+    required: false
+    description: |
+      [PREDICTION] expected_label=satisfied
+      [REASONING] AMD 极酸 + 寡营养抑制 nitrification，但深层局部仍可有
+      narG/napA mediated NO3- reduction（Tan et al. 2009 AMD N cycle）。
+      配套 calibration anchor。
+    params:
+      pathway: "Nitrate reduction"
+      min_completeness: 30
