@@ -31,10 +31,16 @@
 #      Acidithiobacillus / Leptospirillum / "Ferrovum" 等 acidophilic chemolithotrophs
 #      （Bond et al. 2000；Schippers 1999）
 #   C. 沉积物 / 滞水缺氧界面 → 局部 dissimilatory sulfate reduction（dsrAB + aprAB）
-#      （Cabrera et al. 2006 acidophilic SRB；Sánchez-Andrea 2014）
+#      （Cabrera et al. 2006 *J Hazard Mater* 金属毒性 SRB 实验[非综述]；
+#       Sánchez-Andrea 2014 *J Hazard Mater* acidophilic SRB 综述[primary 引用]）
 #   D. AMD 极酸抑制 nitrification → N 循环活性预期偏弱；但深层 / 沉积物局部
 #      仍可能 nitrate reduction 或 N fixation
-#      （Tan et al. 2009; Auld et al. 2017 AMD 寡营养 diazotrophy）
+#      （Tan et al. 2009 FEMS Microbiol Ecol AMD seasonal study；
+#       Auld et al. 2017 *Can J Microbiol* AMD seasonal community variation
+#       — 注：Auld 2017 主题是 seasonal variation，不直接涉及 diazotrophy；
+#       该 claim 的 N fixation 文献支持降级为 weak，建议 Methods 中替换为
+#       Korehi et al. 2014 *Front Microbiol* / Mendez-Garcia et al. 2015
+#       *Front Microbiol* AMD diazotrophy 文献[待手动 verify]）
 #
 # 不可写入（Grettenberger 2021 specific findings）:
 #   ❌ 29 MAGs 哪些 phylum 主导
@@ -73,7 +79,8 @@ claims:
 
   # ─────────────────────────────────────────────────────────────────────
   # H2（exploratory, NOT required）: 沉积物缺氧界面 SRB
-  # 先验依据: Cabrera et al. 2006 acidophilic SRB; Sánchez-Andrea 2014 综述
+  # 先验依据: Sánchez-Andrea 2014 *J Hazard Mater* acidophilic SRB 综述 [primary]
+  # （Cabrera et al. 2006 *J Hazard Mater* 实测 SRB 金属毒性，期刊+主题订正）
   # ─────────────────────────────────────────────────────────────────────
   - id: dissim_sulfate_reduction_anoxic_sediment
     type: pathway_active
@@ -101,7 +108,10 @@ claims:
 
   # ─────────────────────────────────────────────────────────────────────
   # H4（exploratory, NOT required）: 寡营养 AMD N fixation 偶发
-  # 先验依据: Auld et al. 2017 AMD diazotrophy
+  # 先验依据: Auld et al. 2017 *Can J Microbiol* AMD seasonal community variation
+  # ⚠️ 注：Auld 2017 主题不是 diazotrophy（原 YAML 引用错主题）；
+  # 该 claim 的 N fixation 引用支持降级为 weak，待 Methods 替换 Korehi 2014/
+  # Mendez-Garcia 2015 verified AMD diazotrophy 文献
   # ─────────────────────────────────────────────────────────────────────
   - id: nitrogen_fixation_explored
     type: pathway_active
@@ -112,3 +122,54 @@ claims:
     explanation: |
       Pre-data exploration: 寡营养 AMD 偶有 nifHDK 报告（Auld 2017）。
       Cabin Branch 类似系统未知。低 weight 反映 exploratory 性质。
+      ⚠️ 引用支持订正：Auld 2017 实际主题是 seasonal community variation 而非
+      diazotrophy（详见末尾 § REFERENCES）。该 claim 文献支持降级 weak。
+
+# ═══════════════════════════════════════════════════════════════════════
+#  REFERENCES (Vancouver + DOI; post-hoc verified 2026-05-09)
+# ═══════════════════════════════════════════════════════════════════════
+#
+# [1] Bond PL, Druschel GK, Banfield JF. Comparison of acid mine drainage
+#     microbial communities in physically and geochemically distinct
+#     ecosystems. Appl Environ Microbiol. 2000;66(11):4962-4971.
+#     DOI: 10.1128/AEM.66.11.4962-4971.2000
+#
+# [2] Bigham JM, Nordstrom DK. Iron and aluminum hydroxysulfates from acid
+#     sulfate waters. Rev Mineral Geochem. 2000;40:351-403.
+#     DOI: 10.2138/rmg.2000.40.7
+#
+# [3] Schippers A, Sand W. Bacterial leaching of metal sulfides proceeds by
+#     two indirect mechanisms via thiosulfate or via polysulfides and sulfur.
+#     Appl Environ Microbiol. 1999;65(1):319-321.
+#     DOI: 10.1128/AEM.65.1.319-321.1999
+#
+# [4] Sánchez-Andrea I, Sanz JL, Bijmans MFM, Stams AJM. Sulfate reduction
+#     at low pH to remediate acid mine drainage. J Hazard Mater.
+#     2014;269:98-109.
+#     DOI: 10.1016/j.jhazmat.2013.12.032
+#     [primary acidophilic SRB review]
+#
+# [5] Cabrera G, Pérez R, Gómez JM, Ábalos A, Cantero D. Toxic effects of
+#     dissolved heavy metals on Desulfovibrio vulgaris and Desulfovibrio sp.
+#     strains. J Hazard Mater. 2006;135(1-3):40-46.
+#     DOI: 10.1016/j.jhazmat.2005.11.058
+#     [⚠️ 期刊+主题订正：本 YAML 原写 "Process Biochem 41(3):609-616 acidophilic SRB"，
+#      不存在该 Cabrera 文献组合。Cabrera 2006 实际是 J Hazard Mater
+#      金属毒性 SRB 实验（不是 AMD acidophilic SRB 综述）]
+#
+# [6] Tan GL, Shu WS, Zhou WH, Li XL, Lan CY, Huang LN. Seasonal and spatial
+#     variations in microbial community structure and diversity in the acid
+#     stream draining across an ongoing surface mining site.
+#     FEMS Microbiol Ecol. 2009;70(2):277-285.
+#     DOI: 10.1111/j.1574-6941.2009.00744.x
+#     [⚠️ 性质订正：本 YAML 描述为 "AMD N 循环综述"，实际是 study 含 N cycle 数据]
+#
+# [7] Auld RR, Mykytczuk NCS, Leduc LG, Merritt TJS. Seasonal variation in
+#     an acid mine drainage microbial community. Can J Microbiol.
+#     2017;63(2):137-152.
+#     DOI: 10.1139/cjm-2016-0215
+#     [⚠️ 主题订正：本 YAML 引用其支撑 "AMD diazotrophy"，但 Auld 2017 实际
+#      主题是 seasonal community variation，未涉及 diazotrophy。该 claim
+#      的 N fixation 文献支持降级 weak。Methods 中应改引 Korehi et al. 2014
+#      *Front Microbiol* 或 Mendez-Garcia et al. 2015 *Front Microbiol*
+#      之 AMD diazotrophy 报告（待手动 verify DOI）]

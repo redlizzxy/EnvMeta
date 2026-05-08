@@ -72,7 +72,8 @@ claims:
     description: |
       [PREDICTION] expected_label=unsatisfied
       [REASONING] 冷泉沉积物 + 缺氧水柱抑制 nitrification（amoA/B/C 需 O2，
-      综述 Bothe et al. 2007 *FEMS Microbiol Rev*）。故意预测 nitrification
+      综述 Bothe et al. 2000 *FEMS Microbiol Rev* 24:673-690；本文原写 "Bothe 2007"
+      不存在该文献，2007 是 Elsevier 编辑书 ISBN 978-0-444-52857-5）。故意预测 nitrification
       应主导。期望 EnvMeta reject。如意外 satisfied，说明上层水柱微氧 amo
       carrier 混入或 amoA 序列在缺氧菌中有 lateral transfer 报告。
     params:
@@ -112,3 +113,23 @@ claims:
     params:
       pathway: "As transport/detox"
       min_completeness: 30
+
+# ═══════════════════════════════════════════════════════════════════════
+#  REFERENCES (Vancouver + DOI; post-hoc verified 2026-05-09)
+# ═══════════════════════════════════════════════════════════════════════
+#
+# [1] Stolz JF, Basu P, Santini JM, Oremland RS. Arsenic and selenium in
+#     microbial metabolism. Annu Rev Microbiol. 2006;60:107-130.
+#     DOI: 10.1146/annurev.micro.60.080805.142053
+#
+# [2] Bothe H, Jost G, Schloter M, Ward BB, Witzel KP. Molecular analysis
+#     of ammonia oxidation and denitrification in natural environments.
+#     FEMS Microbiol Rev. 2000;24(5):673-690.
+#     DOI: 10.1111/j.1574-6976.2000.tb00566.x
+#     [⚠️ 引用订正：本 YAML 原写 "Bothe 2007 FEMS Rev"。该 2007 文献不存在
+#      （Bothe 2007 是 Elsevier 编辑书 ISBN 978-0-444-52857-5，非期刊综述）。
+#      正确支撑文献为 Bothe 2000 FEMS Microbiol Rev]
+#
+# [3] Rosen BP. Biochemistry of arsenic detoxification. FEBS Lett.
+#     2002;529(1):86-92.
+#     DOI: 10.1016/S0014-5793(02)03186-1

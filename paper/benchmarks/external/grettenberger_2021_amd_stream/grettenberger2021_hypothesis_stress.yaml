@@ -40,7 +40,8 @@ claims:
     description: |
       [PREDICTION] expected_label=unsatisfied
       [REASONING] AMD pH 2-4 抑制 amoA/B/C ammonia oxidation（Tan et al. 2009
-      AMD N cycle review；Bothe 2007 FEMS）。故意预测 nitrification 应主导。
+      *FEMS Microbiol Ecol* AMD seasonal study；Bothe et al. 2000 *FEMS Microbiol Rev*
+      24:673-690 N cycle 综述）。故意预测 nitrification 应主导。
       期望 EnvMeta reject。如意外 satisfied，说明 Cabin Branch 含微氧界面
       ammonia oxidizer 或数据 amo gene 来自上游 well-aerated 区域。
     params:
@@ -91,9 +92,50 @@ claims:
     required: false
     description: |
       [PREDICTION] expected_label=satisfied
-      [REASONING] AMD 沉积物缺氧界面常有 acidophilic SRB（Cabrera et al.
-      2006；Sánchez-Andrea 2014）。配套 calibration anchor，验证 stress YAML
+      [REASONING] AMD 沉积物缺氧界面常有 acidophilic SRB（Sánchez-Andrea
+      et al. 2014 *J Hazard Mater* 269:98-109 acidophilic SRB 综述 [primary]；
+      Cabrera et al. 2006 *J Hazard Mater* 135:40-46 SRB 金属毒性实验
+      [期刊订正]）。配套 calibration anchor，验证 stress YAML
       跑分系统正常。
     params:
       pathway: "Dissim. sulfate red."
       min_completeness: 30
+
+# ═══════════════════════════════════════════════════════════════════════
+#  REFERENCES (Vancouver + DOI; post-hoc verified 2026-05-09)
+# ═══════════════════════════════════════════════════════════════════════
+#
+# [1] Tan GL, Shu WS, Zhou WH, Li XL, Lan CY, Huang LN. Seasonal and spatial
+#     variations in microbial community structure and diversity in the acid
+#     stream draining across an ongoing surface mining site.
+#     FEMS Microbiol Ecol. 2009;70(2):277-285.
+#     DOI: 10.1111/j.1574-6941.2009.00744.x
+#
+# [2] Bothe H, Jost G, Schloter M, Ward BB, Witzel KP. Molecular analysis
+#     of ammonia oxidation and denitrification in natural environments.
+#     FEMS Microbiol Rev. 2000;24(5):673-690.
+#     DOI: 10.1111/j.1574-6976.2000.tb00566.x
+#     [⚠️ 引用订正：原 YAML 写 "Bothe 2007 FEMS" 不存在该文献，应为 Bothe 2000]
+#
+# [3] Bigham JM, Nordstrom DK. Iron and aluminum hydroxysulfates from acid
+#     sulfate waters. Rev Mineral Geochem. 2000;40:351-403.
+#     DOI: 10.2138/rmg.2000.40.7
+#
+# [4] Bond PL, Druschel GK, Banfield JF. Comparison of acid mine drainage
+#     microbial communities. Appl Environ Microbiol. 2000;66(11):4962-4971.
+#     DOI: 10.1128/AEM.66.11.4962-4971.2000
+#
+# [5] Rosen BP. Biochemistry of arsenic detoxification. FEBS Lett.
+#     2002;529(1):86-92.
+#     DOI: 10.1016/S0014-5793(02)03186-1
+#
+# [6] Sánchez-Andrea I, Sanz JL, Bijmans MFM, Stams AJM. Sulfate reduction
+#     at low pH to remediate acid mine drainage. J Hazard Mater.
+#     2014;269:98-109.
+#     DOI: 10.1016/j.jhazmat.2013.12.032
+#
+# [7] Cabrera G, Pérez R, Gómez JM, Ábalos A, Cantero D. Toxic effects of
+#     dissolved heavy metals on Desulfovibrio. J Hazard Mater.
+#     2006;135(1-3):40-46.
+#     DOI: 10.1016/j.jhazmat.2005.11.058
+#     [⚠️ 期刊订正：原 YAML 写 "Process Biochem"]

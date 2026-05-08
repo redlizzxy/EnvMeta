@@ -28,7 +28,8 @@
 # Pre-data 推理路径（IPB AMD 通用先验）:
 #
 #   A. AMD 酸性矿坑湖深层 = 缺氧 + 高 SO₄²⁻ + 高金属（Fe/As/Cu/Zn/...）+ 低 pH
-#      （Sánchez-España 2008/2014 IPB 综述；Falagán & Johnson 2014）
+#      （Sánchez-España 2008 *Appl Geochem*；Falagán C, Sánchez-España J, Johnson DB
+#       2014 *FEMS Microbiol Ecol* — 作者数订正：是 3 作者非 2 作者）
 #   B. 缺氧 + 高 SO₄ → 应有 dissimilatory sulfate reduction（dsrAB + aprAB），
 #      产 H₂S → biosulfidogenesis 修复机制的微生物基础
 #      （Johnson & Hallberg 2005 修复综述；Diaby et al. 2007）
@@ -36,7 +37,10 @@
 #      （Falagán et al. 2014）
 #   D. 寡营养 + AMD 极酸抑制 nitrification → N 循环活性预期偏弱；但深层局部
 #      仍可能 nitrate reduction 或 N fixation
-#      （Tan et al. 2009; Auld et al. 2017）
+#      （Tan et al. 2009 *FEMS Microbiol Ecol* AMD seasonal study；
+#       Auld et al. 2017 *Can J Microbiol* AMD seasonal community variation
+#       — ⚠️ 主题订正：Auld 2017 不直接讲 diazotrophy，应替换为 Korehi 2014 /
+#       Mendez-Garcia 2015 之 AMD diazotrophy 文献，待手动 verify）
 #
 # 因此预设：1 个 confirmatory required + 1 个 confirmatory not-required + 2 个 exploratory
 
@@ -69,7 +73,8 @@ claims:
 
   # ─────────────────────────────────────────────────────────────────────
   # H2（confirmatory, NOT required）: 微氧/缺氧界面 → sulfide oxidation 局部存在
-  # 先验依据: Falagán et al. 2014 IPB pit lake 微氧界面研究
+  # 先验依据: Falagán C, Sánchez-España J, Johnson DB. 2014 *FEMS Microbiol Ecol*
+  # 87(1):231-243 IPB pit lake 微氧界面研究（作者数订正：3 作者，原写 2 作者）
   # ─────────────────────────────────────────────────────────────────────
   - id: sulfide_oxidation_microaerophilic
     type: pathway_active
@@ -99,7 +104,10 @@ claims:
 
   # ─────────────────────────────────────────────────────────────────────
   # H4（exploratory, NOT required）: AMD 寡营养环境 N fixation 可能偶发
-  # 先验依据: Auld et al. 2017 AMD diazotrophy 报告
+  # 先验依据: Auld et al. 2017 *Can J Microbiol* 63(2):137-152
+  # ⚠️ 主题订正：Auld 2017 不是 diazotrophy 报告，是 AMD seasonal community
+  # variation。该 claim 的 N fixation 引用支持降级 weak；建议改引 Korehi 2014/
+  # Mendez-Garcia 2015 verified AMD diazotrophy 文献（待手动 verify DOI）
   # ─────────────────────────────────────────────────────────────────────
   - id: nitrogen_fixation_explored
     type: pathway_active
@@ -110,3 +118,48 @@ claims:
     explanation: |
       Pre-data exploration: 寡营养 AMD 偶有 nifHDK 报告（Auld 2017）。但
       AMD 深层 diazotrophy 普遍程度未知。低 weight 反映 exploratory 性质。
+      ⚠️ 引用订正：Auld 2017 实际主题是 seasonal community variation，
+      不是 diazotrophy（详见末尾 § REFERENCES）。该 claim 文献支持降级 weak。
+
+# ═══════════════════════════════════════════════════════════════════════
+#  REFERENCES (Vancouver + DOI; post-hoc verified 2026-05-09)
+# ═══════════════════════════════════════════════════════════════════════
+#
+# [1] Johnson DB, Hallberg KB. Acid mine drainage remediation options:
+#     a review. Sci Total Environ. 2005;338(1-2):3-14.
+#     DOI: 10.1016/j.scitotenv.2004.09.002
+#
+# [2] Diaby N, Dold B, Pfeifer HR, Holliger C, Johnson DB, Hallberg KB.
+#     Microbial communities in a porphyry copper tailings impoundment and
+#     their impact on the geochemical dynamics of the mine waste.
+#     Environ Microbiol. 2007;9(2):298-307.
+#     DOI: 10.1111/j.1462-2920.2006.01138.x
+#
+# [3] Falagán C, Sánchez-España J, Johnson DB. New insights into the
+#     biogeochemistry of extremely acidic environments revealed by a
+#     combined cultivation-based and culture-independent study of two
+#     stratified pit lakes. FEMS Microbiol Ecol. 2014;87(1):231-243.
+#     DOI: 10.1111/1574-6941.12218
+#     [⚠️ 作者数订正：3 作者非 2 作者；Sánchez-España J 是 co-author]
+#
+# [4] Sánchez-España J, López-Pamo E, Santofimia E, Diez-Ercilla M.
+#     The acidic mine pit lakes of the Iberian Pyrite Belt: An approach
+#     to their physical limnology and hydrogeochemistry. Appl Geochem.
+#     2008;23(5):1260-1287.
+#     DOI: 10.1016/j.apgeochem.2007.12.036
+#     [⚠️ DOI 推断未直接 verify，建议手动 doi.org 确认]
+#
+# [5] Tan GL, Shu WS, Zhou WH, Li XL, Lan CY, Huang LN. Seasonal and
+#     spatial variations in microbial community structure and diversity
+#     in the acid stream draining across an ongoing surface mining site.
+#     FEMS Microbiol Ecol. 2009;70(2):277-285.
+#     DOI: 10.1111/j.1574-6941.2009.00744.x
+#
+# [6] Auld RR, Mykytczuk NCS, Leduc LG, Merritt TJS. Seasonal variation
+#     in an acid mine drainage microbial community. Can J Microbiol.
+#     2017;63(2):137-152.
+#     DOI: 10.1139/cjm-2016-0215
+#     [⚠️ 主题订正：本 YAML 引用其支撑 "AMD diazotrophy"，但 Auld 2017
+#      实际是 seasonal community variation。该 claim 文献支持降级 weak。
+#      Methods 中应改引 Korehi et al. 2014 *Front Microbiol* / Mendez-Garcia
+#      et al. 2015 *Front Microbiol* AMD diazotrophy 文献（待手动 verify）]

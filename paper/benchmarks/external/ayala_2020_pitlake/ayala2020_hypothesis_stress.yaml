@@ -43,8 +43,9 @@ claims:
     required: false
     description: |
       [PREDICTION] expected_label=unsatisfied
-      [REASONING] Cueva de la Mora pit lake 深层 35 m 缺氧（Sánchez-España 2008/
-      2014 IPB 综述；Falagán & Johnson 2014），sulfide oxidation 需 O2/Fe(III)
+      [REASONING] Cueva de la Mora pit lake 深层 35 m 缺氧（Sánchez-España et al.
+      2008 *Appl Geochem* IPB 综述；Falagán C, Sánchez-España J, Johnson DB 2014
+      *FEMS Microbiol Ecol* — 作者数订正：3 作者非 2 作者），sulfide oxidation 需 O2/Fe(III)
       电子受体，深层应受抑。故意预测 sulfide oxidation 主导。期望 EnvMeta
       reject。如意外 satisfied，说明深层 chemocline 微氧界面 sox carrier 存在。
     params:
@@ -60,9 +61,10 @@ claims:
     required: false
     description: |
       [PREDICTION] expected_label=unsatisfied
-      [REASONING] IPB pit lake 主背景金属是 Fe/Cu/Zn/SO4（Sánchez-España 2008），
-      As 浓度有但非主导（Falagán 2014）。故意预测砷还原主导。期望 EnvMeta
-      reject。⚠️ 风险点：arsC 是 universal 解毒（Rosen 2002），意外 satisfied
+      [REASONING] IPB pit lake 主背景金属是 Fe/Cu/Zn/SO4（Sánchez-España et al.
+      2008 *Appl Geochem*），As 浓度有但非主导（Falagán et al. 2014 *FEMS Microbiol
+      Ecol*）。故意预测砷还原主导。期望 EnvMeta reject。⚠️ 风险点：arsC 是
+      universal 解毒（Rosen 2002 *FEBS Lett*；期刊订正：原写 Trends Microbiol），意外 satisfied
       说明数据中 arsC carrier 普遍。
     params:
       pathway: "Arsenate reduction"
@@ -100,3 +102,39 @@ claims:
     params:
       pathway: "Nitrate reduction"
       min_completeness: 30
+
+# ═══════════════════════════════════════════════════════════════════════
+#  REFERENCES (Vancouver + DOI; post-hoc verified 2026-05-09)
+# ═══════════════════════════════════════════════════════════════════════
+#
+# [1] Sánchez-España J, López-Pamo E, Santofimia E, Diez-Ercilla M.
+#     The acidic mine pit lakes of the Iberian Pyrite Belt. Appl Geochem.
+#     2008;23(5):1260-1287.
+#     DOI: 10.1016/j.apgeochem.2007.12.036
+#
+# [2] Falagán C, Sánchez-España J, Johnson DB. New insights into the
+#     biogeochemistry of extremely acidic environments revealed by a
+#     combined cultivation-based and culture-independent study of two
+#     stratified pit lakes. FEMS Microbiol Ecol. 2014;87(1):231-243.
+#     DOI: 10.1111/1574-6941.12218
+#     [⚠️ 作者数订正：3 作者非 2 作者]
+#
+# [3] Rosen BP. Biochemistry of arsenic detoxification. FEBS Lett.
+#     2002;529(1):86-92.
+#     DOI: 10.1016/S0014-5793(02)03186-1
+#     [⚠️ 期刊订正：原写 Trends Microbiol]
+#
+# [4] Johnson DB, Hallberg KB. Acid mine drainage remediation options:
+#     a review. Sci Total Environ. 2005;338(1-2):3-14.
+#     DOI: 10.1016/j.scitotenv.2004.09.002
+#
+# [5] Diaby N, Dold B, Pfeifer HR, Holliger C, Johnson DB, Hallberg KB.
+#     Microbial communities in a porphyry copper tailings impoundment.
+#     Environ Microbiol. 2007;9(2):298-307.
+#     DOI: 10.1111/j.1462-2920.2006.01138.x
+#
+# [6] Tan GL, Shu WS, Zhou WH, Li XL, Lan CY, Huang LN. Seasonal and
+#     spatial variations in microbial community structure and diversity
+#     in the acid stream draining across an ongoing surface mining site.
+#     FEMS Microbiol Ecol. 2009;70(2):277-285.
+#     DOI: 10.1111/j.1574-6941.2009.00744.x
