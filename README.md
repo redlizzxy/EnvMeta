@@ -1,99 +1,73 @@
 # EnvMeta
 
-**环境微生物宏基因组可视化分析平台**
+**An environmental microbiome metagenomic visualization platform**
 
-EnvMeta 解决环境微生物博士生的核心痛点：**测序公司给了一堆表格，不知道哪个文件能做什么分析**。文件一键识别 + 14 种发表级图表 + 元素循环图自动推断 + 假说评分器 + 独立交互 HTML 导出。**全部开源免费、离线可用。**
+[中文版 README](README_CN.md) · [Online demo](https://envmeta-3xjhcu7lv2gkj4pjtk8gsb.streamlit.app/) · [License](LICENSE)
 
-> 🌐 **在线体验（零安装）**：<https://envmeta-3xjhcu7lv2gkj4pjtk8gsb.streamlit.app/>
+EnvMeta solves the core pain point of environmental-microbiome PhD students: **the sequencing vendor hands you a pile of TSVs and you don't know which file lets you do which analysis**. One-click file recognition + 14 publication-grade plot types + automatic biogeochemical-cycle figure inference + a YAML hypothesis scorer + standalone interactive HTML export. **Fully open-source, free, offline-capable.**
+
+> 🌐 **Try it online (zero install)**: <https://envmeta-3xjhcu7lv2gkj4pjtk8gsb.streamlit.app/>
 >
-> 首页点「📦 加载砷渣修复示例数据」→ 3 秒跑通全部 14 个分析。
+> Click "📦 Load arsenic-slag remediation example data" on the home page → all 14 analyses run in 3 seconds.
 
 ---
 
-## 📣 内测体验官招募中（有奖）
+## Why we built it
 
-EnvMeta 正在收集第二轮内测反馈用于方法学论文（目标：iMeta / Bioinformatics）。**双轨设计，控制在 30 分钟内**：
-
-| 你的背景 | 时长 | 内容 |
+| Real pain point | Traditional path | EnvMeta |
 |---|---|---|
-| **完全无生物背景**（其他专业本科 / 研究生） | **12-15 min** | 4 个简短任务（点击 / 拖拽 / 导出），不要求理解结果 |
-| **有生物或生信基础** | **22-25 min** | 多 1 页深度任务（PCoA 解读 + 假说 YAML 评分） |
+| Vendor returns a stack of `.tsv`, unclear what each one is for | Write your own parser | **Drop it in → auto-recognized** as 1 of 11 file types |
+| Want stacked-bar / PCoA / LEfSe but can't write R | Pay vendor for premium analysis / grind through code | **3 clicks → publication-grade PDF** |
+| Need an element-cycle figure to argue Fe-As-S coupling | No public tool exists; people draw it by hand in PowerPoint | **Auto-inferred from KO annotations**: 4 elements × 18 pathways |
+| Want to assess whether the data actually supports your mechanistic hypothesis | Subjective narrative | **YAML scorer** + permutation null-p + weight-sensitivity |
+| Reviewer wants to reproduce SI | PDF attachment + data tables + email back-and-forth | **400 KB standalone HTML**, reviewer interacts in their browser |
 
-**🎁 你将获得**：
-- 🧧 完成填写可领红包（详情扫码后看）
-- 🏷 名字写入论文致谢（可匿名）
-- 📊 一周内收到完整反馈汇总
+## Selling points (vs. competitors)
 
-**👇 直接参与**：
-
-🔗 **问卷链接**：<https://wj.qq.com/s2/26579245/b28b/>
-
-<a href="https://wj.qq.com/s2/26579245/b28b/" target="_blank">
-  <img src="paper/user_study/survey_poster_v2_qrcode.png" width="280" alt="EnvMeta 内测问卷二维码海报"/>
-</a>
-
-（手机扫码或点图直接打开问卷）
-
-> 之前填过 v1 长版问卷的同学，**这次仍欢迎再填一次** v2 —— 问卷结构变了，新数据无法和旧版直接拼接。v2 真的快很多 🙇
-
----
-
-## 为什么做这个
-
-| 真实痛点 | 传统方案 | EnvMeta |
-|---|---|---|
-| 测序公司给了一堆 .tsv，不知道能做什么 | 自己写代码识别 | **拖入自动识别** 11 种文件类型 |
-| 想画堆叠图 / PCoA / LEfSe，但不会写 R | 付费升级高级分析 / 啃代码 | **3 次点击** 出发表级 PDF |
-| 想画元素循环图论证铁-砷-硫耦合 | 业界无公开工具，只能 PPT 手画 | **从 KO 注释自动推断** 4 元素 18 通路 |
-| 评估"我的机制假说数据支不支持" | 主观陈述 | **YAML 评分器** + 置换 null_p + 权重敏感度 |
-| 审稿人要复现 SI | PDF 附件 + 数据表 + 邮件来回 | **400 KB 独立 HTML**，审稿人浏览器交互操作 |
-
-## 核心卖点（竞品对比）
-
-| 能力 | Krona | Anvi'o | MicrobiomeAnalyst | 测序公司云平台 | **EnvMeta** |
+| Capability | Krona | Anvi'o | MicrobiomeAnalyst | Vendor cloud platforms | **EnvMeta** |
 |---|:-:|:-:|:-:|:-:|:-:|
-| 元素循环图自动推断 | ❌ | ❌ | ❌ | ❌ | **✅ 独有** |
-| 假说评分 + null_p + 权重敏感度 | ❌ | ❌ | ❌ | ❌ | **✅ 独有** |
-| 独立离线交互 HTML（SI 杀手锏） | ❌ | ⚠️ static | ❌ web-only | ❌ | **✅ 独有** |
-| Fork Bundle 论文-工具绑定 | ❌ | ❌ | ❌ | ❌ | **✅ 独有** |
-| 跨元素耦合（As↔H₂S→As₂S₃） | ❌ | ❌ | ❌ | ❌ | **✅ 独有** |
-| 任意参数可调 | ⚠️ | ✅ | ⚠️ | ❌ 参数锁死 | ✅ |
-| 完全开源免费 | ✅ | ✅ | ✅ | ❌ 加钱 | ✅ |
+| Auto-inferred element-cycle figure | ❌ | ❌ | ❌ | ❌ | **✅ unique** |
+| Hypothesis scoring + null-p + weight sensitivity | ❌ | ❌ | ❌ | ❌ | **✅ unique** |
+| Standalone offline interactive HTML (SI killer) | ❌ | ⚠️ static | ❌ web-only | ❌ | **✅ unique** |
+| Fork Bundle (paper-tool binding) | ❌ | ❌ | ❌ | ❌ | **✅ unique** |
+| Cross-element coupling (As ↔ H₂S → As₂S₃) | ❌ | ❌ | ❌ | ❌ | **✅ unique** |
+| All parameters tweakable | ⚠️ | ✅ | ⚠️ | ❌ locked | ✅ |
+| Fully open-source, free | ✅ | ✅ | ✅ | ❌ paid | ✅ |
 
-## 功能矩阵（v0.8 / Phase 1+2+3 全通）
+## Feature matrix (v0.8 / Phase 1+2+3 complete)
 
-| 模块 | 支持内容 |
-|------|---------|
-| 📁 文件识别 | metadata / abundance（MAG/Taxon 分层） / distance / alpha / CheckM / env / KO 宽/长表 / Keystone / MAG taxonomy / Gephi nodes+edges — **11 种** |
-| 📊 Reads-based（7 图） | 物种组成堆叠图 / α 多样性 / β 多样性 PCoA / RDA 排序 / LEfSe 差异分析 / 元素循环基因热图 / 基因 log2FC |
-| 🧬 MAG-based（5 图） | MAG 质量散点 / MAG 丰度热图 / 通路完整度 / 元素循环基因谱 / 共现网络 Gephi-prep |
-| 🔄 生物地球化学循环图 ⭐ | 4 元素（As/N/S/Fe）× 18 通路自动推断 + 跨元素化学物耦合 + keystone ★ 标注 |
-| 🧪 机制假说 YAML 评分器 | 5 类 claim（pathway_active / coupling_possible / env_correlation / keystone_in_pathway / group_contrast）+ 3 可信度指标（Fisher 置换 p / Saltelli 权重敏感度 / Bradford Hill required veto）+ 9 档解读 |
-| 📦 Fork Bundle | 打包 KB + YAML + config + KEGG 快照 → zip，审稿人一键复现 |
-| 🌐 独立交互 HTML | 400 KB 单文件 D3.js 嵌入，4 象限力导向 + 点击穿透 + SVG/JSON 导出，离线可用 |
-| 💾 导出中心 | PNG / PDF / SVG / TIFF 600dpi / TSV / 可运行 `.py` 复现脚本，批量 ZIP |
-| 🧭 新手落地包 | 数据准备指南（11 上游工具 → EnvMeta 映射）+ 图表选择向导（问题 → 推荐分析）+ 14 图「如何解读」expander + 样例数据一键加载 |
+| Module | What it covers |
+|---|---|
+| 📁 File recognition | metadata / abundance (MAG / Taxon layered) / distance / alpha / CheckM / env / KO wide+long / Keystone / MAG taxonomy / Gephi nodes+edges — **11 types** |
+| 📊 Reads-based (7 figures) | Taxonomy stacked bar / α-diversity / β-diversity PCoA / RDA ordination / LEfSe / element-cycle gene heatmap / gene log2FC |
+| 🧬 MAG-based (5 figures) | MAG quality scatter / MAG abundance heatmap / pathway completeness / element-cycle gene profile / co-occurrence network (Gephi-prep) |
+| 🔄 Biogeochemical-cycle figure ⭐ | 4 elements (As/N/S/Fe) × 18 pathways auto-inferred + cross-element chemical coupling + keystone ★ annotation |
+| 🧪 Mechanistic-hypothesis YAML scorer | 5 claim types (pathway_active / coupling_possible / env_correlation / keystone_in_pathway / group_contrast) + 3 confidence indicators (Fisher permutation p / Saltelli weight-sensitivity / Bradford-Hill required veto) + 9-tier interpretation |
+| 📦 Fork Bundle | Pack KB + YAML + config + KEGG snapshot → zip; reviewers reproduce in one click |
+| 🌐 Standalone interactive HTML | 400 KB single file with D3.js inlined, 4-quadrant force layout + click-through + SVG/JSON export, fully offline |
+| 💾 Export center | PNG / PDF / SVG / TIFF 600 dpi / TSV / runnable `.py` reproduction script, batch ZIP |
+| 🧭 Beginner-onboarding kit | Data-prep guide (11 upstream tools → EnvMeta mapping) + chart-selection wizard (question → recommended analysis) + "how to read" expander on each of the 14 figures + sample data one-click load |
 
-## 目标用户
+## Target users
 
-- 🎓 环境微生物 / 土壤修复 / 生态方向的**硕士、博士研究生**
-- 📚 送样到测序公司的课题组，想自己跑下游分析
-- 📝 发论文需要自动推断元素循环图作为 mechanism figure
-- 🔬 不要求编程经验；有 R/Python 基础可获得更深的定制能力
+- 🎓 Master's/PhD students in **environmental microbiology / soil remediation / ecology**
+- 📚 Labs that send samples to a sequencing vendor and want to run downstream analyses themselves
+- 📝 Authors who need an auto-inferred element-cycle figure as a mechanism figure
+- 🔬 No programming background required; users with R/Python experience get deeper customization
 
-## 三种使用方式
+## Three ways to use it
 
-### 1. 在线零安装（最简单）
+### 1. Online, zero install (easiest)
 
 <https://envmeta-3xjhcu7lv2gkj4pjtk8gsb.streamlit.app/>
 
-首次访问若显示「App is sleeping」，点「Wake up」等 30 秒。
+If the page first shows "App is sleeping", click "Wake up" and wait ~30 s.
 
-### 2. 本地安装（新手版）
+### 2. Local install (beginner-friendly)
 
-见 [docs/install_for_beginners.md](docs/install_for_beginners.md)，零基础 20 分钟装完（装 Miniconda + 克隆 repo + 一键装依赖）。
+See [docs/install_for_beginners.md](docs/install_for_beginners.md) (Chinese): zero-base 20-min install (Miniconda + clone repo + one-line dependency install).
 
-### 3. 本地安装（生信基础）
+### 3. Local install (familiar with bioinformatics)
 
 ```bash
 git clone https://github.com/redlizzxy/EnvMeta.git
@@ -104,157 +78,164 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-浏览器自动打开 `http://localhost:8501`。
+The browser auto-opens `http://localhost:8501`.
 
-## 📜 更新日志（近期）
+## 📜 Recent releases
 
-内测期频繁修 bug / 加功能，完整列表见 **[CHANGELOG.md](CHANGELOG.md)**。
+Beta phase ships frequent bug fixes / features. Full list in **[CHANGELOG.md](CHANGELOG.md)**.
 
-### v0.8.2 — 2026-05-08（RDA 数值对齐 R vegan + 11 图侧侧对照完成）
+### v0.8.2 — 2026-05-08 (RDA values aligned to R vegan + 11-figure side-by-side validation complete)
 
-- 🐛 修 RDA 数值与 R vegan 不一致（skbio 归一化差异致 inertia 16-20× 偏差、ANOVA F/p 反转）
-  - 改用 SS-based 公式（vegan-equivalent），修复后 F / r / 解释度 4 位精度对齐 R
-- 📚 R/Python 11 图侧侧对照工作完成（`paper/benchmarks/validation/`）
-  - 5 图数值精确一致 + 6 图算法等价 + 11 个 README + 论文引用模板
-- 📚 Paper 3（EnvMeta 方法学论文）投稿前 4 大任务清单（`paper/manuscript/`）
-- 🧪 pytest 293/293 全绿（无回归）
+- 🐛 Fixed RDA values disagreeing with R `vegan` (skbio normalization difference caused 16-20× inertia bias and ANOVA F/p reversal)
+  - Switched to SS-based formulas (vegan-equivalent); after fix all F / r / explained-variance match R to 4 decimal places
+- 📚 Completed R/Python side-by-side validation for all 11 figures (`paper/benchmarks/validation/`)
+  - 5 figures with exact numerical agreement + 6 with algorithmic equivalence + 11 READMEs + paper citation template
+- 📚 Paper 3 (EnvMeta methodology paper) pre-submission task tracker (`paper/manuscript/`)
+- 🧪 pytest 293/293 green (no regressions)
 
-### v0.8.1 — 2026-04-21（Mac 端首批内测反馈修复）
+### v0.8.1 — 2026-04-21 (first batch of macOS beta feedback fixes)
 
-- 🐛 修 HTML 交互导出切组后化学物-通路连线失效（拖拽不跟随、hover 不高亮）
-- 🐛 修 macOS 上传 YAML 假说评分报 `[Errno 63] File name too long`
-- 📚 小白安装指南补 Mac 3 大坑 FAQ（conda ToS / protobuf resolver / Streamlit 欢迎邮箱）
-- 📚 README 新增"更新到新版本"章节
+- 🐛 Fixed interactive HTML losing chemical–pathway links after switching groups (drag/hover broken)
+- 🐛 Fixed YAML hypothesis upload on macOS raising `[Errno 63] File name too long`
+- 📚 Beginner install guide adds 3 macOS gotchas (conda ToS / protobuf resolver / Streamlit welcome email)
+- 📚 README adds "Updating to a new version" section
 
-### v0.8.0 — 2026-04-19（v0.8 内测版 "Sunday Sprint"）
+### v0.8.0 — 2026-04-19 (v0.8 beta, "Sunday Sprint")
 
-- ✨ 新手落地包（数据准备指南 / 图表向导 / 14 图解读 / 一键加载样例）
-- ✨ 导出中心 4-tab 统一入口 + 批量 ZIP
-- ✨ HTML 交互导出 v1.3（D3 inline 嵌入 + 独立离线）
-- ✨ Streamlit Cloud 在线部署
+- ✨ Beginner-onboarding kit (data-prep guide / chart wizard / 14-figure how-to-read / one-click sample load)
+- ✨ Export center: 4-tab unified entry + batch ZIP
+- ✨ Interactive HTML export v1.3 (D3 inline + standalone offline)
+- ✨ Streamlit Cloud online deployment
 
 ---
 
-## 🔄 更新到新版本（内测阶段）
+## 🔄 Updating to a new version (beta phase)
 
-内测阶段 EnvMeta 会**频繁修 bug / 加功能**，建议每周 pull 一次拿最新代码。
+EnvMeta ships **frequent fixes / features** during beta — pulling once a week is recommended.
 
-**在线版用户**无需任何操作，云端会自动部署。
+**Online users** need do nothing — Streamlit Cloud redeploys automatically.
 
-**本地安装用户**，在 Terminal（Mac）或 Anaconda Prompt（Windows）里执行：
+**Local install users**, run in Terminal (Mac) or Anaconda Prompt (Windows):
 
 ```bash
-# 1) 如果 streamlit 正在跑，先 Ctrl+C 停掉
-# 2) 进入 EnvMeta 目录
+# 1) If streamlit is running, Ctrl+C to stop it
+# 2) Enter the EnvMeta directory
 cd ~/Desktop/EnvMeta              # Mac
 # cd %USERPROFILE%\Desktop\EnvMeta  # Windows
 
-# 3) 激活环境
+# 3) Activate the environment
 conda activate envmeta
 
-# 4) 拉最新代码（这就是核心更新命令）
+# 4) Pull latest code (this is the core update command)
 git pull origin master
 
-# 5) 仅在终端提示 requirements 变化 / 启动报 ModuleNotFoundError 时才跑
+# 5) Only when the terminal mentions requirements changes / startup throws ModuleNotFoundError
 pip install -r requirements.txt
 
-# 6) 重新启动
+# 6) Restart
 streamlit run app.py
 ```
 
-### 常见场景
+### Common scenarios
 
-**场景 A：`git pull` 提示 `Already up to date.`**
-已经是最新，直接启动即可。
+**A: `git pull` says `Already up to date.`** — You're current; just start the app.
 
-**场景 B：`git pull` 报 `Your local changes ... would be overwritten`**
-说明你在本地改过文件。先暂存再拉：
+**B: `git pull` reports `Your local changes ... would be overwritten`** — You've edited files locally. Stash, pull, optionally restore:
+
 ```bash
-git stash              # 暂存本地改动
+git stash              # stash local changes
 git pull origin master
-git stash pop          # 如果想恢复本地改动
+git stash pop          # restore them if you want
 ```
 
-**场景 C：更新后启动报错 `No module named 'xxx'`**
-跑一次 `pip install -r requirements.txt` 补齐新依赖。
+**C: After update, startup throws `No module named 'xxx'`** — Run `pip install -r requirements.txt` to install new dependencies.
 
-### 怎么知道有没有更新
+### How to know there is an update
 
-- 看 [GitHub 仓库首页](https://github.com/redlizzxy/EnvMeta)的 commits 列表，有新 commit 就是有更新
-- 或 `git fetch && git log HEAD..origin/master --oneline` 查看本地落后的 commit 数
-- 遇到 bug 前建议先 pull 一次，可能早已修好
+- Check the [GitHub repo home page](https://github.com/redlizzxy/EnvMeta) commit list — new commits = new updates
+- Or `git fetch && git log HEAD..origin/master --oneline` to see how many commits behind you are
+- Pull first when you hit a bug — it may already be fixed
 
-## 数据格式
+## Data formats
 
-读 [docs/data_preparation_zh.md](docs/data_preparation_zh.md)（也可在 app 内「数据准备指南」页面浏览）：覆盖 CoverM / HUMAnN3 / eggNOG / DRAM / GTDB-Tk / CheckM2 / KofamScan / QIIME2 / Kraken2+Bracken / MetaPhlAn4 / iCAMP 等 11 种上游工具的输出 → EnvMeta 输入格式映射。
+Read [docs/data_preparation_zh.md](docs/data_preparation_zh.md) (also browsable in-app on the "Data preparation guide" page; currently Chinese, English version planned). It covers output → EnvMeta input mapping for 11 upstream tools: CoverM / HUMAnN3 / eggNOG / DRAM / GTDB-Tk / CheckM2 / KofamScan / QIIME2 / Kraken2+Bracken / MetaPhlAn4 / iCAMP.
 
-## 样例数据
+## Sample data
 
-`tests/sample_data/` 提供砷渣-钢渣微生物修复研究（CK/A/B 三组，168 MAG × 10 样本 × 57 目标 KO）的精简数据。首页按钮一键加载即可跑通全部 14 分析。
+`tests/sample_data/` contains a slim version of the arsenic-slag / steel-slag microbial-remediation study (3 groups CK/A/B, 168 MAGs × 10 samples × 57 target KOs). One click on the home page runs all 14 analyses end-to-end.
 
-## 技术栈
+## Tech stack
 
-- **前端 UI**：Streamlit
-- **出版级渲染**：matplotlib + seaborn
-- **统计**：pandas / scipy / scikit-bio / statsmodels
-- **交互 HTML**：D3.js v7（inline 嵌入，无外部依赖）
-- **循环图推断**：自研（`envmeta/geocycle/`）— KEGG-driven KB + 置换检验 + 敏感度扫描
+- **UI front-end**: Streamlit
+- **Publication-grade rendering**: matplotlib + seaborn
+- **Statistics**: pandas / scipy / scikit-bio / statsmodels
+- **Interactive HTML**: D3.js v7 (inlined; no external deps)
+- **Cycle-figure inference**: in-house (`envmeta/geocycle/`) — KEGG-driven KB + permutation tests + sensitivity scan
 
-## 项目结构
+## Project layout
 
 ```
 envmeta/
-├── app.py                         # Streamlit 入口
-├── envmeta/                       # 核心包
-│   ├── file_manager/              # 文件识别（11 种类型）
-│   ├── analysis/                  # 14 图分析引擎
-│   ├── geocycle/                  # 循环图推断 + 假说评分 + HTML 导出
-│   │   ├── knowledge_base/        # 4 元素 × 18 通路 × 57 KO（KEGG-driven）
-│   │   ├── hypothesis.py          # YAML 评分器
-│   │   └── html_exporter.py       # 独立交互 HTML
-│   ├── help/                      # 新手落地包（向导 / 解读 / 反向索引）
+├── app.py                         # Streamlit entry point
+├── envmeta/                       # Core package
+│   ├── file_manager/              # File recognition (11 types)
+│   ├── analysis/                  # 14-figure analysis engine
+│   ├── geocycle/                  # Cycle inference + hypothesis scorer + HTML export
+│   │   ├── knowledge_base/        # 4 elements × 18 pathways × 57 KOs (KEGG-driven)
+│   │   ├── hypothesis.py          # YAML scorer
+│   │   └── html_exporter.py       # Standalone interactive HTML
+│   ├── help/                      # Beginner-onboarding kit
 │   ├── tools/                     # Fork Bundle / KB builder / Gephi prep
-│   └── export/                    # PNG/PDF/SVG/TIFF + .py 复现脚本
+│   └── export/                    # PNG/PDF/SVG/TIFF + .py reproduction script
 ├── docs/
-│   ├── data_preparation_zh.md     # 上游工具 → EnvMeta 映射
-│   └── install_for_beginners.md   # 小白安装指南
+│   ├── data_preparation_zh.md     # Upstream tool → EnvMeta mapping
+│   └── install_for_beginners.md   # Beginner install guide (Chinese)
 ├── paper/
-│   ├── bundles/                   # 论文 Fork Bundle 示例
-│   ├── benchmarks/                # 验证数据 + 效率对比
-│   └── user_study/                # 评测问卷设计
+│   ├── bundles/                   # Example paper Fork Bundles
+│   ├── benchmarks/                # Validation data + efficiency comparison
+│   └── user_study/                # Beta survey design
 ├── tests/
-│   ├── sample_data/               # 论文精简数据（一键加载）
-│   └── test_*.py                  # 291 case 全绿
+│   ├── sample_data/               # Slim paper data (one-click load)
+│   └── test_*.py                  # 293 cases, all green
 └── requirements.txt
 ```
 
-## 开发进度
+## Roadmap
 
-- [x] **Phase 0** — 项目骨架 + 环境 + 知识库
-- [x] **Phase 1** — 7 张 Reads-based 图表 + 基础调参 + 导出
-- [x] **Phase 2** — 5 张 MAG-based 图表 + 代码生成器
-- [x] **Phase 3** — 循环图推断 + 假说评分 + Fork Bundle + 独立交互 HTML
-- [x] **v0.8 Sunday Sprint** — 新手落地包 + 导出中心统一 + HTML v1.3
-- [ ] 论文 Methods + Results + Discussion 起草
-- [ ] English README + LICENSE + Zenodo DOI（iMeta 投稿硬指标）
-- [ ] Phase 4 — 插件框架（论文接收后）
+- [x] **Phase 0** — Project skeleton + environment + knowledge base
+- [x] **Phase 1** — 7 Reads-based figures + base parameter tuning + export
+- [x] **Phase 2** — 5 MAG-based figures + code generator
+- [x] **Phase 3** — Cycle-figure inference + hypothesis scorer + Fork Bundle + standalone interactive HTML
+- [x] **v0.8 Sunday Sprint** — Beginner kit + export center + HTML v1.3
+- [x] **English README + LICENSE** (this release)
+- [ ] Zenodo DOI (after `v1.0` release)
+- [ ] Paper Methods + Results + Discussion drafts
+- [ ] Phase 4 — Plugin framework (after paper acceptance)
 
-## 论文引用
+## Beta tester feedback wanted
 
-EnvMeta 计划作为方法学论文发表。
+EnvMeta is collecting beta feedback for the methodology paper (target: iMeta / Bioinformatics).
 
-发表前引用本仓库 URL 即可；发表后会在此处追加 DOI。
+If you'd like to try EnvMeta and share feedback, the best paths are:
 
-## 致谢
+- **GitHub Issues** (preferred for bug reports / feature requests): <https://github.com/redlizzxy/EnvMeta/issues>
+- **Email**: 18872605913@163.com
 
-EnvMeta 源自一项砷渣-钢渣微生物修复宏基因组研究。感谢内测阶段的同学贡献反馈（名单在论文发表后见致谢页）。
+(There is also an internal Chinese-language beta survey available on the [Chinese README](README_CN.md).)
+
+## Citation
+
+EnvMeta is being prepared as a methodology paper. Until publication, please cite this repository URL. A DOI will be appended here once issued (Zenodo, planned for the `v1.0` release).
+
+## Acknowledgments
+
+EnvMeta originated from a metagenomic study of arsenic-slag / steel-slag microbial remediation. We thank beta-stage testers for their feedback (named individually in the acknowledgments section of the published paper).
 
 ## License
 
-TBD（投稿前确定；预计 MIT 或 Apache-2.0）。
+[MIT License](LICENSE) — Copyright (c) 2026 redlizzxy and EnvMeta contributors.
 
-## 联系（建议优先邮件联系）
+## Contact (email preferred)
 
-- GitHub Issues：<https://github.com/redlizzxy/EnvMeta/issues>
-- Bug 反馈 / 功能请求：18872605913@163.com
-
+- GitHub Issues: <https://github.com/redlizzxy/EnvMeta/issues>
+- Bug reports / feature requests: 18872605913@163.com
