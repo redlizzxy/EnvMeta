@@ -41,24 +41,23 @@
 
 ---
 
-## 2. Highlights（iMeta 强制 4 条）
+## 2. Highlights（iMeta 实际是 3 条 ── 参考 ImageGP 2 / Chen 2024 范式）
+
+> 参考 ImageGP 2 highlights 风格：每条 ~12-20 words，1 个 capability 一行，
+> 不是 full sentence。**3 条、不要 4 条**。
 
 ```
-- A GUI-driven Streamlit platform integrating 12 publication-ready
-  visualizations for environmental metagenomics, with synchronized
-  Python/R script generation for full reproducibility.
+• Automated biogeochemical cycle inference for As/N/S/Fe at KEGG-driven
+  pathway resolution with permutation-based confidence labels and
+  per-pathway sensitivity scanning.
 
-- Automated biogeochemical cycle inference for As/N/S/Fe at
-  KEGG-driven pathway resolution (4 elements × 18 pathways × 57 KOs)
-  with permutation-based confidence labeling.
+• Six-claim YAML hypothesis scorer with Fisher 999-permutation null
+  calibration, Saltelli ±20% weight robustness, and Bradford-Hill
+  required-veto reasoning.
 
-- A YAML-based hypothesis scoring engine that converts user-supplied
-  mechanistic claims into evidence-weighted scores with null
-  distribution testing.
-
-- Standalone interactive HTML export (~400 KB, offline-ready) embeds
-  the entire analysis as the supplementary information itself,
-  enabling reviewer-level reproducibility.
+• Standalone interactive HTML supplementary material (~400 KB, fully
+  offline-capable) that embeds the analysis itself, plus a four-arm
+  calibration + three-arm stress-test validation across published datasets.
 ```
 
 ---
@@ -94,85 +93,155 @@ hypothesis）→ 下 1/3 导出。
 
 ---
 
-## 4. Abstract（200-250 words 草稿）
+## 4. Abstract（~250 words 草稿，ecosystem-extension framing）
 
-> Environmental metagenomics has matured technically but the downstream
-> analysis-to-publication pipeline remains a bottleneck for graduate
-> students and non-bioinformatics researchers. Existing tools either
-> require command-line proficiency (Anvi'o, MicrobiomeAnalyst), focus
-> on a single visualization type (Krona), or are constrained by
-> commercial cloud platforms with limited customization. We present
-> **EnvMeta**, an open-source Streamlit-based platform that unifies
-> 12 publication-ready visualizations with three differentiating
-> capabilities: (1) automated biogeochemical cycle inference for
-> As/N/S/Fe at KEGG-driven pathway resolution (4 elements × 18
-> pathways × 57 KOs), with permutation-based confidence labels and
-> sensitivity scanning; (2) a **6-claim YAML-based hypothesis scoring
-> engine** built on multi-criteria decision analysis with Bradford-Hill
-> required-veto, Fisher 999-permutation null calibration, and
-> weight-robustness checks, including a `pathway_inactive` claim type
-> for Popperian falsification; (3) standalone interactive HTML export
-> (~400 KB, offline-ready) that embeds the analysis itself as
-> supplementary information, enabling reviewer-level reproducibility.
-> EnvMeta is designed under a "domain-neutral, user-supplied knowledge,
-> fully offline, fork-rather-than-community" philosophy. We demonstrate
-> EnvMeta on an arsenic slag-steel slag bioremediation case study
-> (168 MAGs × 10 samples) and validate its scoring engine on **four
-> independent published metagenomic datasets** (Wei 2024 paddy soil,
-> Liu 2023 cold seep, Grettenberger 2021 acid mine drainage, Ayala 2020
-> Iberian Pyrite Belt pit lake), all returning `STRONG` calibration
-> labels under fixed default thresholds and rejecting cross-topic
-> stress claims with n = 0 active MAGs in 2/2 non-arsenic environments.
-> A 58-cell performance benchmark establishes the typical PhD-thesis
-> metagenome (200-1000 MAGs × 30-100 samples) runs in 30-120 s on a
-> standard laptop with peak memory below 10 MB. EnvMeta is freely
-> available at https://github.com/redlizzxy/EnvMeta with an online
-> demo at https://envmeta-3xjhcu7lv2gkj4pjtk8gsb.streamlit.app/.
+> Environmental microbiology has been transformed by metagenomic
+> sequencing, and a rich ecosystem of GUI visualization platforms — from
+> general-purpose tools such as ImageGP 2 (Chen et al., 2024 *iMeta*)
+> through pipeline-oriented frameworks such as EasyMetagenome (Liu et
+> al.) — supports the analysis-to-publication pipeline for biomedical
+> research broadly. The analytical layer specific to environmental
+> metagenome-assembled genome (MAG) studies, however, remains less
+> covered: automated biogeochemical cycle inference at KEGG-orthology
+> resolution, mechanism-hypothesis confrontation against MAG-level data
+> with statistical confidence indicators, and standalone offline-reproducible
+> interactive supplementary materials. We present **EnvMeta**, an
+> open-source Streamlit-based platform designed as a **domain-specialist
+> complement** to the iMeta visualization ecosystem. EnvMeta integrates
+> 14 publication-quality figures across reads-based and MAG-based
+> analyses, and adds three environment-microbiology-specific modules:
+> (i) automated cycle inference for As/N/S/Fe at KEGG-driven pathway
+> resolution (4 elements × 18 pathways × 57 KOs), with 999-permutation
+> confidence labels and per-pathway sensitivity scanning; (ii) a
+> **six-claim YAML-based hypothesis scorer** with Fisher permutation null
+> calibration, Saltelli ±20% one-at-a-time weight robustness, Bradford-Hill
+> required-veto reasoning, and a `pathway_inactive` claim type for
+> Popperian falsification; (iii) standalone interactive HTML export
+> (~400 KB, fully offline-capable). We demonstrate EnvMeta on an
+> arsenic-slag bioremediation case study (168 MAGs × 10 samples) and
+> validate the scoring engine across **four published metagenomic datasets**
+> (Wei 2024 paddy soil; Liu 2023 cold seep; Grettenberger 2021 acid mine
+> drainage; Ayala 2020 Iberian Pyrite Belt pit lake), all returning
+> `STRONG` calibration labels under fixed default thresholds and
+> rejecting cross-topic stress claims with n = 0 active MAGs in 2/2
+> non-arsenic environments. A 58-cell performance benchmark shows the
+> typical PhD-thesis metagenome (200-1000 MAGs × 30-100 samples) runs in
+> 30-120 s on a standard laptop with peak memory below 10 MB. EnvMeta
+> is freely available at https://github.com/redlizzxy/EnvMeta with an
+> online demo at https://envmeta-3xjhcu7lv2gkj4pjtk8gsb.streamlit.app/.
 
 ---
 
 ## 5. 主体章节大纲
 
-### 5.1 Introduction（~700-900 words）
+### 5.1 Introduction（~750 words / 4 段 / iMeta ecosystem-extension framing）
 
-**段落结构**：
+> **写作风格基线**：参考 ImageGP 2 (Chen et al., 2024 *iMeta*) — 不批评其他工具，
+> 仅描述其各自优势 + EnvMeta 填补的 specialist niche。引用多个 iMeta sister
+> tools 建立 ecosystem 信任感。最终 docx 阶段全英化。
 
-1. **背景与痛点**（200 words）
-   - 环境宏基因组学技术成熟（Illumina + Nanopore + MAG 流程标准化）
-   - 但下游 "数据 → 出版图" 这条最后一公里成为研究生瓶颈
-   - 痛点 1：需要写大量定制 R/Python 脚本（matplotlib/ggplot2）
-   - 痛点 2：测序公司云平台预设固定，无法自定义
-   - 痛点 3：元素循环图必须手画 PPT（Adobe Illustrator）
-   - 痛点 4：假说论证靠 reviewer 主观，缺统计标尺
-   - 痛点 5：复现性差，论文 SI 是静态 PDF
+#### 段 1 — Big-picture context (~150 words)
 
-2. **现有工具的局限**（250 words）
-   - Krona（饼图分类，不能定量元素循环）
-   - Anvi'o（强大但学习曲线陡，CLI 优先）
-   - MicrobiomeAnalyst（Web 平台，定制有限，需联网）
-   - phyloseq / Shiny-phyloseq（R 生态，对零基础用户门槛高）
-   - 测序公司云平台（封闭，不支持元素循环图 / 假说评分）
-   - **空白**：GUI + 元素循环 + 假说评分 + 离线 + 开源 → 业界无任何工具同时具备
+> Environmental microbiology has been transformed by metagenomic sequencing,
+> with metagenome-assembled genomes (MAGs) now routinely catalogued at
+> thousands per study. Element cycling — particularly the coupled cycling
+> of arsenic, nitrogen, sulfur, and iron in contaminated and remediation
+> contexts — has emerged as a unifying analytical lens for environmental
+> remediation, biogeochemistry, and contaminated-site studies. Translating
+> MAG-level KEGG-orthology (KO) annotations into mechanism-resolved insights,
+> however, requires substantial downstream analysis: cross-tool data
+> alignment across multiple file formats, iterative figure-parameter tuning
+> rounds, biogeochemical-pathway curation, and explicit confrontation
+> between mechanistic hypotheses and the underlying data tables. For
+> graduate-level researchers and small environmental-microbiology
+> laboratories, this analysis-to-publication pipeline often becomes a
+> workflow bottleneck even when individual tools and code templates are
+> openly available.
 
-3. **EnvMeta 的设计哲学**（200 words）
-   - 5 大原则（领域中立 / 用户自带知识 / 完全离线 / Fork 而非社区 / 描述而非断言）
-   - 5 层架构（L1 通用循环图 → L2 假说评分 → L3 插件框架 → L4 Bundle → L5 KB 工具）
-   - 目标用户群（环境微生物方向的硕博研究生 + 非生信背景研究人员）
+#### 段 2 — Existing tools landscape (acknowledgment, not critique) (~280 words)
 
-4. **本文贡献**（150 words）
-   ```
-   1. We present EnvMeta, the first GUI platform integrating 12
-      publication-ready visualizations + automated biogeochemical
-      cycle inference + YAML hypothesis scoring + standalone
-      interactive HTML.
-   2. We propose a permutation-based, sensitivity-aware framework
-      for inferring element cycle activity from metagenomic data,
-      moving beyond descriptive Krona-style charts toward
-      hypothesis-evaluable visualizations.
-   3. We demonstrate EnvMeta on As/Fe bioremediation case study
-      and a second public dataset, with full reproducibility via
-      Fork Bundles and DOI-tagged Zenodo releases.
-   ```
+> Numerous excellent tools serve different parts of this pipeline.
+> Command-line frameworks such as the **EasyAmplicon and EasyMetagenome**
+> series (Liu et al.) provide curated reproducible analysis pipelines from
+> raw sequence data through standard downstream visualizations; Anvi'o
+> (Eren et al.) offers MAG-centric exploratory analysis and pangenome
+> workflows; QIIME2 (Bolyen et al., 2019) and the broader R / phyloseq
+> (McMurdie & Holmes, 2013) ecosystem cover community statistics. Online
+> visualization platforms — including **ImageGP 2** (Chen et al., 2024
+> *iMeta*), **EVenn** (Chen et al., 2021), HemI 2.0 (Ning et al., 2022),
+> Sangerbox (Shen et al., 2022), OmicStudio (Lyu et al., 2023),
+> shinyCircos-V2.0 (Wang et al., 2023), TOmicsVis (Miao et al., 2023),
+> **Wekemo Bioincloud** (Gao et al., 2024 *iMeta*), iMetaLab Suite (Li et
+> al., 2022 *iMeta*), iNAP (Feng et al., 2022 *iMeta*), and Majorbio Cloud
+> (Ren et al., 2022 *iMeta*) — provide GUI-based access to a wide
+> repertoire of plot types covering general biomedical research needs.
+> Krona, Cytoscape, Gephi, and iTOL provide specialized visualizations for
+> taxonomic hierarchy, network analysis, and phylogeny respectively. Each
+> of these platforms offers distinct strengths in their respective
+> application domains; vendor cloud platforms also cover standard amplicon
+> and functional-gene downstream analyses well.
+>
+> What remains less covered, however, is **the analytical layer specific to
+> environmental-microbiology MAG studies**: automated biogeochemical cycle
+> inference (multi-element × multi-pathway × cross-element coupling at KO
+> resolution), mechanism-hypothesis confrontation against MAG-level data
+> with statistical confidence indicators, and standalone offline-reproducible
+> interactive supplementary materials. These needs are typically addressed
+> by manual figure construction (PowerPoint or Illustrator from analysis
+> output, redrawn at every research iteration) and narrative reasoning over
+> MAG×KO data tables — workflows that, while scientifically rigorous and
+> standard practice, are difficult to iterate quickly and do not export
+> naturally to interactive supplementary information formats.
+
+#### 段 3 — EnvMeta as ecosystem-specialist extension (~200 words)
+
+> We present **EnvMeta**, a Python/Streamlit-based open-source platform
+> designed as a **domain-specialist complement** to the iMeta visualization
+> ecosystem. EnvMeta builds upon — rather than replaces — the foundation
+> laid by general-purpose visualization platforms, adding three
+> environment-microbiology-specific modules: (i) automated **biogeochemical
+> cycle inference** from KO annotations, encoding four elements × eighteen
+> pathways × fifty-seven KOs in a curated knowledge base, with
+> permutation-based confidence labels and per-pathway sensitivity scanning;
+> (ii) a **YAML-based hypothesis scorer** that mechanically evaluates
+> user-supplied claims against MAG-level data through a six-claim-type
+> scoring engine with Fisher 999-permutation null calibration, ±20%
+> one-at-a-time weight robustness, and Bradford-Hill required-veto
+> reasoning, **complementing rather than replacing narrative mechanism
+> reasoning**; (iii) **standalone interactive HTML export** (~400 KB,
+> fully offline-capable) that embeds the analysis as the supplementary
+> information itself. Five core design principles — domain-neutral
+> inference engine, user-supplied knowledge, fully offline operation,
+> fork-rather-than-community distribution, and descriptive (not causal)
+> outputs — keep EnvMeta narrowly scoped. The platform integrates 14
+> publication-quality visualizations covering both reads-based and
+> MAG-based analyses, with full GUI parameter tuning and synchronous Python
+> script generation for each figure to support reproducibility.
+
+#### 段 4 — Specific contributions (~150 words)
+
+> Three contributions follow:
+>
+> 1. We present EnvMeta, an environmental-microbiology specialist platform
+>    that combines automated biogeochemical cycle inference, YAML-based
+>    hypothesis scoring with statistical confidence indicators, and
+>    standalone offline interactive HTML export — to our knowledge the
+>    first GUI tool combining these three capabilities specifically for
+>    environmental MAG analysis, complementing the broader iMeta
+>    visualization ecosystem.
+>
+> 2. We describe a permutation-based, sensitivity-aware analytical
+>    framework for inferring element-cycle activity from MAG-level KO
+>    annotations, moving beyond descriptive tabulation toward
+>    mechanism-evaluable analyses.
+>
+> 3. We demonstrate EnvMeta's design through (a) an arsenic-slag
+>    bioremediation case study (168 MAGs × 10 samples), (b) a four-arm
+>    calibration experiment over four published metagenomic datasets that
+>    returns stable scoring labels under fixed default thresholds, (c) a
+>    three-arm stress test demonstrating discrimination power against
+>    domain-mismatched claims, and (d) a 58-cell performance benchmark
+>    establishing the typical PhD-thesis runtime envelope.
 
 ### 5.2 Results（~2500-3000 words / 7-8 figures）
 
@@ -396,12 +465,45 @@ Streamlit Cloud 是否支持）。Source: [`paper/benchmarks/performance.md`](..
 > quality audit is at [`paper/manuscript/hypothesis_references_audit.md`](hypothesis_references_audit.md)
 > (Supplementary Table S_refs).
 
-#### 5.2.9 vs 竞品对比（Figure 9 / Table 1）
+#### 5.2.9 Tool ecosystem positioning（Figure F10 / Table T1）
 
-- vs Krona / Anvi'o / MicrobiomeAnalyst / 测序公司云平台
-- 对比维度：12 图覆盖度 / 离线可用 / 元素循环 / 假说评分 / GUI 友好度 / 开源 / 价格
+> **Framing 重要**：不是 "vs 竞品" 而是 **"complementary positioning across the
+> visualization ecosystem"**。把 ImageGP 2 列在 Table T1 第一行作为 horizontal-breadth
+> reference platform；EnvMeta 列最后作为 vertical-specialist position。**所有维度
+> 用客观能力描述**（√ 有 / − 无 / partial），不打分高低。
 
-**Table 1 内容**：参考现有 `paper/tool_comparison.md` 整理为正式表格。
+**Table T1 — Ecosystem positioning matrix（草稿）**：
+
+| Tool | Type | Domain coverage | Element cycle inference | Hypothesis scoring + null/sensitivity | Standalone offline HTML SI | MAG-based 5-figure suite | KEGG-driven biogeochemical KB |
+|---|---|---|---|---|---|---|---|
+| **ImageGP 2** (Chen 2024) | Online platform / Vue+Django | General biomedical (45 tools / 6 categories) | − | − | − | − | − |
+| **EasyAmplicon / EasyMetagenome** (Liu 2023) | CLI pipeline / shell+R | Amplicon + metagenomic standard analyses | − | − | − | − | − |
+| **Anvi'o** (Eren 2021) | CLI + light web / Python | MAG exploration + pangenomics | − | − | partial (interactive web SI) | partial (MAG-side strong) | − |
+| **QIIME2** (Bolyen 2019) | CLI plug-in framework | Amplicon community statistics | − | − | − | − | − |
+| **phyloseq / Shiny-phyloseq** (McMurdie 2013) | R package + Shiny | Community statistics | − | − | − | − | − |
+| **Krona** (Ondov 2011) | Static HTML SVG | Hierarchical taxonomy | − | − | partial (offline HTML / no analysis) | − | − |
+| **iTOL** (Letunic 2024) | Online + offline export | Phylogeny + annotation | − | − | partial (online SI + image) | − | − |
+| Vendor cloud platforms | SaaS web | General amplicon + functional | − | − | − | − | − |
+| **EnvMeta** ⭐ | Local + cloud Streamlit | **Environmental MAG specialist** | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+**EnvMeta 真实定位**：在上面 8 行所有工具都未覆盖的 **environmental-microbiology
+specialist niche** 填补 5 项独家功能。**不与任一上述工具竞争 horizontal breadth**。
+
+**Figure F10 内容（vs Tools 截图比对图）**：6 panel 横排 — 同一概念图（如"群落组成
+图" 或 "通路分析图"）在不同工具中的呈现：
+- A) ImageGP 2（boxplot / heatmap，参考 Chen 2024 Figure 3A）
+- B) Anvi'o（pangenome 浏览器截图，参考 Anvi'o 文档）
+- C) Krona（多层饼图）
+- D) MicrobiomeAnalyst Web 平台（OTU 分析）
+- E) 测序公司云平台（代表性一家国内公司公开 demo）
+- F) **EnvMeta 元素循环图 + 假说评分**（独家）
+
+每图加 1 行 caption 说明覆盖范围 + 输出格式。所有截图来自各工具公开 demo / 文档
+（避免版权争议）。EnvMeta panel 加红框标注"+ element cycle inference + hypothesis
+scoring + Bundle + offline HTML"。
+
+**Source for Table T1 / Figure F10**：[`paper/tool_comparison.md`](../tool_comparison.md)
+整理 + 各工具公开 demo 截图。
 
 ---
 
@@ -599,22 +701,48 @@ expected to transfer. Full benchmark report at
 ### 5.6 Acknowledgements
 
 ```
-We thank Dr. Yong-Xin Liu (CAS Microbiology Institute, founder of
-iMeta) for foundational training in metagenomic upstream/downstream
-analyses, whose published pipelines and instructional materials
-inspired several of EnvMeta's design choices for accessibility.
+We thank Dr. Yong-Xin Liu (Agricultural Genomics Institute at
+Shenzhen, Chinese Academy of Agricultural Sciences) and the broader
+iMeta editorial community for the foundational visualization
+ecosystem — including ImageGP, ImageGP 2, EasyAmplicon, EasyMetagenome,
+EVenn, Wekemo Bioincloud, Sangerbox, OmicStudio, shinyCircos, TOmicsVis,
+iMetaLab Suite, iNAP, Majorbio Cloud, and MetOrigin — that has set
+the methodological and accessibility standard for our field. EnvMeta
+was designed as a domain-specialist complement to this ecosystem,
+and its accessibility-first GUI philosophy directly inherits from
+the EasyAmplicon and ImageGP 2 design tradition.
 
 We thank [supervisor name] for guidance and [research group] for
-data sharing and beta testing. We acknowledge feedback from
-n=8+ graduate student users in the v2 user study.
+data sharing and beta testing. We acknowledge feedback from n=8+
+graduate student users in the v2 user study, and the authors of the
+four external-validation datasets (Wei 2024, Liu 2023, Grettenberger
+2021, Ayala 2020) for openly sharing their MAG-level annotations
+without which the present calibration and stress-test experiments
+would not have been possible.
 
-Funding: [supervisor's grant ID] / China Geological University
+Funding: [supervisor's grant ID] / China University of Geosciences
 (Beijing) graduate research support.
 ```
 
 ---
 
-### 5.7 References（约 50-60 篇 / Vancouver iMeta 格式 + DOI）
+### 5.7 References（约 50-60 篇）
+
+> ⚠️ **iMeta 实际引用格式 ≠ Vancouver**（参考 Chen 2024 ImageGP 2 References 实测）：
+>
+> ```
+> Chen, Tong, Yong-Xin Liu, and Luqi Huang. 2022. "ImageGP: An Easy-To-Use
+> Data Visualization Web Server for Scientific Researchers." iMeta 1: e5.
+> https://doi.org/10.1002/imt2.5
+> ```
+>
+> 即 **author-year + 引号 title + 斜体 journal + volume: page** 格式（类似 Chicago）。
+>
+> §5.7.1 (来自 §4.6 草稿 19 条) 当前是 Vancouver 格式（"Belton V, Stewart TJ. ..."），
+> §5.7.2 / §5.7.3 (本次新增) 已用 iMeta 格式。
+>
+> **投稿 final docx 阶段必须把 §5.7.1 19 条全部转换为 iMeta author-year 格式**。
+> 工时预估 30-45 min（手工 search-replace + DOI 校对）。
 
 **重点引用领域**（按 iMeta 编辑偏好排序）：
 
@@ -671,6 +799,47 @@ Funding: [supervisor's grant ID] / China Geological University
 - Anderson MJ. A new method for non-parametric multivariate analysis of variance. *Austral Ecol*. 2001;26(1):32-46. DOI: 10.1111/j.1442-9993.2001.01070.pp.x
 - Segata N, Izard J, Waldron L, Gevers D, Miropolsky L, Garrett WS, Huttenhower C. Metagenomic biomarker discovery and explanation. *Genome Biol*. 2011;12:R60. DOI: 10.1186/gb-2011-12-6-r60
 - Stolz JF, Basu P, Santini JM, Oremland RS. Arsenic and selenium in microbial metabolism. *Annu Rev Microbiol*. 2006;60:107-130. DOI: 10.1146/annurev.micro.60.080805.142053
+
+#### 5.7.2 iMeta sister-tools 引用清单（§5.1 ecosystem 段落引用，强烈推荐保留）
+
+> **政治意义重要**：这些是 iMeta 已发表的 sister tools，引用它们建立 ecosystem
+> 信任感 + 致敬期刊编辑团队（ImageGP 2 Editor-in-Chief Liu YX 团队）。
+>
+> ⚠️ **iMeta 引用格式不是 Vancouver**，看 ImageGP 2 论文 References 实际格式是
+> **author-year + 引号 title**（类似 APA / Chicago）。例如：
+> > Chen, Tong, Yong-Xin Liu, and Luqi Huang. 2022. "ImageGP: An Easy-To-Use Data
+> > Visualization Web Server for Scientific Researchers." *iMeta* 1: e5.
+> > https://doi.org/10.1002/imt2.5
+>
+> 投稿 final docx 阶段需要把 §5.7.1 全部 19 条 Vancouver 引用 **格式转换** 为 iMeta
+> 风格。所有 5.7.1 + 5.7.2 + 5.7.3 引用最终统一编号。
+
+1. Chen, Tong, Yong-Xin Liu, Tao Chen, Mei Yang, Siqing Fan, Minglei Shi, et al. 2024. "ImageGP 2 for Enhanced Data Visualization and Reproducible Analysis in Biomedical Research." *iMeta* 3: e239. https://doi.org/10.1002/imt2.239
+2. Chen, Tong, Yong-Xin Liu, and Luqi Huang. 2022. "ImageGP: An Easy-To-Use Data Visualization Web Server for Scientific Researchers." *iMeta* 1: e5. https://doi.org/10.1002/imt2.5
+3. Chen, Tong, Haiyan Zhang, Yu Liu, Yong-Xin Liu, and Luqi Huang. 2021. "EVenn: Easy to Create Repeatable and Editable Venn Diagrams and Venn Networks Online." *Journal of Genetics and Genomics* 48: 863-866. https://doi.org/10.1016/j.jgg.2021.07.007
+4. Ning, Wanshan, Yuxiang Wei, Letian Gao, Cheng Han, Yujie Gou, Shanshan Fu, et al. 2022. "HemI 2.0: An Online Service for Heatmap Illustration." *Nucleic Acids Research* 50: W405-W411. https://doi.org/10.1093/nar/gkac480
+5. Shen, Weitao, Ziguang Song, Xiao Zhong, Mei Huang, Danting Shen, Pingping Gao, et al. 2022. "Sangerbox: A Comprehensive, Interaction-Friendly Clinical Bioinformatics Analysis Platform." *iMeta* 1: e36. https://doi.org/10.1002/imt2.36
+6. Lyu, Fengye, Feiran Han, Changli Ge, Weikang Mao, Li Chen, Huipeng Hu, et al. 2023. "OmicStudio: A Composable Bioinformatics Cloud Platform with Real-Time Feedback That Can Generate High-Quality Graphs for Publication." *iMeta* 2: e85. https://doi.org/10.1002/imt2.85
+7. Wang, Yazhou, Lihua Jia, Ge Tian, Yihan Dong, Xiao Zhang, Zhengfu Zhou, et al. 2023. "shinyCircos-V2.0: Leveraging the Creation of Circos Plot with Enhanced Usability and Advanced Features." *iMeta* 2: e109. https://doi.org/10.1002/imt2.109
+8. Miao, Ben-Ben, Wei Dong, Zhao-Fang Han, Xuan Luo, Cai-Huan Ke, and Wei-Wei You. 2023. "TOmicsVis: An All-In-One Transcriptomic Analysis and Visualization R Package with Shinyapp Interface." *iMeta* 2: e137. https://doi.org/10.1002/imt2.137
+9. Gao, Yunyun, Guoxing Zhang, Shunyao Jiang, and Yong-Xin Liu. 2024. "Wekemo Bioincloud: A User-Friendly Platform for Meta-Omics Data Analyses." *iMeta* 3: e175. https://doi.org/10.1002/imt2.175
+10. Li, Leyuan, Zhibin Ning, Kai Cheng, Xu Zhang, Caitlin M. A. Simopoulos, and Daniel Figeys. 2022. "iMetaLab Suite: A One-Stop Toolset for Metaproteomics." *iMeta* 1: e25. https://doi.org/10.1002/imt2.25
+11. Feng, Kai, Xi Peng, Zheng Zhang, Songsong Gu, Qing He, Wenli Shen, et al. 2022. "iNAP: An Integrated Network Analysis Pipeline for Microbiome Studies." *iMeta* 1: e13. https://doi.org/10.1002/imt2.13
+12. Ren, Yi, Guo Yu, Caiping Shi, Linmeng Liu, Quan Guo, Chang Han, et al. 2022. "Majorbio Cloud: A One-Stop, Comprehensive Bioinformatic Platform for Multiomics Analyses." *iMeta* 1: e12. https://doi.org/10.1002/imt2.12
+13. Yu, Gang, Cuifang Xu, Danni Zhang, Feng Ju, and Yan Ni. 2022. "MetOrigin: Discriminating the Origins of Microbial Metabolites for Integrative Analysis of the Gut Microbiome and Metabolome." *iMeta* 1: e10. https://doi.org/10.1002/imt2.10
+14. Chen, Chengjie, Ya Wu, and Rui Xia. 2022. "A Painless Way to Customize Circos Plot: From Data Preparation to Visualization Using TBtools." *iMeta* 1: e35. https://doi.org/10.1002/imt2.35
+
+#### 5.7.3 EasyAmplicon / Anvi'o / 通用 metagenomics 工具引用清单（§5.1 段落 + Methods 引用）
+
+15. Liu, Yong-Xin, Yuan Qin, Tengfei Chen, Meiping Lu, Xubo Qian, Xiaoxuan Guo, and Yang Bai. 2021. "A Practical Guide to Amplicon and Metagenomic Analysis of Microbiome Data." *Protein & Cell* 12: 315-330. https://doi.org/10.1007/s13238-020-00724-8
+16. Liu, Yong-Xin, Lei Chen, Tengfei Ma, Xiaofang Li, Maosheng Zheng, Xin Zhou, et al. 2023. "EasyAmplicon: An Easy-to-Use, Open-Source, Reproducible, and Community-Based Pipeline for Amplicon Data Analysis in Microbiome Research." *iMeta* 2: e83. https://doi.org/10.1002/imt2.83
+17. Eren, A. Murat, Evan Kiefl, Alon Shaiber, Iva Veseli, Samuel E. Miller, Matthew S. Schechter, et al. 2021. "Community-Led, Integrated, Reproducible Multi-Omics with Anvi'o." *Nature Microbiology* 6: 3-6. https://doi.org/10.1038/s41564-020-00834-3
+18. Bolyen, Evan, Jai Ram Rideout, Matthew R. Dillon, Nicholas A. Bokulich, Christian C. Abnet, Gabriel A. Al-Ghalith, et al. 2019. "Reproducible, Interactive, Scalable and Extensible Microbiome Data Science Using QIIME 2." *Nature Biotechnology* 37: 852-857. https://doi.org/10.1038/s41587-019-0209-9
+19. McMurdie, Paul J., and Susan Holmes. 2013. "phyloseq: An R Package for Reproducible Interactive Analysis and Graphics of Microbiome Census Data." *PLOS ONE* 8: e61217. https://doi.org/10.1371/journal.pone.0061217
+20. Ondov, Brian D., Nicholas H. Bergman, and Adam M. Phillippy. 2011. "Interactive Metagenomic Visualization in a Web Browser." *BMC Bioinformatics* 12: 385. https://doi.org/10.1186/1471-2105-12-385  *(Krona)*
+21. Letunic, Ivica, and Peer Bork. 2024. "Interactive Tree of Life (iTOL) v6: Recent Updates to the Phylogenetic Tree Display and Annotation Tool." *Nucleic Acids Research* 52: W78-W82. https://doi.org/10.1093/nar/gkae268
+22. Shannon, Paul, Andrew Markiel, Owen Ozier, Nitin S. Baliga, Jonathan T. Wang, Daniel Ramage, et al. 2003. "Cytoscape: A Software Environment for Integrated Models of Biomolecular Interaction Networks." *Genome Research* 13: 2498-2504. https://doi.org/10.1101/gr.1239303
+23. Bastian, Mathieu, Sebastien Heymann, and Mathieu Jacomy. 2009. "Gephi: An Open Source Software for Exploring and Manipulating Networks." *Proceedings of the International AAAI Conference on Web and Social Media* 3: 361-362. https://doi.org/10.1609/icwsm.v3i1.13937
 
 ---
 
