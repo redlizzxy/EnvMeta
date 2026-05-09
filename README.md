@@ -34,7 +34,7 @@ EnvMeta solves the core pain point of environmental-microbiome PhD students: **t
 | All parameters tweakable | ⚠️ | ✅ | ⚠️ | ❌ locked | ✅ |
 | Fully open-source, free | ✅ | ✅ | ✅ | ❌ paid | ✅ |
 
-## Feature matrix (v0.9.0 / hypothesis stress test complete)
+## Feature matrix (v0.9.1 / hypothesis stress test + dominance_score complete)
 
 | Module | What it covers |
 |---|---|
@@ -42,7 +42,7 @@ EnvMeta solves the core pain point of environmental-microbiome PhD students: **t
 | 📊 Reads-based (7 figures) | Taxonomy stacked bar / α-diversity / β-diversity PCoA / RDA ordination / LEfSe / element-cycle gene heatmap / gene log2FC |
 | 🧬 MAG-based (5 figures) | MAG quality scatter / MAG abundance heatmap / pathway completeness / element-cycle gene profile / co-occurrence network (Gephi-prep) |
 | 🔄 Biogeochemical-cycle figure ⭐ | 4 elements (As/N/S/Fe) × 18 pathways auto-inferred + cross-element chemical coupling + keystone ★ annotation |
-| 🧪 Mechanistic-hypothesis YAML scorer | **6 claim types** (pathway_active / **`pathway_inactive`** [v0.9 ⭐ Popperian falsification] / coupling_possible / env_correlation / keystone_in_pathway / group_contrast) + 3 confidence indicators (Fisher permutation p / Saltelli weight-sensitivity / Bradford-Hill required veto) + 9-tier interpretation |
+| 🧪 Mechanistic-hypothesis YAML scorer | **6 claim types** (pathway_active / **`pathway_inactive`** [v0.9 ⭐ Popperian falsification] / coupling_possible / env_correlation / keystone_in_pathway / group_contrast) + 3 confidence indicators (Fisher permutation p / Saltelli weight-sensitivity / Bradford-Hill required veto) + 9-tier interpretation + **`dominance_score`** field with optional `min_dominance_fraction` hard threshold (v0.9.1 ⭐, solves binary mean-completeness limit) |
 | 📐 Hypothesis writing guide (v0.9 ⭐) | Two-layer template (calibration + stress claims) + pre-registration discipline + pre-prediction template + 6 claim-type selection guide + Bradford-Hill mapping. See [`docs/hypothesis_writing_guide.md`](docs/hypothesis_writing_guide.md) |
 | 📦 Fork Bundle | Pack KB + YAML + config + KEGG snapshot → zip; reviewers reproduce in one click |
 | 🌐 Standalone interactive HTML | 400 KB single file with D3.js inlined, 4-quadrant force layout + click-through + SVG/JSON export, fully offline |
@@ -84,6 +84,20 @@ The browser auto-opens `http://localhost:8501`.
 ## 📜 Recent releases
 
 Beta phase ships frequent bug fixes / features. Full list in **[CHANGELOG.md](CHANGELOG.md)**.
+
+### v0.9.1 — 2026-05-09 (dominance_score field + Paper 3 writing materials complete) ⭐
+
+**Engineering follow-up to v0.9.0** — addresses the binary `mean_completeness ≥ 50%` threshold limitation surfaced by the v0.9.0 stress tests, and ships full Paper 3 writing materials.
+
+- ✨ **`dominance_score` field** + optional `min_dominance_fraction` hard threshold for `pathway_active` claims:
+  ```
+  dominance_score = pathway.total_contribution / sum(all pathways in element)
+  ```
+  Evidence dict always carries `dominance_score` + `element_total_contribution` (added to both `pathway_active` and `pathway_inactive` evaluators for transparency). Backward compatible — omitting `min_dominance_fraction` keeps prior behaviour.
+- 📊 **Stress test v2 B → A discrimination upgrade**: Liu 0.625 → **0.250 (weak)**; Ayala 0.455 → **0.182 (weak)**. Class A reversed claim's actual dominance is 0.05 % (Liu) / 7.08 % (Ayala) ≪ 20 % threshold → correctly returns `unsatisfied`. **3/3 stress tests now A-tier clean discrimination**. v1 YAMLs preserved as B-tier historical evidence; v2 YAMLs are new files alongside v1, full git audit trail.
+- 📚 **Paper 3 writing materials ready**: Methods §4.6 (~1450 words / 7 subsections / 19 Vancouver+DOI citations) + Results §X stress test (~800 words / 4 subsections) + Discussion §Y limitation+future-work (~640 words / 4 subsections) + Table 1 (calibration) + Table 2 (stress with v1+v2 columns) + Figure X (calibration vs stress, PDF/PNG 600 dpi/SVG + matplotlib reproduction script).
+- ✅ **AMD diazotrophy citation verified**: Sánchez-España 2008 DOI confirmed; Auld 2017 misattribution replaced by **Dai 2014 PLoS One** (primary metagenomic 742 nif sequences) + **Méndez-García 2015 Front Microbiol** (review). 2 calibration YAMLs' reference metadata updated.
+- 🧪 pytest **301/301 green** (+4 new `dominance_score` test cases, no regressions).
 
 ### v0.9.0 — 2026-05-09 (hypothesis scoring controlled experiment complete + stress-test discrimination evidence) ⭐
 
@@ -181,7 +195,7 @@ Read [docs/data_preparation_zh.md](docs/data_preparation_zh.md) (also browsable 
 
 - **UI front-end**: Streamlit
 - **Publication-grade rendering**: matplotlib + seaborn
-- **Statistics**: pandas / scipy / scikit-bio / statsmodels
+- **Statistics**: pandas / scipy / scikit-bio / statsmodels / networkx
 - **Interactive HTML**: D3.js v7 (inlined; no external deps)
 - **Cycle-figure inference**: in-house (`envmeta/geocycle/`) — KEGG-driven KB + permutation tests + sensitivity scan
 
@@ -209,7 +223,7 @@ envmeta/
 │   └── user_study/                # Beta survey design
 ├── tests/
 │   ├── sample_data/               # Slim paper data (one-click load)
-│   └── test_*.py                  # 293 cases, all green
+│   └── test_*.py                  # 301 cases, all green
 └── requirements.txt
 ```
 
@@ -221,13 +235,15 @@ envmeta/
 - [x] **Phase 3** — Cycle-figure inference + hypothesis scorer + Fork Bundle + standalone interactive HTML
 - [x] **v0.8 Sunday Sprint** — Beginner kit + export center + HTML v1.3
 - [x] **English README + LICENSE** (this release)
-- [ ] Zenodo DOI (after `v1.0` release)
-- [ ] Paper Methods + Results + Discussion drafts
+- [x] **R-side cross-validation** (v0.8.2 — 11 figures side-by-side validated; RDA values aligned to R `vegan` to 4 decimal places)
+- [x] **External-dataset reproduction** (v0.9.0 — 4 KEGG-curated metagenomic datasets all STRONG calibration; 3-arm stress test discrimination ladder)
+- [x] **Paper Methods + Results + Discussion drafts** (v0.9.1 — see [`paper/manuscript/`](paper/manuscript/))
+- [ ] Zenodo DOI (at iMeta submission time)
 - [ ] Phase 4 — Plugin framework (after paper acceptance)
 
 ## Beta tester feedback wanted
 
-EnvMeta is collecting beta feedback for the methodology paper (target: iMeta / Bioinformatics).
+EnvMeta is collecting beta feedback for the methodology paper (target: iMeta / Bioinformatics / Frontiers in Microbiology).
 
 If you'd like to try EnvMeta and share feedback, the best paths are:
 
@@ -238,7 +254,7 @@ If you'd like to try EnvMeta and share feedback, the best paths are:
 
 ## Citation
 
-EnvMeta is being prepared as a methodology paper. Until publication, please cite this repository URL. A DOI will be appended here once issued (Zenodo, planned for the `v1.0` release).
+EnvMeta is being prepared as a methodology paper. Until publication, please cite this repository URL. A Zenodo DOI will be appended here once the paper is ready for journal submission.
 
 ## Acknowledgments
 
