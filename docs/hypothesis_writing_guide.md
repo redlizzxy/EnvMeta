@@ -137,6 +137,40 @@
 - `unsatisfied` (0.0)：有活跃 MAG 且 mean_completeness ≥ max_completeness（明显违反）
 - `skipped`：数据里找不到通路（KB 缺失，不能反驳/支持）
 
+### 4.1.5 `dominance_score` —— 区分"主导"vs"检出但弱"（v0.9.x）
+
+**新增可选参数 `min_dominance_fraction`**（v0.9.x 起）：解决 v0.9 stress test
+暴露的二元 `mean_completeness ≥ 50%` 阈值 limit —— 通路活跃但 contribution
+远低于真正主导 backbone 通路时仍会 satisfied。
+
+```yaml
+# 例: 反向 stress claim 用 dominance 阈值精确化
+- id: as_oxidation_should_dominate_stress_A
+  type: pathway_active
+  params:
+    pathway: "Arsenite oxidation"
+    min_completeness: 30
+    min_dominance_fraction: 0.20   # ⭐ v0.9.x：通路必须占元素 cycle 总贡献 ≥ 20% 才算主导
+```
+
+**`dominance_score` 计算**：
+```
+dominance_score = pathway.total_contribution / sum(all pathways in element)
+```
+
+**评估行为**：
+- 不指定 `min_dominance_fraction` → 不加阈值（向后兼容）
+- 指定后是**硬阈值**：dominance < threshold → unsatisfied（即使 mean_comp 达标）
+- evidence 字段总是含 `dominance_score` + `element_total_contribution`（信息透明）
+
+**实测效果**（Paper 4 stress test v2）：
+- Liu 冷泉 As oxidation contrib=0.3 → dominance **0.05%** << 20% → unsatisfied ✅
+  （v1 因 mean_comp=50% 阈值意外 satisfied，B 级）
+- Ayala pit lake S oxidation contrib=66.7 → dominance **7.08%** < 20% → unsatisfied ✅
+  （v1 同样意外 satisfied）
+
+→ B 级 discrimination 升级到 **A 级 clean discrimination**。
+
 ### 4.2 stress claim 的三种失败模式
 
 写 stress claim 时建议覆盖**三类失败模式**之中的至少 1-2 种：

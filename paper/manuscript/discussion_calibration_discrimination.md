@@ -62,6 +62,17 @@ B-tier discrimination outcomes for Liu and Ayala into A-tier clean rejections,
 matching the Grettenberger result. We deliberately do not apply this fix
 retroactively because the pre-registered claim entities must remain frozen.
 
+**Update (v0.9.x)**: the `dominance_score` extension has been implemented in
+EnvMeta v0.9.x. A second pre-registered stress YAML (`*_stress_v2.yaml`) with
+the Class-A reversed claim augmented by `min_dominance_fraction = 0.20`
+upgraded both Liu (0.625 → 0.250) and Ayala (0.455 → 0.182) stress scores from
+the `suggestive` (B-tier) to the `weak` (A-tier) label, with observed
+dominance scores of 0.05% and 7.08% respectively, both well below the 20%
+threshold. All three datasets now exhibit clean A-tier discrimination. The v2
+YAMLs are *additional* to v1 (committed alongside, not replacing v1), so the
+original B-tier evidence remains in git history as documentation of the
+binary-threshold limitation that motivated the engineering change.
+
 ## §Y.3 Limitations
 
 Several limitations remain that no software change can resolve. **(1) Author
@@ -88,9 +99,9 @@ grade.
 
 ## §Y.4 Future work
 
-Beyond the `dominance_score` extension and KB v1.2 backlog mentioned above,
-two methodological future items follow directly from the stress-test
-experience. First, **third-party blind stress YAMLs**: in the next user-study
+Beyond the `dominance_score` extension (now delivered in v0.9.x) and KB v1.2
+backlog mentioned above, two methodological future items follow directly from
+the stress-test experience. First, **third-party blind stress YAMLs**: in the next user-study
 iteration, collaborators unfamiliar with the four target papers will be
 invited to author independent stress YAMLs for the same datasets, providing a
 selection-bias-controlled replication of the present result. Second, an

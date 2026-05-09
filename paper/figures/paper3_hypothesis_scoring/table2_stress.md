@@ -6,11 +6,21 @@
 > 12 claim predictions × 3 datasets frozen in
 > `paper/manuscript/stress_test_predictions.md` before observation.
 
-| Arm | Calibration label | Stress overall | Stress label | Class A reversed | Class B cross-topic | Class C pathway_inactive | Calibration anchor | Discrimination grade | Cross-topic n=0 |
+### v1 results (commit `50c4687` pre-registration anchor; default thresholds)
+
+| Arm | Calibration label | Stress v1 overall | Stress label | Class A reversed | Class B cross-topic | Class C pathway_inactive | Calibration anchor | Discrimination grade | Cross-topic n=0 |
 |---|---|---|---|---|---|---|---|---|---|
 | **C1** Liu 2023 (cold seep / same-topic) | STRONG (1.000) | **0.625** | suggestive | satisfied ⚠️ (n=2 weak) | skipped (KB filter) | unsatisfied ✅ | satisfied ✅ | **B** (binary-threshold limit) | n/a (same-topic) |
 | **C2-A** Grettenberger 2021 (AMD / cross-topic) | STRONG (1.000) | **0.250** | **weak** | skipped (KB filter) | **unsatisfied ✅** ⭐ | unsatisfied ✅ | satisfied ✅ | **A** (clean) | **YES (n=0 active MAGs)** ⭐ |
 | **C2-B** Ayala 2020 (pit lake / cross-topic) | STRONG (1.000) | **0.455** | suggestive | satisfied ⚠️ (n=1 weak) | **unsatisfied ✅** ⭐ | unsatisfied ✅ | satisfied ✅ | **B** (binary-threshold limit) | **YES (n=0 active MAGs)** ⭐ |
+
+### v2 results (v0.9.x dominance_score upgrade; Class A claim 加 `min_dominance_fraction: 0.20`)
+
+| Arm | Stress v1 → v2 | Class A 实测 dominance | Discrimination 升级 |
+|---|---|---|---|
+| **C1** Liu 2023 | 0.625 → **0.250 (weak)** ⭐ | As oxidation **0.05%** << 20% → unsatisfied | **B → A** |
+| **C2-A** Grettenberger 2021 | already A-tier (no v2 needed) | — | — |
+| **C2-B** Ayala 2020 | 0.455 → **0.182 (weak)** ⭐ | S oxidation **7.08%** < 20% → unsatisfied | **B → A** |
 
 ⭐ **Cross-topic n=0 in 2/2 non-arsenic datasets** — the single most informative stress-test result. Refutes the *a priori* concern that the universal *arsC* arsenate-reductase homolog (Rosen, 2002) would inflate cross-topic scores to satisfied. Direct evidence of EnvMeta's domain-neutral scoring.
 

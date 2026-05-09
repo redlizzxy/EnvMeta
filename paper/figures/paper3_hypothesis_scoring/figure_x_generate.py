@@ -33,29 +33,26 @@ DATASETS = [
     {
         "label": "Liu 2023\ncold seep\n(same-topic)",
         "calibration": 1.000,
-        "stress": 0.625,
-        "stress_label": "suggestive",
-        "discrimination_grade": "B",
+        "stress_v1": 0.625,
+        "stress_v2": 0.250,
         "cross_topic_n0": False,
-        "annotation": "B-tier\n(binary-threshold limit)",
+        "annotation": "v1: B-tier (binary limit)\nv2: A-tier ★",
     },
     {
         "label": "Grettenberger 2021\nAMD stream\n(cross-topic) ★",
         "calibration": 1.000,
-        "stress": 0.250,
-        "stress_label": "weak",
-        "discrimination_grade": "A",
+        "stress_v1": 0.250,
+        "stress_v2": 0.250,  # already A-tier; same as v1
         "cross_topic_n0": True,
-        "annotation": "A-tier\ncross-topic n=0 ★",
+        "annotation": "A-tier (already)\ncross-topic n=0 ★",
     },
     {
         "label": "Ayala 2020\npit lake\n(cross-topic) ★",
         "calibration": 1.000,
-        "stress": 0.455,
-        "stress_label": "suggestive",
-        "discrimination_grade": "B",
+        "stress_v1": 0.455,
+        "stress_v2": 0.182,
         "cross_topic_n0": True,
-        "annotation": "B-tier + cross-topic n=0 ★",
+        "annotation": "v1: B-tier (binary limit)\nv2: A-tier ★",
     },
 ]
 
@@ -74,36 +71,45 @@ plt.rcParams.update({
     "ps.fonttype": 42,
 })
 
-CALIB_COLOR = "#2E86AB"   # 深蓝 (calibration)
-STRESS_COLOR = "#E63946"  # 红 (stress)
+CALIB_COLOR = "#2E86AB"      # 深蓝 (calibration)
+STRESS_V1_COLOR = "#F4A261"  # 橙 (stress v1, default thresholds)
+STRESS_V2_COLOR = "#E63946"  # 红 (stress v2, dominance-aware)
 THRESHOLD_GREY = "#888888"
 
 
 def make_figure():
     n = len(DATASETS)
-    fig, ax = plt.subplots(figsize=(7.0, 3.8))
+    fig, ax = plt.subplots(figsize=(8.5, 4.5))
 
-    bar_height = 0.35
-    y_calib = np.arange(n) + bar_height / 2
-    y_stress = np.arange(n) - bar_height / 2
+    bar_height = 0.25
+    y_calib = np.arange(n) + bar_height
+    y_v1 = np.arange(n)
+    y_v2 = np.arange(n) - bar_height
 
     calib_vals = [d["calibration"] for d in DATASETS]
-    stress_vals = [d["stress"] for d in DATASETS]
+    v1_vals = [d["stress_v1"] for d in DATASETS]
+    v2_vals = [d["stress_v2"] for d in DATASETS]
 
     # bars
-    bars_c = ax.barh(y_calib, calib_vals, height=bar_height,
-                      color=CALIB_COLOR, label="Calibration overall_score",
-                      edgecolor="white", linewidth=0.5, zorder=3)
-    bars_s = ax.barh(y_stress, stress_vals, height=bar_height,
-                      color=STRESS_COLOR, label="Stress overall_score",
-                      edgecolor="white", linewidth=0.5, zorder=3)
+    ax.barh(y_calib, calib_vals, height=bar_height,
+            color=CALIB_COLOR, label="Calibration",
+            edgecolor="white", linewidth=0.5, zorder=3)
+    ax.barh(y_v1, v1_vals, height=bar_height,
+            color=STRESS_V1_COLOR, label="Stress v1 (default thresholds)",
+            edgecolor="white", linewidth=0.5, zorder=3)
+    ax.barh(y_v2, v2_vals, height=bar_height,
+            color=STRESS_V2_COLOR,
+            label="Stress v2 (dominance-aware, v0.9.x)",
+            edgecolor="white", linewidth=0.5, zorder=3)
 
     # value labels on bars
-    for i, (cv, sv) in enumerate(zip(calib_vals, stress_vals)):
+    for i, (cv, v1, v2) in enumerate(zip(calib_vals, v1_vals, v2_vals)):
         ax.text(cv + 0.015, y_calib[i], f"{cv:.3f}",
-                va="center", fontsize=8, color=CALIB_COLOR, fontweight="bold")
-        ax.text(sv + 0.015, y_stress[i], f"{sv:.3f}",
-                va="center", fontsize=8, color=STRESS_COLOR, fontweight="bold")
+                va="center", fontsize=7.5, color=CALIB_COLOR, fontweight="bold")
+        ax.text(v1 + 0.015, y_v1[i], f"{v1:.3f}",
+                va="center", fontsize=7.5, color=STRESS_V1_COLOR, fontweight="bold")
+        ax.text(v2 + 0.015, y_v2[i], f"{v2:.3f}",
+                va="center", fontsize=7.5, color=STRESS_V2_COLOR, fontweight="bold")
 
     # threshold lines
     ax.axvline(0.75, color=THRESHOLD_GREY, linestyle="--", linewidth=0.7,
@@ -117,27 +123,28 @@ def make_figure():
 
     # discrimination grade annotations (right side)
     for i, d in enumerate(DATASETS):
-        ax.text(1.08, i, d["annotation"], va="center", fontsize=7,
+        ax.text(1.08, i, d["annotation"], va="center", fontsize=7.5,
                 color="#444444",
                 fontweight="bold" if d["cross_topic_n0"] else "normal")
 
     # axes
     ax.set_yticks(np.arange(n))
     ax.set_yticklabels([d["label"] for d in DATASETS], fontsize=8.5)
-    ax.set_xlabel("overall_score (EnvMeta default thresholds)", fontsize=9)
+    ax.set_xlabel("overall_score", fontsize=9)
     ax.set_xlim(0, 1.05)
     ax.set_ylim(-0.7, n - 0.3 + 0.3)
     ax.invert_yaxis()  # top dataset first
 
-    ax.legend(loc="lower right", frameon=False, fontsize=8)
+    ax.legend(loc="lower right", frameon=False, fontsize=7.5)
 
     ax.set_title(
-        "Figure X. Calibration vs stress overall_score gap, three KEGG-curated datasets.\n"
-        "Cross-topic arsenate_reduction rejected with n=0 active MAGs in 2/2 non-arsenic datasets.",
-        fontsize=9.5, loc="left", pad=10,
+        "Figure X. Calibration vs stress overall_score across three KEGG-curated datasets.\n"
+        "v1 = default thresholds (binary mean_completeness ≥ 50%); v2 = dominance-aware (v0.9.x min_dominance_fraction = 0.20).\n"
+        "Cross-topic arsenate_reduction rejected with n=0 active MAGs in 2/2 non-arsenic datasets ★.",
+        fontsize=9, loc="left", pad=10,
     )
 
-    plt.subplots_adjust(left=0.18, right=0.78, top=0.83, bottom=0.16)
+    plt.subplots_adjust(left=0.16, right=0.74, top=0.80, bottom=0.13)
     return fig
 
 

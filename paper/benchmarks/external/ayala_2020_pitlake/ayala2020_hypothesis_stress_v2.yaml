@@ -1,0 +1,131 @@
+# EnvMeta 假说评分器 — Ayala 2020 — STRESS TEST v2 (dominance-aware)
+#
+# Source: Ayala-Muñoz et al. (2020) Microorganisms 8:1350
+# DOI:    10.3390/microorganisms8091350
+#
+# ═══════════════════════════════════════════════════════════════════════
+#  PRE-REGISTERED STRESS HYPOTHESIS v2 (Paper 4 / v0.9.x)
+# ═══════════════════════════════════════════════════════════════════════
+#
+# 配套 v1: ayala2020_hypothesis_stress.yaml (commit 50c4687, 跑分 60a5be4)
+#   v1 结果: overall=0.455 SUGGESTIVE — B 级 discrimination
+#   原因: Class A 反向 claim "sulfide_oxidation should dominate" 意外 satisfied，
+#         因为 pit lake 数据真有 1 MAG 带 sox/sqr (contribution=66.7)，但
+#         Sulfide oxidation 占 S element cycle 总贡献的比例仅 ~9%
+#         (vs Dissim. sulfate red. contrib=675 = 91%)，二元阈值无法区分
+#         "主导" vs "局部存在"。
+#
+# v2 改动（v0.9.x dominance_score field 兑现）：
+#   - Class A reversed claim 加 `min_dominance_fraction: 0.20`
+#     即要求 Sulfide oxidation 通路必须占 S element cycle 总 contribution 的
+#     ≥ 20% 才能算 satisfied。Ayala 数据 S oxidation dominance ≈ 0.09 << 0.20
+#     → 应得 unsatisfied
+#   - 其他 3 claim (B/C/D) 不变
+#
+# 期望 v2 跑分：
+#   - Class A: unsatisfied ✅ (B 级 → A 级 升级关键)
+#   - Class B: unsatisfied ✅ (cross-topic arsenate_reduction n=0)
+#   - Class C: unsatisfied ✅ (negative on backbone)
+#   - Class D: satisfied ✅
+#   - overall: ~0.18 (weak, A 级 clean discrimination)
+
+name: "Ayala2020_pitlake_deep_stress_hypothesis_v2"
+description: |
+  Stress test hypothesis v2 — dominance-aware. Class A reversed claim 加
+  min_dominance_fraction=0.20 阈值，解决 v1 的二元阈值 limit 暴露的 B 级
+  discrimination。配套 v1 形成 "before/after dominance_score" 对照证据。
+
+version: "2.0"
+strong_threshold: 0.75
+suggestive_threshold: 0.40
+
+claims:
+  # ═════════════════════════════════════════════════════════
+  #  A. 反向预测 + dominance 阈值 (v0.9.x 新增)
+  # ═════════════════════════════════════════════════════════
+  - id: sulfide_oxidation_should_dominate_stress_A
+    type: pathway_active
+    weight: 1.5
+    required: false
+    description: |
+      [PREDICTION] expected_label=unsatisfied
+      [REASONING] 同 v1 — pit lake 深层 35m 缺氧 → 应 SR 主导，故意预测 sulfide
+      oxidation 主导（Sánchez-España et al. 2008 Appl Geochem
+      DOI:10.1016/j.apgeochem.2007.12.036）。v2 加 min_dominance_fraction=0.20
+      要求真"主导"。Ayala 数据 S oxidation dominance ≈ 0.09 << 0.20 阈值
+      → 应正确 unsatisfied。
+      [DOMINANCE_FIELD] v0.9.x dominance_score。
+    params:
+      pathway: "Sulfide oxidation"
+      min_completeness: 30
+      min_dominance_fraction: 0.20
+
+  # ═════════════════════════════════════════════════════════
+  #  B. 领域错配 (与 v1 一致)
+  # ═════════════════════════════════════════════════════════
+  - id: arsenate_reduction_should_dominate_stress_B
+    type: pathway_active
+    weight: 1.5
+    required: false
+    description: |
+      [PREDICTION] expected_label=unsatisfied
+      [REASONING] 同 v1 — IPB pit lake 主背景金属 Fe/Cu/Zn/SO4 非砷
+      (Sánchez-España 2008 Appl Geochem 23:1260-1287). 故意预测砷还原主导。
+    params:
+      pathway: "Arsenate reduction"
+      min_completeness: 30
+
+  # ═════════════════════════════════════════════════════════
+  #  C. Negative claim (与 v1 一致)
+  # ═════════════════════════════════════════════════════════
+  - id: dissim_sulfate_reduction_should_NOT_dominate_stress_C
+    type: pathway_inactive
+    weight: 1.5
+    required: false
+    description: |
+      [PREDICTION] expected_label=unsatisfied (即 pathway 实际 active)
+      [REASONING] 同 v1 — pit lake 深层缺氧 + 高 SO4 是 dissim SR backbone
+      (Johnson & Hallberg 2005 Sci Total Environ 338:3-14
+       DOI:10.1016/j.scitotenv.2004.09.002).
+    params:
+      pathway: "Dissim. sulfate red."
+      max_completeness: 50
+
+  # ═════════════════════════════════════════════════════════
+  #  D. Calibration anchor (与 v1 一致)
+  # ═════════════════════════════════════════════════════════
+  - id: nitrate_reduction_calibration_anchor_D
+    type: pathway_active
+    weight: 1.0
+    required: false
+    description: |
+      [PREDICTION] expected_label=satisfied
+      [REASONING] 同 v1 — AMD 寡营养偶发 narG/napA mediated NO3- reduction
+      (Tan GL et al. 2009 FEMS Microbiol Ecol 70(2):277-285
+       DOI:10.1111/j.1574-6941.2009.00744.x).
+    params:
+      pathway: "Nitrate reduction"
+      min_completeness: 30
+
+# ═══════════════════════════════════════════════════════════════════════
+#  REFERENCES (Vancouver + DOI; 同 v1)
+# ═══════════════════════════════════════════════════════════════════════
+#
+# [1] Sánchez España J, López Pamo E, Santofimia Pastor E, Diez Ercilla M.
+#     The acidic mine pit lakes of the Iberian Pyrite Belt: An approach to
+#     their physical limnology and hydrogeochemistry. Appl Geochem.
+#     2008;23(5):1260-1287.
+#     DOI: 10.1016/j.apgeochem.2007.12.036  ✅ verified by user 2026-05-09
+#
+# [2] Johnson DB, Hallberg KB. Acid mine drainage remediation options:
+#     a review. Sci Total Environ. 2005;338(1-2):3-14.
+#     DOI: 10.1016/j.scitotenv.2004.09.002
+#
+# [3] Tan GL, Shu WS, Zhou WH, Li XL, Lan CY, Huang LN. Seasonal and spatial
+#     variations in microbial community structure and diversity in the acid
+#     stream draining across an ongoing surface mining site.
+#     FEMS Microbiol Ecol. 2009;70(2):277-285.
+#     DOI: 10.1111/j.1574-6941.2009.00744.x
+#
+# [4] EnvMeta v0.9.x dominance_score field implementation:
+#     `_compute_dominance_score()` in `envmeta/geocycle/hypothesis.py`

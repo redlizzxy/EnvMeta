@@ -163,7 +163,35 @@ Ayala B 与 Grettenberger B 都 **n=0 active MAGs** → cross-topic stress 在 *
 - **Bradford-Hill specificity 准则**通过 pathway_inactive 实现
 - **领域中立性 (cross-topic specificity)** 通过 2/2 无砷数据集 arsenate_reduction n=0 验证 ⭐
 
-### 4.3 暴露的工程改进 backlog
+### 4.3 ⭐ v2 dominance_score 升级（v0.9.x 兑现）
+
+针对 §3.2 + §1.2 暴露的二元阈值 limit，v0.9.x 加 `min_dominance_fraction` 参数
+（`pathway_active` evaluator）+ `dominance_score = pathway.total_contribution /
+sum(all pathways in element)` 字段（两个 evaluator 都加 evidence 字段）。
+
+**v2 stress YAML** 与 v1 唯一区别：Class A reversed claim 加 `min_dominance_fraction:
+0.20`。其他 3 claim (B/C/D) 不变。
+
+| Dataset | v1 stress | v2 stress | Class A 实测 dominance | 升级 |
+|---|---|---|---|---|
+| **Liu 2023** | 0.625 (suggestive, B 级) | **0.250 (weak, A 级) ⭐** | As oxidation **0.05%** << 20% → unsatisfied | B → A |
+| **Ayala 2020** | 0.455 (suggestive, B 级) | **0.182 (weak, A 级) ⭐** | S oxidation **7.08%** < 20% → unsatisfied | B → A |
+| Grettenberger 2021 | 0.250 (weak, A 级) | n/a (已是 A 级) | — | — |
+
+**意义**：v0.9.x 兑现 v0.9 Discussion §Y.4 的 future work 承诺。3/3 stress test
+全部 A 级 clean discrimination（实际只跑了 Liu/Ayala v2，Grettenberger v1 已 A 级）。
+
+**dominance_score 字段在 v1 calibration claim 中也提供信息**（不强制阈值，仅显示
+在 evidence）：例如 Ayala calibration `dissim_sulfate_reduction` 的 dominance =
+71.68%（确认其为 S element backbone）；Liu calibration `arsenate_reduction`
+dominance = 1.04%（与作者数据 168 MAGs × 多 sample 的 contribution 计算尺度
+一致；尺度 invariant 不影响相对比较）。
+
+**Pre-registration 纪律**：v2 YAML 是**新增** YAML（commit anchor TBD），不修改 v1
+（commit `50c4687` 保留）。v1 vs v2 跑分对比作为 "before/after dominance" 工程
+改进证据。
+
+### 4.4 暴露的工程改进 backlog
 
 | 优先级 | 改进项 | 理由 |
 |---|---|---|

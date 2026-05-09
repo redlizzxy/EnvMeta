@@ -247,6 +247,29 @@ def _find_pathway(data: CycleData, name: str) -> tuple[PathwayActivity, str] | N
     return None
 
 
+def _compute_dominance_score(
+    pw: PathwayActivity, element_id: str, data: CycleData,
+) -> tuple[float, float]:
+    """计算 pathway 在所属 element 中的相对贡献主导度。
+
+    dominance_score = pw.total_contribution / sum(all pathways in element).
+    用于区分"主导通路"与"检出但弱"信号 — 解决 v0.9 stress test 暴露的二元
+    阈值 limit（Liu A + Ayala A 反向 stress claim 因为通路活跃即 satisfied，
+    但 contribution 远低于真正主导的 backbone 通路）。
+
+    Returns:
+        (dominance_score, element_total_contribution)。
+        如果 element_total=0（退化情况），返回 (0.0, 0.0)。
+    """
+    for el in data.elements:
+        if el.element_id == element_id:
+            element_total = sum(p.total_contribution for p in el.pathways)
+            if element_total <= 0:
+                return 0.0, 0.0
+            return pw.total_contribution / element_total, element_total
+    return 0.0, 0.0
+
+
 def _collect_observed_species(data: CycleData) -> set[str]:
     """扫描所有 contributors 的 genes，收集被观测到的 substrate/product species 集合。"""
     out: set[str] = set()
@@ -286,12 +309,19 @@ def _eval_pathway_active(claim: Claim, data: CycleData) -> ClaimResult:
     pw, element = match
     min_comp = float(p.get("min_completeness", 50))
     min_contrib = float(p.get("min_contribution", 0))
+    # v0.9.x: 主导度阈值（可选）—— 解决二元阈值 limit
+    min_dom = p.get("min_dominance_fraction")
+    min_dom = float(min_dom) if min_dom is not None else None
+
+    dom_score, element_total = _compute_dominance_score(pw, element, data)
     ev = {
         "pathway_id": pw.pathway_id,
         "element": element,
         "n_active_mags": pw.n_active_mags,
         "mean_completeness": round(pw.mean_completeness, 2),
         "total_contribution": round(pw.total_contribution, 2),
+        "dominance_score": round(dom_score, 4),
+        "element_total_contribution": round(element_total, 2),
     }
     if pw.n_active_mags <= 0:
         return ClaimResult(
@@ -301,14 +331,31 @@ def _eval_pathway_active(claim: Claim, data: CycleData) -> ClaimResult:
         )
     ok_comp = pw.mean_completeness >= min_comp
     ok_contrib = pw.total_contribution >= min_contrib
+    ok_dom = (min_dom is None) or (dom_score >= min_dom)
+
+    # min_dominance_fraction 是硬阈值：用户明确要求"主导"，不达即 unsatisfied
+    if not ok_dom:
+        return ClaimResult(
+            claim.id, claim.type, "unsatisfied", 0.0, claim.weight,
+            evidence=ev,
+            explanation=(
+                f"{pw.display_name}: 活跃但**不主导** "
+                f"(dominance {dom_score:.2%}/{min_dom:.0%}, "
+                f"contribution {pw.total_contribution:.1f} "
+                f"vs element total {element_total:.1f})"
+            ),
+        )
     if ok_comp and ok_contrib:
+        dom_note = (
+            f"，dominance {dom_score:.2%}" if min_dom is not None else ""
+        )
         return ClaimResult(
             claim.id, claim.type, "satisfied", 1.0, claim.weight,
             evidence=ev,
             explanation=(
                 f"{pw.display_name}: {pw.n_active_mags} 个 MAG 活跃，"
                 f"平均完整度 {pw.mean_completeness:.0f}%，"
-                f"总贡献 {pw.total_contribution:.1f}"
+                f"总贡献 {pw.total_contribution:.1f}{dom_note}"
             ),
         )
     return ClaimResult(
@@ -351,6 +398,7 @@ def _eval_pathway_inactive(claim: Claim, data: CycleData) -> ClaimResult:
         )
     pw, element = match
     max_comp = float(p.get("max_completeness", 50))
+    dom_score, element_total = _compute_dominance_score(pw, element, data)
     ev = {
         "pathway_id": pw.pathway_id,
         "element": element,
@@ -358,6 +406,8 @@ def _eval_pathway_inactive(claim: Claim, data: CycleData) -> ClaimResult:
         "mean_completeness": round(pw.mean_completeness, 2),
         "total_contribution": round(pw.total_contribution, 2),
         "max_completeness_threshold": max_comp,
+        "dominance_score": round(dom_score, 4),
+        "element_total_contribution": round(element_total, 2),
     }
     if pw.n_active_mags <= 0:
         return ClaimResult(

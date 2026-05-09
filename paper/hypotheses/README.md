@@ -66,6 +66,7 @@ claims:                        # 至少 1 条
 | `pathway` | str | — | 通路名（匹配 display_name 或 pathway_id，模糊匹配）|
 | `min_completeness` | float | 50 | 平均完整度 % 阈值 |
 | `min_contribution` | float | 0 | total_contribution 阈值 |
+| `min_dominance_fraction` | float | None | **(v0.9.x)** dominance_score 硬阈值。dominance = pathway.total_contribution / sum(all pathways in element)。不达即 unsatisfied。用于 stress claim 区分"主导"vs"检出但弱"|
 
 **评分**：活跃+两阈值达标 → `satisfied`(1.0)；活跃但阈值差 → `partial`(0.5)；
 无活跃 MAG → `unsatisfied`(0)；通路名匹配不到 → `skipped`（不扣分）

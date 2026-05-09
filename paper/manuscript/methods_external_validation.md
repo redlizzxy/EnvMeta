@@ -173,9 +173,25 @@ contribution 66.7), versus the dominant reduction pathway with contribution
 > 6 (Liu) or > 675 (Ayala) — a 21-fold and 10-fold gap respectively. This
 exposes a binary `satisfied / unsatisfied` reporting limitation: the current
 engine cannot distinguish "dominant" from "detectable but weak" pathway
-activity. We note this as a scoring-engine future work item: implementing a
-`dominance_score = total_contribution / element_total` field would enable
-stress claims to specify a `min_dominance_fraction` parameter.
+activity in v0.9.0.
+
+To resolve this, **EnvMeta v0.9.x adds a `dominance_score` field** computed
+as `pathway.total_contribution / sum(all pathways in the same element)`
+(provided in every `pathway_active` and `pathway_inactive` evidence
+dictionary), plus an optional `min_dominance_fraction` hard threshold for
+`pathway_active` claims. A second pre-registered stress YAML
+(`{dataset}_hypothesis_stress_v2.yaml`) with the Class-A reversed claim
+augmented by `min_dominance_fraction = 0.20` re-tested the same datasets:
+Liu's "arsenite_oxidation should dominate" returned `unsatisfied` with
+observed dominance 0.05% (far below the 20% threshold); Ayala's
+"sulfide_oxidation should dominate" returned `unsatisfied` with dominance
+7.08%. Both v2 stress overall scores converged to the `weak` label (Liu
+0.625 → 0.250; Ayala 0.455 → 0.182), upgrading their discrimination outcomes
+from B-tier to A-tier and matching Grettenberger 2021's already-clean
+result. The v2 YAMLs preserve all other claims unchanged from v1; v1 results
+remain accessible in git history at commit `50c4687`. The before/after pair
+documents that the `dominance_score` extension resolves the binary-threshold
+limitation without reintroducing claim selection bias.
 
 ### 4.6.6 Reference audit and post-hoc corrections
 

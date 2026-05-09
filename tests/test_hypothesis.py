@@ -180,6 +180,87 @@ def test_pathway_inactive_skipped_when_pathway_not_in_data(cycle_data):
     assert cr.status == "skipped"
 
 
+def test_pathway_active_evidence_includes_dominance_score(cycle_data):
+    """v0.9.x: pathway_active evidence 必须含 dominance_score + element_total_contribution。"""
+    hyp = Hypothesis(name="t", claims=[Claim(
+        id="c", type="pathway_active", weight=1.0,
+        params={"pathway": "Arsenate reduction", "min_completeness": 30},
+    )])
+    result = score(hyp, cycle_data)
+    cr = result.claim_results[0]
+    assert "dominance_score" in cr.evidence
+    assert "element_total_contribution" in cr.evidence
+    # Arsenate reduction 在砷渣样例数据应是 backbone，dominance 应较高
+    assert cr.evidence["dominance_score"] > 0.0
+    assert cr.evidence["element_total_contribution"] > 0
+
+
+def test_pathway_active_min_dominance_fails_for_weak_signal(cycle_data):
+    """v0.9.x: min_dominance_fraction 对弱信号通路应 unsatisfied，即使 mean_comp ≥ threshold。
+
+    模拟 Liu A / Ayala A stress test 场景：通路活跃但贡献远低于主导通路，
+    新阈值能正确 reject。
+    """
+    # 找一个 active 但贡献相对低的 pathway
+    target_pw = None
+    for el in cycle_data.elements:
+        if not el.pathways:
+            continue
+        active = [p for p in el.pathways if p.n_active_mags > 0]
+        if len(active) < 2:
+            continue
+        # 选 contribution 最小的活跃 pathway
+        weak = min(active, key=lambda p: p.total_contribution)
+        if weak.total_contribution > 0:
+            target_pw = weak
+            break
+    if target_pw is None:
+        pytest.skip("样例数据没有合适的弱信号 pathway")
+
+    # 设 min_dominance_fraction=0.99 强制要求几乎完全主导（不可能达到）
+    hyp = Hypothesis(name="t", claims=[Claim(
+        id="c", type="pathway_active", weight=1.0,
+        params={
+            "pathway": target_pw.display_name,
+            "min_completeness": 30,
+            "min_dominance_fraction": 0.99,
+        },
+    )])
+    result = score(hyp, cycle_data)
+    cr = result.claim_results[0]
+    assert cr.status == "unsatisfied", f"got {cr}"
+    assert "不主导" in cr.explanation
+
+
+def test_pathway_active_min_dominance_passes_for_dominant_pathway(cycle_data):
+    """v0.9.x: min_dominance_fraction=0.05（低门槛）对 backbone 通路应 satisfied。"""
+    hyp = Hypothesis(name="t", claims=[Claim(
+        id="c", type="pathway_active", weight=1.0,
+        params={
+            "pathway": "Arsenate reduction",
+            "min_completeness": 30,
+            "min_dominance_fraction": 0.05,
+        },
+    )])
+    result = score(hyp, cycle_data)
+    cr = result.claim_results[0]
+    # Arsenate reduction 在砷渣是 As element backbone, dominance >> 5%
+    assert cr.status == "satisfied", f"got {cr}"
+    assert cr.evidence["dominance_score"] >= 0.05
+
+
+def test_pathway_inactive_evidence_includes_dominance_score(cycle_data):
+    """v0.9.x: pathway_inactive evidence 也加 dominance_score（信息透明，不强制阈值）。"""
+    hyp = Hypothesis(name="t", claims=[Claim(
+        id="c", type="pathway_inactive", weight=1.0,
+        params={"pathway": "Arsenate reduction", "max_completeness": 50},
+    )])
+    result = score(hyp, cycle_data)
+    cr = result.claim_results[0]
+    assert "dominance_score" in cr.evidence
+    assert "element_total_contribution" in cr.evidence
+
+
 def test_pathway_inactive_in_claim_types_whitelist():
     """load_hypothesis 接受 pathway_inactive type。"""
     hyp = load_hypothesis({
