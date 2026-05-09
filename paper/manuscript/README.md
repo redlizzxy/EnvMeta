@@ -15,6 +15,7 @@
 | [publication_strategy.md](publication_strategy.md) ⭐ | **发表路线** — Path A 改良版（EnvMeta + bioRxiv + 课题论文并行）+ bioRxiv 操作 checklist |
 | [paper3_pre_submission_checklist.md](paper3_pre_submission_checklist.md) | 投稿前 4 大任务进度（R 对照 / 第二数据集 / 英文 README / Methods 起草）— 大部分已完成 |
 | [reviewer_simulation_prompt.md](reviewer_simulation_prompt.md) ⚠️ untracked | SCI 模拟审稿提示词模板（用户私人检查文件，**不 push**）|
+| `mock_review_v0.9.{1,2,3}_*.md` ⚠️ untracked | 历次模拟审稿报告（v0.9.1 Major Rev → v0.9.2 Minor Rev → v0.9.3 Minor Rev acceptance-track；本地检查文件，**不 push**）|
 | [zenodo_doi_steps.md](zenodo_doi_steps.md) | Zenodo DOI 5 步操作流程（投稿时执行）|
 
 ### Methods 章节素材
@@ -51,38 +52,42 @@
 
 ---
 
-## 当前状态（2026-05-09，v0.9.2 paper-side）
+## 当前状态（2026-05-09，v0.9.3 paper-side — post-perturbation）
 
-**对照实验完成度**：✅ **4 Arm calibration 全 STRONG + Stress test 3/3 全 A 级**（措辞已按 mock review v0.9.2 修订软化为 "KEGG-coverage-dependent" 而非 "domain-neutral"）
+**对照实验 + auxiliary evidence 完成度**：✅ **4 Arm calibration 全 STRONG + Stress test 3/3 全 A 级 + Perturbation analysis 双模式 N=20/each**
 
-| Arm | 数据集 | Calibration | Stress v1 | Stress v2（dominance-aware）| Discrimination |
+| Arm | 数据集 | Calibration | Stress v2 | Discrimination | Perturbation (within / cross STRONG retention) |
 |---|---|---|---|---|---|
-| A | 作者 168 MAG (砷渣) | STRONG | — | — | (positive control) |
+| A | 作者 168 MAG (砷渣) | STRONG | — | (positive control) | 暂排除（v0.9.3 新 Major：Arm A asymmetry 待补 partial） |
 | B | Wei 2024 (砷+N) | INSUFFICIENT | — | — | — |
-| C1 | Liu 2023 (冷泉砷) | STRONG (1.000) | suggestive (0.625) | **weak (0.250)** ⭐ | v1 B → **v2 A** |
-| C2-A | Grettenberger 2021 (AMD 跨主题) | STRONG (1.000) | weak (0.250) | n/a (已 A) | **A 级** ⭐ |
-| C2-B | Ayala 2020 (pit lake 跨主题) | STRONG (1.000) | suggestive (0.455) | **weak (0.182)** ⭐ | v1 B → **v2 A** |
+| C1 | Liu 2023 (冷泉砷) | STRONG (1.000) | weak (0.250) ⭐ | A 级 | 50% / **0%** ⭐ headline |
+| C2-A | Grettenberger 2021 (AMD) | STRONG (1.000) | A 级 ⭐ | A 级 | 50% / 30% |
+| C2-B | Ayala 2020 (pit lake) | STRONG (1.000) | weak (0.182) ⭐ | A 级 | 40% / 15% |
 
-**最强单条证据**（softened）：cross-topic arsenate_reduction 在 Grettenberger (n=29 MAG) + Ayala (n=13 MAG) 双双 n=0 active MAGs，**consistent with**（不是 ironclad proof of）EnvMeta 评分引擎在 cross-topic mismatch 下的 domain-neutral behaviour；≥100 MAG 验证 flag 为 future work。
+**两条 headline 证据**：
+1. cross-topic arsenate_reduction 在 Grettenberger (n=29) + Ayala (n=13) 双双 n=0 active MAGs（**consistent with** cross-topic mismatch 下 domain-neutral，softened 表述）
+2. **Liu 2023 cross-element perturbation 0/20 STRONG**（median 0.000）→ 元素级 target accuracy 是机制刚需；within-element 40-50% retention 与 §Y.1 KEGG-coverage-dependent 一致
 
-**Paper 3 投稿核心证据全部就位**：
-- ✅ Methods §4.6 完整草稿（~1450 字 / 7 子节 / 19 条 Vancouver+DOI；含 Anderson 2001 999-perm justify）
-- ✅ Results §X stress test 章节（~800 字 / 4 子节 / Table 1+2+Figure X 定义；n=29/13 caveat 明确）
-- ✅ Discussion §Y limitation+future（~640 字 / 4 子节；KEGG-coverage-dependent 重 frame；author bias 作为 #1 limitation）
-- ✅ Table 1 + Table 2 + Figure X 实物素材（[../figures/paper3_hypothesis_scoring/](../figures/paper3_hypothesis_scoring/)，PDF + PNG + SVG）
-- ✅ 引用 audit + 4 处错引透明纠正（含 Sánchez-España + Dai 2014 + Méndez-García 2015 verified）
-- ✅ dominance_score 字段 v0.9.x 兑现（v2 stress test B→A 升级；reframed as engineering retrofit, NOT independent validation）
-- ✅ 性能 benchmark：3 regimes × 58 cells；scaling_curve.{pdf,svg,png}；paper-facing performance.md + 中文用户面 docs/performance_zh.md
-- ✅ ImageGP 2 ecosystem-extension reframing：EnvMeta 全文从"vs 竞品"改为 "domain-specialist complement"
-- ✅ Mock review v0.9.1 → v0.9.2 修订：5 大 Major + 5 Minor 全部温和解；Recommendation 从 Major → **Minor Revision**
+**Paper 3 投稿核心证据**：
+- ✅ Methods §4.6 完整草稿（8 子节 / ~1700 字含 §4.6.7 perturbation；19 条 Vancouver+DOI；含 Anderson 2001 999-perm justify）
+- ✅ Results §X 章节（5 子节 / ~1080 字含 §X.3 perturbation；Table 1+2+Figure X+X-bis 定义；n=29/13 caveat 明确）
+- ✅ Discussion §Y limitation+future（~700 字 / 4 子节；KEGG-coverage-dependent 重 frame；§Y.3 limitation #1 整合 perturbation auxiliary evidence）
+- ✅ Table 1 + Table 2 + Figure X 实物素材（[../figures/paper3_hypothesis_scoring/](../figures/paper3_hypothesis_scoring/)）+ Figure X-bis perturbation_curve（[../benchmarks/external/perturbation/](../benchmarks/external/perturbation/)）
+- ✅ 引用 audit + 4 处错引透明纠正
+- ✅ dominance_score 字段 v0.9.x 兑现（reframed as engineering retrofit）
+- ✅ 性能 benchmark：3 regimes × 58 cells；scaling_curve；paper/benchmarks/performance.md + docs/performance_zh.md
+- ✅ ImageGP 2 ecosystem-extension reframing
+- ✅ Mock review v0.9.1 → v0.9.2 → v0.9.3：Major Rev → Minor Rev → **Minor Rev (acceptance-track)**
 
-**剩余工作**（按 [`publication_strategy.md`](publication_strategy.md) Path A 改良版）：
-1. **6 张 placeholder figures**（F1/F3/F5/F6/F7/F10）— 投稿前 mandatory，2-3 天
-2. **§5.7.1 Vancouver → iMeta 引用格式**转换 — 用户 Zotero 改 docx 时统一处理
-3. **bioRxiv 投稿** — 6 月初目标，3 天审核拿 DOI
-4. **EnvMeta 投 iMeta** — bioRxiv 上线后立即投
-5. **1-day perturbation analysis**（推荐）— 把 mock review v0.9.2 仅剩 Major Issue（作者偏见）从 acknowledgment 升级为 auxiliary evidence；接收概率从 85% → 95%
-6. **课题论文起草**（用户主导）— As 形态重测启动 + 用 EnvMeta bioRxiv DOI 引用
+**剩余工作**（mock review v0.9.3 → 2-4 天到 acceptance-ready）：
+1. **Arm A partial perturbation**（v0.9.3 唯一新 Major）— 30 min compute + 30 min 写作；最便宜的封口
+2. **Stress §X.2 3-dataset caveat**（v0.9.2 Major #2 carried）— 30 min 一句话
+3. **6 张 placeholder figures**（F1/F3/F5/F6/F7/F10）— 投稿前 mandatory，2-3 天
+4. **8 个 Minor 修订**（5 carried + 3 new from v0.9.3）— 1-2h 纯文字
+5. **rerun mock review v0.9.4** — 验证全部 Major Resolved
+6. **bioRxiv 投稿** — 6 月初目标，3 天审核拿 DOI
+7. **EnvMeta 投 iMeta** — bioRxiv 上线后立即投
+8. **课题论文起草**（用户主导）— As 形态重测启动 + 用 EnvMeta bioRxiv DOI 引用
 
 **已暂缓**：
-- 盲法 stress test（用户判断暂时不可行；Discussion §Y.4 保留作为 future work proposal；mock review v0.9.2 提议 perturbation analysis 作为 auxiliary evidence 替代）
+- 盲法 stress test（Discussion §Y.4 仍作为 future work；perturbation analysis 已作为 auxiliary evidence 替代 acknowledgment-only state）

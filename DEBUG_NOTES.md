@@ -74,12 +74,31 @@ evidence（轻，1 天）。用户选 (b)。
   + auxiliary evidence (perturbation) + blind-writing future"。预期下次 mock review
   把 Major #1 → Resolved（剩 v0.9.2 出现的 Major #2 stress test n=3 caveat 待修）
 
+**Mock review v0.9.3 (post-perturbation) 结果** — 同 session 内 rerun（untracked
+file `paper/manuscript/mock_review_v0.9.3_post_perturbation.md`）：
+
+- **Recommendation: Minor Revision (acceptance-track)** — v0.9.2 Minor → v0.9.3 仍
+  Minor 但加 acceptance-track 标记
+- **v0.9.2 Major #1 → Resolved with auxiliary evidence**：perturbation 兑换成功；
+  reviewer 评价"intellectual honesty rare in tool-paper submissions"
+- **v0.9.3 新 Major (1 个)**：Arm A perturbation asymmetry — 作者数据排除于
+  perturbation control 形成 asymmetry。建议补 partial Arm A perturbation（仅 3 个
+  pathway_active claim：iron_transport_active / arsenate_reduction_active /
+  as_transport_active），≈30 min compute + 30 min 写作
+- **v0.9.2 Major #2 (3-dataset stress caveat) 仍 carried** — 1 句话搞定
+- **v0.9.3 新 Minor (3 个)**：(a) Wilson 95% CI 标注 perturbation rates；(b) N=20
+  rationale 缺；(c) `run_null=False, run_sensitivity=False` 选择缺辩护
+- **v0.9.2 Minor 5 carried**：calibration evidence disambig / "consistent with"
+  重复 / §5.7.1 numbering / Newman 1997 vs 1998 / DRAM-KEGG
+- **预计 2-4 天到 acceptance-ready**（vs v0.9.2 review 时的 2-3 周）
+
 **下一步建议**：
-1. 6 张 placeholder figures（投稿 mandatory）
-2. mock review v0.9.2 Major #2 stress test 3-dataset caveat（30 min）
-3. mock review v0.9.2 余下 7 Minor（1-2h）
-4. rerun mock review v0.9.3（验证 Major #1 升级到 Resolved）
-5. bioRxiv 投稿
+1. **Arm A partial perturbation**（v0.9.3 新 Major；最便宜的封口）—— 30 min compute + 30 min 写作
+2. **Stress §X.2 3-dataset caveat** —— 30 min 一句话
+3. **6 张 placeholder figures**（投稿 mandatory）
+4. **8 个 Minor 修订**（5 carried + 3 new）—— 1-2h
+5. **rerun mock review v0.9.4** —— 验证 Arm A 封口 + 3-dataset caveat → 全部 Major Resolved
+6. **bioRxiv 投稿**
 
 ---
 
