@@ -1,13 +1,23 @@
-# Paper 3 (EnvMeta) 投稿前素材补全清单
+# Paper 3 (EnvMeta) 投稿前素材补全清单 [SUPERSEDED]
 
-> **目标期刊**：iMeta（IF 24，2022 创刊）
-> **预计投稿日期**：2026-08-15
-> **创建日期**：2026-05-07
-> **关联文件**：
-> - [outline_imeta.md](outline_imeta.md) — 论文大纲（已写）
-> - 总体策略：[../../software/planning/4_papers_master_plan_2026-05.md](../../software/planning/4_papers_master_plan_2026-05.md)
+> ⚠️ **本文件已被 [`publication_strategy.md`](publication_strategy.md) 取代**（2026-05-09）。
 >
-> **本文件用途**：跟踪 Paper 3 投稿前 4 大任务进度。任何任务有进展即更新本文件。
+> 4 大任务现状（**3.5/4 完成**）：
+> - ✅ Task 1 R 侧侧对照（v0.8.2 完成）
+> - ✅ Task 2 第二外部数据集（v0.9.0/0.9.1 超额完成 — 4 datasets + 3 stress）
+> - ✅ Task 3a English README + LICENSE（v0.9.1，commit `2b50dbc`）
+> - ⏸ Task 3b Zenodo DOI（按 Path A 改良版推迟到投稿前 1-2 天做）
+> - ✅ Task 4 Methods/Results/Discussion 三段（v0.9.1 完成 + v0.9.2 mock review 修订）
+>
+> 当前活跃的投稿路线 / 时间表 / 风险评估请看
+> [`publication_strategy.md`](publication_strategy.md)。本文件保留作为
+> Stage 1 早期规划的 **historical reference**，不要据此规划新工作。
+>
+> ---
+>
+> **原创建日期**：2026-05-07
+> **原状态**：Stage 1 / 4 大任务追踪
+> **关联**：[outline_imeta.md](outline_imeta.md) / [publication_strategy.md](publication_strategy.md)（取代本文件）
 
 ---
 

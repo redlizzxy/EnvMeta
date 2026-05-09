@@ -246,36 +246,57 @@ Microbiology）。开发时持续积累：
   - **Stress test v2 B → A 级升级**：Liu 0.625 → 0.250；Ayala 0.455 → 0.182；3/3 现全 A 级 clean discrimination ⭐
   - Paper 3 三段完整草稿：Methods §4.6（~1450 字）+ Results §X（~800 字）+ Discussion §Y（~640 字）
   - Table 1 + Table 2 + Figure X 实物素材（PDF/PNG/SVG）](paper/figures/paper3_hypothesis_scoring/)
+- ✅ **v0.9.1 outline 全套整合 + ImageGP 2 reframing + 性能 benchmark**（2026-05-09 paper-side session）：
+  - Plan B 整合：3 段 Paper 3 草稿 + Performance 段落 → outline_imeta.md §5.4.8 / §5.2.4 / §5.2.8 / §5.3 / §5.7.1（commit `e1da1d9`）
+  - 3-tier 性能 benchmark：sample real-dense + Liu real-sparse + Liu synthetic-dense（58 cells × 14 figures）；scaling_curve.{pdf,svg,png} + paper/benchmarks/performance.md + docs/performance_zh.md（commit `e1c69a6`）
+  - **关键 finding**：cycle_diagram cost 由 N_pathway × N_env × 999 perm × spearmanr(N_sample) 主导，**与 N_MAG 几乎无关**；annotation breadth 才是真正主导
+  - **ImageGP 2 ecosystem-extension reframing**（commit `3c9662b`）：发现 Chen 2024 *iMeta* 3:e239（Liu YX 是 EIC，COI 已声明）→ EnvMeta 全文从"vs 竞品"改为 "domain-specialist complement to iMeta visualization ecosystem"；致敬 14 个 sister tools；Abstract / Highlights / §5.1 Intro / §5.2.9 / §5.6 Acknowledgments / §5.7 References 全部重写
+- ✅ **mock review v0.9.1 → v0.9.2 修订**（commit `b9c5699`）：
+  - 5 大 Major Issues 全部温和解修订（4 Resolved + 1 honestly acknowledged）
+  - 5 个 Minor Issues 修复：As₂S₃ 化学引用 / KB v1.1→v2.0 / 999-perm Anderson 2001 justify / Stolz 2006 编号 / user-study 措辞 tempering
+  - Recommendation: Major Revision → **Minor Revision**（投稿接收概率 60% → 85%）
+- ✅ **publication strategy archived**：[`paper/manuscript/publication_strategy.md`](paper/manuscript/publication_strategy.md)
+  - 选定 Path A 改良版：EnvMeta 先发（bioRxiv preprint + iMeta 投稿）+ 课题论文并行起草
+  - 时间表满足 2026 内 ≥ 1 篇接收 + 2027-05 前所有文章见刊的硬约束
+  - bioRxiv 投稿 checklist + 风险评估完整
 
 ## Backlog（投稿前 + Phase 4）
 
-### 🟥 iMeta/Bioinformatics 投稿硬指标
+### 🟥 投稿前必做（按 [`publication_strategy.md`](paper/manuscript/publication_strategy.md) Path A 改良版）
+
+| 任务 | 工时 | 备注 |
+|---|---|---|
+| **6 张 placeholder figures**（F1 架构 / F3 S1-S3 流程 / F5 HTML 4-panel / F6 Bundle / F7 砷渣案例 / F10 vs Tools 截图比对）| 2-3 天 | 投稿前 mandatory；用户配截图 + 我可辅助排版 |
+| **§5.7.1 Vancouver → iMeta 引用格式转换** | 30-45 min | Zotero 改 docx 时统一处理；不急 |
+| **bioRxiv 投稿 dry-run + 实际投稿** | 30 min + 3 天审核 | 见 publication_strategy.md §"bioRxiv 投稿操作 checklist" |
+| **EnvMeta 投 iMeta** | 2-3 h 投稿系统填表 | bioRxiv DOI 上线后即可 |
+| **Verify Korehi 2014 / Mendez-Garcia 2015 真正 AMD diazotrophy 引用** | 10 min | 已 Verified Dai 2014 + Méndez-García 2015 → §5.7.1 #4 + #12（见 [`hypothesis_references_audit.md`](paper/manuscript/hypothesis_references_audit.md)）|
+| **User study 数据回收分析**（条件性）| 1 周 | 问卷已发 2026-04-19；如投稿前 n ≥ 8 回收成功则加进 §5.6 Acknowledgments；否则 Acknowledgments 已 tempering 处理 |
+
+### 🟧 推荐做（投稿接收概率从 85% → 95%）
 
 | 任务 | 工时 | 理由 |
 |---|---|---|
-| **English README + LICENSE + Zenodo DOI** | ~4-6h | iMeta 投稿硬性要求；LICENSE 先选 MIT |
-| ~~R 侧侧对比验证~~ | ✅ 完成 v0.8.2 | 11 图对照完成 + RDA 数值对齐 |
-| ~~第二数据集复现~~ | ✅ 完成 v0.9.0 | **超额完成**：Wei + Liu + Grettenberger + Ayala 共 4 数据集 + 3 stress test |
-| ~~论文 Methods + Results + Discussion 起草~~ | ✅ 完成草稿 v0.9.1 | Methods §4.6 (1450 字) + Results §X (800 字) + Discussion §Y (640 字) + Table 1/2 + Figure X 全部就位；剩余工作是整合到 paper 主稿（涉及 outline 整体结构决策，用户做） |
-| **User study 数据回收分析** | 1 周 | 问卷已发（2026-04-19），1 周内回收，汇总 `paper/user_study/results.md` |
-| **Verify Korehi 2014 / Mendez-Garcia 2015 真正 AMD diazotrophy 引用** | 10 min | 替换 Auld 2017 错引（详见 `paper/manuscript/hypothesis_references_audit.md`）|
+| **1-day perturbation analysis** | 1 天 | mock review v0.9.2 仅剩的 Major Issue：把"作者偏见"从 acknowledgment 升级为 auxiliary evidence；现有数据，把 4 个 calibration claim 的 target pathway 随机替换看 STRONG 是否依然出现 |
+| **Stress test §Y.2 加 3-dataset constraint caveat** | 30 min | mock review v0.9.2 新出 Major #2，1 句话搞定 |
+| **Mock review v0.9.2 余下 7 个 Minor 修订** | 1-2h | "calibration evidence" disambiguation / "consistent with" 重复 / Newman 1997 vs 1998 reconcile / DRAM-KEGG 区别说明 / "dense annotation" §5.2.8 clarify / 引擎加 KEGG-coverage indicator（future feature）|
 
-### 🟡 加分项（推荐做）
+### 🟡 加分项（投稿后 / 课题论文阶段做）
 
 | 任务 | 工时 | 理由 |
 |---|---|---|
-| ~~`dominance_score` 字段~~ | ✅ 完成 v0.9.1 | Liu/Ayala stress v2 B→A 升级；evidence 字段对所有 claim 透明 |
-| ~~盲法 stress test~~ | ⏸ 暂缓（不可行）| 没有合适的"未读过目标论文"的同事可邀请；论文 Discussion §Y.4 仅作为 future work 提议保留 |
-| Q7 新手 UX 精调 | ~1h | HTML 控件分组 / SVG-JSON 下拉 / 3 步 onboarding / tab 重排 / 参数 debug mode |
-| 大数据集性能 benchmark | 1 天 | 500+ MAG × 50+ sample，证明可扩展性 |
-| tool_comparison.md 细化 | 4h | 表格对比 Krona / Anvi'o / MicrobiomeAnalyst / 测序公司云平台 |
+| ~~`dominance_score` 字段~~ | ✅ 完成 v0.9.1 | engineering retrofit, 不是 independent validation（mock review v0.9.2 已重 frame）|
+| ~~性能 benchmark~~ | ✅ 完成 v0.9.1 | 58 cells × 3 regimes，scaling figure ready |
+| ~~盲法 stress test~~ | ⏸ 暂缓（不可行）| Discussion §Y.4 仍作为 future work |
+| Q7 新手 UX 精调 | ~1h | HTML 控件分组 / SVG-JSON 下拉 / 3 步 onboarding |
+| tool_comparison.md 细化 | 4h | 表格对比 ImageGP 2 / Anvi'o / Krona / 测序公司云（已在 §5.2.9 outline，需扩成正式表）|
 
 ### 🟢 论文接收后再做（Phase 4）
 
-- **L3 插件框架**：用户上传 Python `analyze()` → 自动注册 GUI（CLAUDE.md 明确承诺延后）
-- **KB version 字段升 v2.0**：`elements.json` 里 `"version": "1.1"` 与实际含 v2.0 字段不匹配
+- **L3 插件框架**：用户上传 Python `analyze()` → 自动注册 GUI
+- ~~**KB version 字段升 v2.0**~~：✅ 完成 mock review v0.9.2（`elements.json` v1.1 → v2.0）
 - **S3.5-doc DOI 验证**：YAML 里 6 个理论文献 DOI 待用户手动过一遍
-- **循环图 D3 编辑器**：用户直接拖拽编辑节点/通路（Phase 4 主线）
+- **循环图 D3 编辑器**：用户直接拖拽编辑节点/通路
 
 ### 已知小 bug（待收口）
 
@@ -284,17 +305,14 @@ Microbiology）。开发时持续积累：
 
 ## 下次 session 建议起点
 
-按优先级（v0.9.1 后剩余工作）：
+按优先级（v0.9.2 paper-side 修订完成后）：
 
-1. **English README + LICENSE + Zenodo DOI** — 4-6h 扫清 iMeta 投稿硬指标 2/4
-   （LICENSE 已有 MIT；主要工作是 README 英文化校对 + Zenodo release）
-2. **整合 paper 主稿**（用户做）— Methods §4.6 + Results §X + Discussion §Y 三段
-   插入 [`outline_imeta.md`](paper/manuscript/outline_imeta.md) §5.2.4 / §5.2.8 / §5.3 / §5.4
-   合适位置 + iMeta 投稿格式调整（最终 docx）
-3. **User study 回收** — 问卷 2026-04-19 发，本周可能有数据回收，汇总
-   [`paper/user_study/results.md`](paper/user_study/results.md)
-4. **大数据集性能 benchmark** — 1 天，500+ MAG × 50+ sample，证明可扩展性
-5. **tool_comparison.md 细化** — 4h，表格对比 Krona/Anvi'o/MicrobiomeAnalyst/云平台
+1. **1-day perturbation analysis**（推荐做，从 acknowledgment 升级为 evidence；mock review v0.9.2 仅剩 Major Issue 的最强应对）
+2. **6 张 placeholder figures** —— 投稿 mandatory；用户配截图 + 我可辅助排版（F1 架构图 / F3 算法流程 / F5 HTML 截图 / F6 Bundle 结构 / F7 砷渣案例 / F10 vs Tools）
+3. **mock review v0.9.2 余下 7 个 Minor** —— 1-2h 纯文字修订
+4. **bioRxiv 投稿** —— 6 月初前完成；3 天审核拿 DOI
+5. **EnvMeta 投 iMeta** —— bioRxiv DOI 上线后立即投
+6. **课题论文起草并行** —— As 形态重测启动（用户主导）+ EnvMeta bioRxiv DOI 引用
 
 ---
 

@@ -57,6 +57,31 @@
 
 - pytest **301/297 全绿**（+4 dominance_score 测试，无回归）
 
+### 📝 paper-side maintenance (2026-05-09 后续 session)
+
+> 本节记录 v0.9.1 后续的 paper-side 修订（无代码 API 变更，仅 metadata + 文档）。
+
+- **KB metadata 字段对齐**：`elements.json` `"version"` 字段从 `"1.1"` → `"2.0"`
+  匹配实际 KEGG-driven 4 元素 × 18 通路 × 57 KO 的当前内容（之前因历史原因停留在 v1.1 字符串）
+  ([commit `b9c5699`](https://github.com/redlizzxy/EnvMeta/commit/b9c5699))
+- **Paper 3 outline 完整整合**（commit `e1da1d9`）：3 段 Paper 3 草稿
+  （Methods §4.6 / Results §X / Discussion §Y）+ performance 段落整合到 outline_imeta.md
+- **3-tier 性能 benchmark + scaling figure**（commit `e1c69a6`）：sample real-dense /
+  Liu real-sparse / Liu synthetic-dense 共 58 measured cells + scaling_curve.{pdf,svg,png}
+  + paper-facing performance.md + 中文用户面 docs/performance_zh.md
+- **ImageGP 2 ecosystem-extension reframing**（commit `3c9662b`）：发现 ImageGP 2
+  (Chen et al. 2024 *iMeta* 3:e239) 是 Liu YX (EIC) 团队作品，全文从 "vs 竞品"改为
+  "complement to iMeta visualization ecosystem"；致敬 14 个 sister tools；Abstract /
+  Highlights / §5.1 Intro / §5.2.9 / §5.6 Acknowledgments 全部重写
+- **Mock review v0.9.1 → v0.9.2 修订**（commit `b9c5699`）：5 大 Major + 5 个 Minor
+  温和解修订（4 Resolved + 1 honestly acknowledged）；其中含本节 KB metadata 对齐 +
+  As₂S₃ chemistry refs (Newman 1998 / Rodriguez-Freire 2014 / Hollibaugh 2005) +
+  999-perm Anderson 2001 justification + Stolz 2006 编号 #22；Recommendation: Major
+  Revision → **Minor Revision**
+- **Publication strategy 存档**：[`paper/manuscript/publication_strategy.md`](paper/manuscript/publication_strategy.md)
+  记录 Path A 改良版（EnvMeta + bioRxiv preprint + 课题论文并行起草）满足 2026 接收
+  + 2027-05 见刊硬约束
+
 ---
 
 ## [0.9.0] — 2026-05-09

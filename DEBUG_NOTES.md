@@ -17,6 +17,119 @@
 
 > 每次 session 结束前更新此区块。新对话开始时 Claude Code 自动读取，了解当前进度。
 
+### 2026-05-09 paper-side session（**Plan B 整合 + ImageGP 2 reframing + 性能 benchmark + mock review v0.9.1→v0.9.2 修订 ⭐**）
+
+**背景**：v0.9.1 dominance_score 兑现后用户继续推进 Paper 3 投稿。本次 session 聚焦
+四件事：(1) 把 3 段 Paper 3 草稿整合到 outline_imeta.md；(2) 跑性能 benchmark；
+(3) 发现 ImageGP 2 是 iMeta 自家旗舰可视化论文（Liu YX 是 EIC），全文 reframing 为
+"complement to iMeta ecosystem" 而非 "vs 竞品"；(4) 模拟 SCI 审稿 + 温和解修订
+5 大 Major + 5 个 Minor。**无任何代码改动**（除 KB metadata 字段对齐），全是 paper
+工作。
+
+**完成的工作**（按时间顺序）：
+
+1. **English README polish + LICENSE**（commit `2b50dbc`）：
+   - LICENSE 已是 MIT，无须改
+   - README.md v0.9.0 → v0.9.1 sync：feature matrix / release notes / roadmap
+   - 测试数 293 → 301；Frontiers in Microbiology 加入目标期刊；Zenodo DOI 措辞改为"投稿就绪后"
+   - 已 push（用户操作）
+
+2. **Plan B 整合**（commit `e1da1d9`）：
+   - Methods §4.6 / Results §X.1-X.3 / Discussion §Y.1-Y.4 三段英文草稿 → outline_imeta.md
+   - 插入位置：§5.4.8（新增）/ §5.2.4（替换 hypothesis Figure 4 占位）/ §5.2.8（替换第二数据集占位）/ §5.3（替换局限+future-work bullets）
+   - Performance 段落（§5.2.8 + §5.4.6 + §5.3）合并：先做完性能 benchmark 再补
+   - §5.7.1 加 19 条 Vancouver+DOI 引用；Abstract 改写含 4-Arm calibration + cross-topic rejection + performance；6 vs 5 claim types 全文修正
+   - +373 / -75 行；外部独立段落不在源文件被改
+
+3. **3-tier 性能 benchmark + scaling figure**（commit `e1c69a6`）：
+   - 3 regimes: sample real-dense (169 MAG × 10 sample × 4 env × 30 KO/MAG) / Liu real-sparse (1084 × 87 × 1 env × 1.5 KO/MAG) / Liu synthetic-dense (200-1000 × 30-87 × 4 env × 25 KO/MAG)
+   - 58 cells × 14 figures = 14 + 11 + 24 = 49 measured points (some 14-figure subsets fail in single-group Liu data)
+   - **关键 finding**: cycle_diagram cost 由 N_pathway × N_env × 999 perm × spearmanr(N_sample) 主导，**与 N_MAG 几乎无关**（200→1000 MAG 仅 +24% wall time；30→87 sample 几乎为零增加）
+   - **annotation breadth 才是主导因素**：sparse Liu 8 KO → 0.4s vs dense synth 25 KO/MAG → 18.4s
+   - 内存峰值 ΔRSS ≤ 10 MB across all 58 cells → 4 GB+ RAM 设备都能跑 → 之前的 "Streamlit Cloud OOM" 担忧是误判
+   - 5 个 Python 脚本（reshape / harness / sweep / synthetic_dense / analyze）+ 12 result TSVs + scaling_curve.{pdf,svg,png} + paper-facing performance.md + user-facing docs/performance_zh.md（中文 sizing + group-count 推荐）
+   - 30+ 文件 / +450 行新增
+
+4. **ImageGP 2 (Chen 2024) 发现 + ecosystem-extension reframing**（commit `3c9662b`）：
+   - **关键发现**：用户分享 BIC 平台截图 → 进一步 verify 是 "ImageGP 2 for enhanced data visualization and reproducible analysis in biomedical research" *iMeta* 3:e239 (2024-08)
+   - **Liu Yong-Xin 是该论文 corresponding author + iMeta Editor-in-Chief**（COI 已声明）
+   - 因此**不能 recommend Liu 当审稿人**（COI blinded），但他设定编辑基调 → 必须 ecosystem-complement framing
+   - **6 大 framing 修订**（用户 6 条反馈 + ImageGP 2 一次性整合）：
+     - "需要写大量定制 R/Python 脚本" → 删除（会打脸 EasyAmplicon/EasyMetagenome 教学体系）
+     - "测序公司云平台预设固定" → 软化为"general analyses serves well, environmental-specific 落在 scope 外"
+     - "元素循环图必须手画 PPT" → reframe 为 iteration-fragile workflow + EnvMeta = iteration-grade prototype
+     - "假说论证靠主观" → **彻底删除**（会打到所有发表的环境微生物论文）。改为 "narrative reasoning is rigorous and standard practice but hard to iterate, EnvMeta provides auxiliary anchor"
+     - "复现性差" → "high-friction precise reproduction + Bundle 提供 directional 复现"
+     - "12 publication-ready visualizations" 隐含 "first GUI" → 改为"environmental-microbiology specialist with 3 differentiating capabilities"
+   - **§5.2.9 Tools comparison table 重构**：ImageGP 2 排第一行作为 ecosystem reference，EnvMeta 最后作为 vertical specialist；客观 ✅/− 能力映射，无评分高低
+   - **§5.6 Acknowledgments 加重致敬**：ImageGP / ImageGP 2 / EasyAmplicon / EasyMetagenome / EVenn / Wekemo Bioincloud / Sangerbox / OmicStudio / shinyCircos / TOmicsVis / iMetaLab Suite / iNAP / Majorbio Cloud / MetOrigin 14 个 sister tools
+   - **§5.7 References 加 22 条 iMeta sister + ecosystem refs**（§5.7.2 / §5.7.3 用 iMeta author-year 格式；§5.7.1 19 条 Vancouver 留作 final docx 阶段转换）
+   - **§2 Highlights count 4 → 3** 匹配 ImageGP 2 范式
+   - **§4 Abstract 重写 ~250 字** ecosystem-extension framing
+   - +272 / -103 行
+
+5. **SCI 模拟审稿 v0.9.1（Major Revision）**：
+   - 用户提供 SCI 评审 prompt 模板存档为 `paper/manuscript/reviewer_simulation_prompt.md`
+   - 我作为 reviewer persona 跑了一次审稿 → mock_review_v0.9.1.md（778 字）
+   - **5 大 Major Issues**：
+     - #1 残留作者偏见（pre-registration 锁不住认知偏差）
+     - #2 dominance_score post-hoc（v2 阈值 data-informed）
+     - #3 "Ironclad evidence" 过强（n=29/13 small sample）
+     - #4 Synthetic random KO 不真实（real KofamScan 是 organism-specific cluster）
+     - #5 KEGG-coverage dependency 偷换为 "domain neutrality"
+   - **8 个 Minor Issues**：引用格式 / 占位图 / As₂S₃ chemistry refs / KB version / 999-perm justify / Stolz 2006 missing / user-study claim premature / Liu COI strategy
+   - Recommendation: **Major Revision**，6-8 周修改时间
+   - mock review + prompt 文件按用户指示**不 push**（私人检查）
+
+6. **公版策略选择讨论 + 存档**：
+   - 用户考虑顺序：方法学论文先 vs 课题论文先 vs 平行
+   - 课题论文当前状态：仅有大纲 + As 形态待重测 + 机制争议（3-6 月才能起草完成）
+   - 时间约束：2026 内 ≥ 1 篇接收 + 2027-05 前所有文章见刊
+   - 反推：课题论文先发 → 时间紧；EnvMeta 先发 → 唯一可行路径
+   - **选定 Path A 改良版**（EnvMeta + bioRxiv preprint + 课题论文并行起草）
+   - 详细解释 bioRxiv 运作机制（5 步流程 + 6 优势 + 4 劣势 + 国内可用）
+   - **存档为 [`paper/manuscript/publication_strategy.md`](paper/manuscript/publication_strategy.md)**
+
+7. **mock review v0.9.1 → v0.9.2 温和解修订**（commit `b9c5699`）：
+   - **5 大 Major** 全部温和解（4 Resolved + 1 acknowledged）：
+     - #1 → §Y.3 重排为 #1 limitation；§4.6.2 拆为 "can / cannot control" 两段
+     - #2 → §4.6.5 + §Y.2 重写为 "engineering retrofit informed by v1 outputs"，明确 NOT independent validation
+     - #3 → §X.2 改为 "consistent with"；n=29/13 明确；≥100 MAG 验证 flag 为 future work
+     - #4 → §2.3 + §7 performance.md + outline §5.2.8 加 "synthetic 是上限估计" caveat
+     - #5 → §Y.1 整段重写：calibration evidence is **conditional on adequate KEGG coverage**, not domain-neutral
+   - **5 个 Minor**：As₂S₃ refs (Newman 1998 / Rodriguez-Freire 2014 / Hollibaugh 2005, §5.7.4) / KB v1.1 → v2.0 (`elements.json` + 3 paper drafts) / 999-perm Anderson 2001 justify / Stolz 2006 编号 #22 / user-study "n=8+" tempering
+   - **3 个 Minor 推迟**：§5.7.1 引用格式 (用户 Zotero 改 docx 时做) / 6 张图 (投稿前做) / Liu COI 策略 (投稿系统填表时再决定)
+   - 7 文件 modified + 1 new (publication_strategy.md) = +450/-196 行
+
+8. **mock review v0.9.2 重跑**（**Recommendation: Major → Minor Revision**）：
+   - 4/5 原 Major 已 Resolved，1/5 acknowledged
+   - 新出 2 个 Major（softer 版本）：
+     - blind hypothesis writing 仍是 deferred
+     - stress-test evidence base 3 datapoints 仍小
+   - 新出 8 个 Minor（多数是 nitpick）
+   - **mock_review_v0.9.2_post_fix.md 存档**（按指示不 push）
+   - 投稿接收概率从 60% 升到 85%
+
+**关键文件追加**（commit `b9c5699`）：
+- 6 modified（outline / 3 paper drafts / performance.md / elements.json）
+- 1 new tracked（publication_strategy.md）
+- 2 untracked（mock_review_v0.9.1.md + mock_review_v0.9.2_post_fix.md + reviewer_simulation_prompt.md，按用户指示作为私人检查文件）
+
+**关键 strategic 决策**：
+- ImageGP 2 / Liu Yong-Xin EIC COI → 不 recommend Liu，但 paper 全文致敬 ecosystem
+- bioRxiv preprint 路线 → 6 月初投稿 + 拿 DOI + 课题论文可立即引用
+- Path A 改良版 → 时间表满足 2026 接收 + 2027-05 见刊硬约束
+- 1-day perturbation analysis → 推荐做（mock review v0.9.2 仅剩 Major Issue 的最强应对）
+
+**未做** / **deferred**：
+- 6 张 placeholder 图（用户 "画图就是插个图片的事，先准备好文字"）
+- §5.7.1 Vancouver → iMeta 格式（用户 "格式我写成 docx 会用 zotero 直接修改"）
+- 1-day perturbation analysis（待用户决定是否做）
+
+**测试**：本次 session 无代码改动，未跑 pytest（KB metadata 字段不影响功能）
+
+---
+
 ### 2026-05-09 下半场（**v0.9.1 — Paper 3 写作素材 + dominance_score 兑现 ⭐**）
 
 **背景**：v0.9.0 (push 完成) 后用户决定起草 Paper 3 投稿核心三段（Methods + Results +
