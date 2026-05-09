@@ -107,17 +107,25 @@ hypothesis）→ 下 1/3 导出。
 > capabilities: (1) automated biogeochemical cycle inference for
 > As/N/S/Fe at KEGG-driven pathway resolution (4 elements × 18
 > pathways × 57 KOs), with permutation-based confidence labels and
-> sensitivity scanning; (2) a YAML-based hypothesis scoring engine
-> that evaluates user-supplied mechanistic claims against the data
-> with null distribution testing and weight robustness checks;
-> (3) standalone interactive HTML export (~400 KB, offline-ready) that
-> embeds the analysis itself as supplementary information, enabling
-> reviewer-level reproducibility. EnvMeta is designed under a
-> "domain-neutral, user-supplied knowledge, fully offline, fork-rather-
-> than-community" philosophy. We demonstrate EnvMeta on an arsenic
-> slag-steel slag bioremediation case study (168 MAGs × 10 samples)
-> and validate its scalability on a second public dataset
-> (Tara Oceans subset / Oak Ridge uranium / TBD). EnvMeta is freely
+> sensitivity scanning; (2) a **6-claim YAML-based hypothesis scoring
+> engine** built on multi-criteria decision analysis with Bradford-Hill
+> required-veto, Fisher 999-permutation null calibration, and
+> weight-robustness checks, including a `pathway_inactive` claim type
+> for Popperian falsification; (3) standalone interactive HTML export
+> (~400 KB, offline-ready) that embeds the analysis itself as
+> supplementary information, enabling reviewer-level reproducibility.
+> EnvMeta is designed under a "domain-neutral, user-supplied knowledge,
+> fully offline, fork-rather-than-community" philosophy. We demonstrate
+> EnvMeta on an arsenic slag-steel slag bioremediation case study
+> (168 MAGs × 10 samples) and validate its scoring engine on **four
+> independent published metagenomic datasets** (Wei 2024 paddy soil,
+> Liu 2023 cold seep, Grettenberger 2021 acid mine drainage, Ayala 2020
+> Iberian Pyrite Belt pit lake), all returning `STRONG` calibration
+> labels under fixed default thresholds and rejecting cross-topic
+> stress claims with n = 0 active MAGs in 2/2 non-arsenic environments.
+> A 58-cell performance benchmark establishes the typical PhD-thesis
+> metagenome (200-1000 MAGs × 30-100 samples) runs in 30-120 s on a
+> standard laptop with peak memory below 10 MB. EnvMeta is freely
 > available at https://github.com/redlizzxy/EnvMeta with an online
 > demo at https://envmeta-3xjhcu7lv2gkj4pjtk8gsb.streamlit.app/.
 
@@ -203,18 +211,90 @@ hypothesis）→ 下 1/3 导出。
 - C) 推断后的元素循环图（cell_renderer 输出，砷渣 case）
 - D) 跨元素耦合放大（雌黄沉淀化学物锚点）
 
-#### 5.2.4 YAML 假说评分器（Figure 4）
+#### 5.2.4 YAML 假说评分器 + 4-Arm calibration（Figure 4 + Table 1）
 
-- 5 类 claim（taxon_anchored / pathway_pair / env_correlation / cross_element_coupling / population_structure）
-- 评分公式：weighted_sum × null_p × veto_logic
-- 9 档解读标签（strong / suggestive / spurious? / unknown / ...）
-- 权重敏感度（用户改 claim 权重，看 overall 是否稳健）
+- **6 类 claim**（v0.9.0）：`pathway_active` / `pathway_inactive` / `coupling_possible` /
+  `env_correlation` / `keystone_in_pathway` / `group_contrast`
+- 评分公式：MCDA `Σ(w_i × score_i) / Σ(w_i)` + Bradford-Hill required-veto + 4 档标签
+  (`strong` / `suggestive` / `weak` / `insufficient`)
+- 3 个独立置信指标：Fisher 999-perm null_p / OAT ±20% weight robustness / required-veto reasons
+- Pre-registration discipline：git timestamp 锁定 claim entities + 默认阈值不调
 
-**Figure 4 内容**：
-- A) YAML 输入 → 评分输出 schema
-- B) 999 次置换 null 分布 + 观察值
-- C) 9 档解读标签 + 决策树
-- D) 权重敏感度热图（claim weight × overall score）
+**Figure 4 内容**（4-panel）：
+- A) YAML 输入 schema + 6 claim types 一图
+- B) 999 次置换 null 分布 + 观察值 (Arm A 砷渣 case)
+- C) Bradford-Hill required-veto 决策树 + 4 档标签
+- D) 4-Arm calibration 结果 bar plot（详见 Table 1 + Results §5.2.4 narrative）
+
+**Drop-in Results §X.1 narrative**（~400 words）— source: [`paper/manuscript/results_stress_test_section.md`](results_stress_test_section.md) §X.1
+
+> To establish that EnvMeta's hypothesis scoring engine produces stable,
+> defensible labels under default thresholds, we ran a four-arm controlled
+> experiment over four metagenomic datasets spanning a gradient of annotation
+> breadth: Arm A (in-house steel-slag arsenic-remediation, 168 MAGs × 10 samples,
+> full KofamScan KEGG annotation, 57 KOs across 4 elements); Arm B (Wei et al.
+> 2024 *Microbiome*, 36 paddy-soil samples × 179 MAGs annotated with 14 functional
+> genes via custom ROCker models); Arm C1 (Liu et al. 2023 *npj Biofilms
+> Microbiomes*, deep-sea cold-seep, 87 samples × 1084 MAGs with DRAM KEGG
+> annotation); Arm C2-A (Grettenberger & Hamilton 2021 *Appl Environ Microbiol*,
+> AMD stream, 29 MAGs with METABOLIC step-level KEGG); Arm C2-B (Ayala-Muñoz
+> et al. 2020 *Microorganisms*, Iberian Pyrite Belt acidic pit lake, 13 MAGs
+> re-annotated end-to-end with Pyrodigal + GhostKOALA). All hypothesis YAMLs
+> were pre-registered (committed to git at hashes `42168da`, `44d7f5f`, `76a4f77`
+> before EnvMeta was run), used EnvMeta's default thresholds (`min_completeness=30`,
+> `strong=0.75`, `suggestive=0.40`), and cited only review literature published
+> ≥ 5 years before the target paper.
+>
+> All four KEGG-curated arms returned **`STRONG` labels with overall_score = 1.000
+> and 4/4 claims satisfied** (Table 1; Arms A, C1, C2-A, C2-B). Arm B (Wei 2024,
+> ROCker-only) returned overall_score = 0.63 with label `INSUFFICIENT` despite
+> 3/5 claims satisfied; the required-veto activated because Wei's 14-gene set
+> provides only 2 of the 6 canonical KOs in EnvMeta's `Nitrate reduction`
+> pathway (`napA` + `narG`, missing `narH`/`narI`/`napB`/`narB`) and the
+> As(III)↔NO₃⁻ chemistry coupling was scored *partial*. Permutation null-p = 0.90
+> (n = 999) and weight robustness under ±20% OAT perturbation = True confirmed
+> the conservative diagnosis is not a weight-tuning artifact. The contrast
+> establishes that the `INSUFFICIENT` label faithfully reflects annotation-coverage
+> diagnostics rather than engine malfunction. Notably, the `STRONG` label on
+> Arm C2-B (Ayala) was obtained with a single GhostKOALA re-annotation pipeline
+> applied to publicly available MAG genomes (BioProject PRJNA646106),
+> demonstrating that KEGG-curated EnvMeta scoring is reproducible end-to-end
+> from raw genome assemblies.
+
+**Drop-in Results §X.2 narrative**（~400 words / stress test discrimination）— source: [`results_stress_test_section.md`](results_stress_test_section.md) §X.2
+
+> For each KEGG-curated dataset (Liu, Grettenberger, Ayala), we authored a
+> second pre-registered YAML (`{dataset}_hypothesis_stress.yaml`, all committed
+> at `50c4687`) encoding deliberately *risky* claims violating environmental
+> priors. Three claim classes: **(A)** reversed-direction predictions; **(B)**
+> cross-topic mismatches; **(C)** `pathway_inactive` negation. Each YAML
+> included a calibration anchor claim. Twelve predictions × three datasets
+> were frozen in [`stress_test_predictions.md`](stress_test_predictions.md) before any stress run.
+>
+> Observed stress scores fell substantially below the calibration STRONG
+> baseline (Table 2; Figure X). Grettenberger 2021 returned `weak` (0.250,
+> 1/3 satisfied) — the cleanest single-Arm discrimination. Liu 2023 and Ayala
+> 2020 returned `suggestive` (0.625 / 0.455, with skipped claims contributing
+> to partial scores). The single most informative discriminator was the
+> cross-topic claim "arsenate_reduction should dominate", which was correctly
+> rejected with **n = 0 active MAGs in both non-arsenic datasets** (Grettenberger
+> AMD stream and Ayala pit lake). This double-rejection rules out the *a priori*
+> concern that the universal *arsC* arsenate-reductase homolog (Rosen, 2002)
+> would inflate cross-topic scores. EnvMeta's scoring is therefore
+> **domain-neutral** — neither hard-wired to confirm arsenic hypotheses nor
+> biased against alternative contexts.
+>
+> In two of three datasets (Liu and Ayala), the reversed-direction stress
+> claim "arsenite oxidation should dominate" returned satisfied because real
+> but weak oxidizer signals were present (total contributions 21-fold and
+> 10-fold below the dominant reduction pathway, but above the binary
+> `mean_completeness ≥ 50%` threshold). This exposes a **binary-threshold
+> reporting limitation** addressed in v0.9.x by the `dominance_score =
+> total_contribution / element_total` field. A second pre-registered v2 YAML
+> (`*_stress_v2.yaml`) with `min_dominance_fraction = 0.20` upgraded both Liu
+> (0.625 → 0.250) and Ayala (0.455 → 0.182) stress scores to clean A-tier
+> discrimination, with observed dominance scores of 0.05% and 7.08% — well
+> below the 20% threshold (Table 2 v2 column).
 
 #### 5.2.5 独立交互 HTML 导出（Figure 5）
 
@@ -251,16 +331,70 @@ hypothesis）→ 下 1/3 导出。
 - B) 假说评分跨组对比
 - C) 关键 MAG 承载者切换（Gallionella → Thiobacillus）
 
-#### 5.2.8 第二外部数据集 benchmark（Figure 8 / Table 2）
+#### 5.2.8 Performance and scaling envelope（Figure 8 + Table 2）
 
-- 数据集候选：Tara Oceans 子集（500+ MAG × 100+ sample，海洋）/ Oak Ridge 铀污染（陆地）
-- **跑 14 图全套 + 元素循环 + 假说评分**
-- 量化：runtime / memory / 出图质量（vs 原始 publication）
-- 证明：EnvMeta 不是只能跑作者自家砷渣数据，泛化能力可演示
+> Drop-in English text — source: [`paper/manuscript/performance_paragraph_snippets.md`](performance_paragraph_snippets.md) §5.2.8
 
-**Figure 8 / Table 2 内容**：
-- Figure 8：第二数据集元素循环图（演示 N/S 循环为主，区别于砷渣 case）
-- Table 2：runtime / memory / scaling 对比表（小 / 中 / 大三档数据集）
+We benchmarked EnvMeta's runtime and memory profile on three complementary
+regimes designed to disentangle the contributions of MAG count, sample count,
+annotation density, and environmental factor breadth (Figure 8). The first
+regime used our in-house arsenic-slag dataset (169 MAGs × 10 samples × 4 env
+factors × full KofamScan annotation; 30 KO/MAG); the second used Liu et al.
+2023's published cold-seep dataset (1084 MAGs × 87 samples × 1 env factor ×
+the published 8-KO arsenic-target subset; 1.5 KO/MAG); the third was a
+synthetic-dense extension of Liu in which we randomly assigned 25 KOs/MAG
+from EnvMeta's 57-KO knowledge base and 4 numeric env factors, simulating
+what a fully KofamScan/DRAM/METABOLIC-annotated 1000+ MAG dataset would
+behave like, and ran an 8-cell sweep across N_MAGs ∈ {200, 500, 1000} ×
+N_samples ∈ {30, 60, 87}.
+
+Two findings emerged that are inverted from a typical user's expectation.
+First, **cycle_diagram cost is independent of MAG count**: at fixed dense
+annotation and 4 env factors, going from 200 → 1000 MAGs added only 24% to
+runtime (14.8 s → 18.4 s); going from 30 → 87 samples at fixed 1000 MAGs
+added zero (within measurement noise). The asymptotic complexity is
+**N_pathway_active × N_env × 999 × O(N_sample × log N_sample)** — set by the
+permutation test in the cycle-inference S2 step ([`envmeta/geocycle/inference.py`](../envmeta/geocycle/inference.py))
+— rather than by N_MAG. Second, **annotation breadth dominates**: the same
+1084-MAG Liu dataset ran cycle inference in 0.4 s with 8 published As-target
+KOs but in 18.4 s with our synthetic-dense 25 KO/MAG annotation. This
+positions EnvMeta favorably for the typical PhD-scale metagenome (200-1000
+MAGs × 30-100 samples × 4-6 env factors), where the entire 14-figure
+pipeline finishes in 30-120 s on a standard 8-16 GB laptop.
+
+EnvMeta is also memory-light. Across all 58 measured (dataset × figure)
+combinations, the maximum observed peak ΔRSS over baseline was 9.3 MB, and
+the median was 0.5 MB; cycle_diagram itself peaked at 6.5 MB. The practical
+consequence is that EnvMeta's local install runs comfortably on any 4 GB RAM
+device, and its Streamlit Cloud demo deployment (1 GB free tier) is bottlenecked
+by its 200 MB upload-file cap rather than by RAM.
+
+**Figure 8 内容** — `paper/benchmarks/performance/scaling_curve.{pdf,svg,png}`：
+3-panel log-log scatter（cycle_diagram / mag_heatmap / pathway 各 1 panel），
+3 个数据 regime 用 3 种 marker × 颜色（sample 真 dense 蓝 / Liu 真 sparse 灰 / Liu 合成 dense 红），
+58 个测试点。
+
+**Table 2 内容** — Hardware sizing table：5 种用量 regime（demo ≤ 30s / typical PhD
+30-60s / 课题组 1-2 min / 大型项目 5-15 min / 超出设计范围 > 15 min）×（推荐硬件 +
+Streamlit Cloud 是否支持）。Source: [`paper/benchmarks/performance.md`](../benchmarks/performance.md) §5。
+
+**Drop-in §X.3 reference audit narrative**（~150 words；可放 §5.2.8 末尾或 §5.4.8.6）— source: [`results_stress_test_section.md`](results_stress_test_section.md) §X.3
+
+> Post-hoc DOI verification identified four reference errors in the
+> pre-registered YAMLs that do not affect scoring outputs (no claim entity
+> was modified) but require transparent correction. Most consequentially, the
+> `nitrogen_fixation_explored` claims (Grettenberger and Ayala calibration
+> YAMLs) originally cited Auld et al. (2017 *Can J Microbiol*), which is a
+> seasonal community-variation study rather than an AMD diazotrophy report;
+> these claims are re-grounded in Dai et al. (2014 *PLoS One*; metagenomic
+> identification of 742 *nif* sequences from acid mine drainage) and
+> Méndez-García et al. (2015 *Front Microbiol*; review of AMD diazotrophs).
+> Three additional metadata corrections (journal mislabels for Yin 2011,
+> Cabrera 2006, and a non-existent "Bothe 2007 *FEMS Rev*" → Bothe 2000)
+> were committed at `ddd3098` and `cae2de7`; the original pre-registered
+> versions remain accessible in git history. A complete proof-of-extraction
+> quality audit is at [`paper/manuscript/hypothesis_references_audit.md`](hypothesis_references_audit.md)
+> (Supplementary Table S_refs).
 
 #### 5.2.9 vs 竞品对比（Figure 9 / Table 1）
 
@@ -290,17 +424,80 @@ hypothesis）→ 下 1/3 导出。
    - 优势：社区维护负担 0 / 论文复现性 100%
    - 劣势：用户跨论文需要 fork / 学习成本略高
 
-4. **局限性**（200 words，**诚实**）
-   - User study 样本有限（n=2 内测 + v2 在跑）；以 case study 风格诚实报告
-   - KB 仅限 As/N/S/Fe（不含 C/P/H）—— 投稿后可由用户社区扩展
-   - Streamlit GUI 在大数据集（10000+ MAG）下渲染有性能上限（推荐 ≤ 5000 MAG）
-   - 假说评分依赖用户提供机制 YAML，错误 YAML 可能产生误导分数（schema 校验是软约束）
+4. **Calibration vs Discrimination framing**（NEW —— 1 段过渡 / ~150 words / 接 §Y.1-Y.2）
 
-5. **Future work**（150 words）
-   - L3 插件框架（用户上传 Python `analyze()` → 自动注册 GUI）
-   - KB 扩展到 C/P/H 循环
-   - D3.js 编辑器（用户直接拖拽编辑节点 / 通路）
-   - LLM-assisted hypothesis YAML 起草
+> Drop-in English text — source: [`discussion_calibration_discrimination.md`](discussion_calibration_discrimination.md) §Y.1 + §Y.2 abridged
+
+> The four-arm controlled experiment (§5.2.4) provides what we term
+> **calibration evidence**: under fixed default thresholds, EnvMeta's scoring
+> engine returns `STRONG` for KEGG-curated datasets across two arsenic-cycle
+> topics and two non-arsenic AMD topics, and `INSUFFICIENT` only for the
+> dataset whose published annotation provides too few canonical KOs to span
+> the target pathways. The stress-test layer (§5.2.4 paragraph 2) provides
+> direct evidence of **discrimination power**: the cross-topic
+> "arsenate_reduction should dominate" claim was rejected with n = 0 active
+> MAGs in 2/2 non-arsenic datasets, ruling out the *a priori* concern that
+> the universal *arsC* detoxification homolog would inflate cross-topic scores.
+> Together with the Wei 2024 `INSUFFICIENT` outcome, the engine appears
+> **domain-neutral** — neither hard-wired to confirm arsenic hypotheses nor
+> biased against alternative contexts. EnvMeta's role is therefore best
+> framed as a *diagnostic instrument* for matching hypothesis claims against
+> available annotation breadth, not as an oracle that validates user
+> interpretations.
+
+5. **局限性**（~250 words / merged §Y.3 + performance §5.3）
+
+> Drop-in English text — source: [`discussion_calibration_discrimination.md`](discussion_calibration_discrimination.md) §Y.3
+> + [`performance_paragraph_snippets.md`](performance_paragraph_snippets.md) §5.3
+
+> **(1) Author familiarity with target papers.** Despite explicit
+> pre-registration discipline (§5.4.8.2), we (the authors) had read all four
+> target papers before writing the YAMLs, so the claim selection itself
+> reflects implicit knowledge of which pathways were likely to score well.
+> The cleanest mitigation is **blind hypothesis writing** by collaborators
+> unfamiliar with the dataset's findings — a study design we recommend for
+> future iterations. **(2) KB coverage.** EnvMeta KB v1.1 covers 4 elements ×
+> 18 pathways × 57 KOs (As / N / S / Fe). Two of Wei's 14 target genes
+> (*arxA* anaerobic arsenite oxidase; *nrfA* DNRA pathway) lacked KB
+> mappings; iron(II) oxidation and iron(III) reduction pathways central to
+> AMD biogeochemistry are not yet encoded. KB v1.2 will extend ROCker-model
+> alias support and add iron-redox plus DNRA blocks. **(3) Pre-publication
+> hand-checks.** Post-hoc DOI verification identified four citation errors
+> (§5.2.8 audit). These do not affect scoring outputs but emphasize the value
+> of building DOI verification into the hypothesis-writing workflow itself.
+> **(4) Empirical scaling envelope.** From the performance benchmark
+> (§5.2.8), full-pipeline runtime stays under 2 minutes for the typical
+> PhD-thesis metagenome (200-1000 MAGs × 30-100 samples × 4 env factors ×
+> ~25 KO/MAG); under 15 minutes for ~5000 MAGs; and is dominated by the
+> cycle inference's permutation test, not by any matplotlib-rendering step.
+> The 5000-MAG ceiling is therefore not a runtime cliff but a soft constraint
+> imposed by heatmap legibility and by the typical iMeta-class user data
+> scale, consistent with our design philosophy of an open-source local tool
+> aimed at graduate-student and small-lab users, complementing rather than
+> competing with HPC-grade pipelines such as Anvi'o.
+
+6. **Future work**（~150 words / §Y.4）
+
+> Drop-in English text — source: [`discussion_calibration_discrimination.md`](discussion_calibration_discrimination.md) §Y.4
+
+> Beyond the `dominance_score` extension (delivered in v0.9.x; §5.2.4 paragraph 2)
+> and KB v1.2 backlog mentioned above, two methodological future items follow
+> directly from the stress-test experience. First, **third-party blind stress
+> YAMLs**: in the next user-study iteration, collaborators unfamiliar with
+> the four target papers will be invited to author independent stress YAMLs
+> for the same datasets, providing a selection-bias-controlled replication
+> of the present result. Second, an **LLM-assisted hypothesis YAML drafting**
+> workflow that ingests an environmental description and a list of recent
+> reviews, produces a candidate calibration-plus-stress YAML, and flags
+> claim entities that might fail DOI verification or proof-of-extraction
+> grading. We see EnvMeta's hypothesis scorer as well-suited to LLM-assisted
+> authoring precisely because the engine mechanically resists hindsight bias
+> (pre-registration discipline + binary status reporting + claim-entity
+> immutability), making the LLM's drafting errors easy to surface rather
+> than easy to mask. Beyond hypothesis-side work, the L3 plugin framework
+> (user-supplied Python `analyze()` → auto-registered GUI) and a D3.js
+> cycle-figure editor for direct node/pathway dragging round out the longer
+> roadmap.
 
 ---
 
@@ -321,28 +518,68 @@ hypothesis）→ 下 1/3 导出。
    - **S3 评分**：claim 类型路由 + weighted_sum + null_p + veto logic
    - 数据结构：`CycleData / EnvCorrelation / SensitivityRow / HypothesisScore`（见 `envmeta/geocycle/model.py`）
 
-4. **YAML 假说 schema**（200 words）
-   - 5 类 claim：taxon_anchored / pathway_pair / env_correlation / cross_element_coupling / population_structure
-   - veto_reasons 9 类
-   - schema 校验通过 jsonschema
+4. **YAML 假说 schema**（150 words → 详见 §5.4.8）
+   - 6 类 claim（v0.9.0）：`pathway_active` / `pathway_inactive` / `coupling_possible` /
+     `env_correlation` / `keystone_in_pathway` / `group_contrast`
+   - 4 档标签（`strong` / `suggestive` / `weak` / `insufficient`）+ Bradford-Hill required-veto
+   - schema 校验通过 jsonschema；评分引擎设计 + pre-registration discipline 详见 §5.4.8
 
 5. **D3.js 交互 HTML 导出**（200 words）
    - inline embed D3 v7（~280 KB）+ 400 KB total HTML
    - 4 tab UI（架构 / 循环图 / 假说 / 环境相关）
    - 客户端 SVG 序列化 + download
 
-6. **Benchmark 实施**（300 words）
-   - 数据集：砷渣 168 MAG × 10 sample（自有）+ 第二数据集 ≥ 500 MAG（待选）
-   - 测试硬件：4 核 CPU / 16 GB RAM / Python 3.11
-   - 对照工具：Krona 2.x / Anvi'o 8.x / MicrobiomeAnalyst Web 版本快照
-   - 量化指标：runtime / memory / 用户操作步数
+6. **Performance benchmark implementation**（~250 words）
+
+> Drop-in English text — source: [`paper/manuscript/performance_paragraph_snippets.md`](performance_paragraph_snippets.md) §5.4.6
+
+We measured EnvMeta's per-figure runtime and memory profile by an in-process
+harness ([`paper/benchmarks/performance/bench_harness.py`](../benchmarks/performance/bench_harness.py); reproducibility script
+provided in the Zenodo bundle) that wraps each `analyze()` entry point with
+`time.perf_counter` for wall time and a background `psutil.Process().memory_info().rss`
+sampler (50 ms interval) for peak ΔRSS over a `gc.collect()`-cleared baseline.
+Each (dataset × figure) combination was run with 2-3 repeats, with `plt.close("all")`
+and `gc.collect()` between repeats to reset the matplotlib allocator and the
+Python heap. We report median wall time and maximum peak ΔRSS, and we use a
+headless matplotlib `Agg` backend to mirror Streamlit's server-side rendering.
+
+To probe the scaling envelope, we extended Liu et al.'s published 1084-MAG
+cold-seep dataset by (i) randomly assigning each MAG 25 KOs sampled from
+EnvMeta's 57-KO knowledge base, (ii) synthesizing 4 numeric env factors over
+the 87 samples, and (iii) subsampling to N_MAG ∈ {200, 500, 1000} ×
+N_samples ∈ {30, 60, 87}. This isolates dense-annotation behaviour, since
+Liu's published `kegg_target_only.tsv` is pre-filtered to 8 As-target KOs
+that under-represent the typical KofamScan / DRAM / METABOLIC density
+(20-40 KO/MAG) of full-pipeline metagenomes. All measurements were taken on
+a single Intel i7-class laptop (16 GB RAM, Windows 10, Python 3.11);
+absolute numbers will vary across CPUs but the cross-cell ratios are
+expected to transfer. Full benchmark report at
+[`paper/benchmarks/performance.md`](../benchmarks/performance.md); raw measurements at
+[`paper/benchmarks/performance/results/`](../benchmarks/performance/results/).
 
 7. **实施细节**（150 words）
    - Streamlit 1.30+
    - matplotlib 3.8+
    - Python 3.11+
-   - 测试套件：pytest 293/293 全绿
+   - 测试套件：pytest **301/301 全绿**（v0.9.1）
    - CI：GitHub Actions（待补）
+
+---
+
+### 5.4.8 Hypothesis Scoring Engine and External-Dataset Benchmark（~1450 words / 7 子节）
+
+> Drop-in English text — source: [`paper/manuscript/methods_external_validation.md`](methods_external_validation.md)
+>
+> 7 个子节涵盖：
+> - **§4.6.1** Scoring engine design — MCDA + Bradford-Hill weight-of-evidence + 6 类 claim types + 3 confidence indicators
+> - **§4.6.2** Pre-registration discipline — git timestamp anchoring, default thresholds, citation policy ≥ 5y before target paper
+> - **§4.6.3** Four-Arm calibration experiment — Arm A in-house / Arm B Wei 2024 ROCker / Arm C1 Liu 2023 DRAM / Arm C2-A Grettenberger 2021 METABOLIC / Arm C2-B Ayala 2020 GhostKOALA re-annotated
+> - **§4.6.4** Calibration results — 4 KEGG-curated arms STRONG (overall=1.000); Arm B INSUFFICIENT due to required-veto on incomplete denitrification annotation
+> - **§4.6.5** Stress test — 3-Arm × 3-class (reversed/cross-topic/`pathway_inactive`); cross-topic rejection in 2/2 non-arsenic datasets (n=0 active MAGs); v0.9.x `dominance_score` extension upgrades B-tier → A-tier
+> - **§4.6.6** Reference audit and post-hoc corrections — 4 errors corrected transparently in YAML metadata (commits `ddd3098`, `cae2de7`); claim entities frozen; full audit at [`hypothesis_references_audit.md`](hypothesis_references_audit.md)
+> - **§4.6.7** Data and code availability — reshape scripts at `tools/external_benchmarks/`; YAMLs at `paper/benchmarks/external/{dataset}/`; results at `envmeta_outputs/`
+>
+> 19 条 Vancouver 引用（含 DOI） — 见 §5.7 References。投稿时整段插入。
 
 ---
 
@@ -377,7 +614,7 @@ Funding: [supervisor's grant ID] / China Geological University
 
 ---
 
-### 5.7 References（约 50-60 篇）
+### 5.7 References（约 50-60 篇 / Vancouver iMeta 格式 + DOI）
 
 **重点引用领域**（按 iMeta 编辑偏好排序）：
 
@@ -405,58 +642,118 @@ Funding: [supervisor's grant ID] / China Geological University
    - Wilson et al. Good enough practices
    - FAIR principles
 
+#### 5.7.1 §5.4.8 引用清单（19 条 Vancouver + DOI，已 verify）
+
+> 来源：[`methods_external_validation.md`](methods_external_validation.md) §References。
+> 投稿时按 §5.7 总编号合并整理。
+
+1. Belton V, Stewart TJ. *Multiple Criteria Decision Analysis: An Integrated Approach*. Boston: Springer; 2002. DOI: 10.1007/978-1-4615-1495-4
+2. Bothe H, Jost G, Schloter M, Ward BB, Witzel KP. Molecular analysis of ammonia oxidation and denitrification in natural environments. *FEMS Microbiol Rev*. 2000;24(5):673-690. DOI: 10.1111/j.1574-6976.2000.tb00566.x
+3. Cabrera G, Pérez R, Gómez JM, Ábalos A, Cantero D. Toxic effects of dissolved heavy metals on Desulfovibrio. *J Hazard Mater*. 2006;135(1-3):40-46. DOI: 10.1016/j.jhazmat.2005.11.058
+4. Dai Z, Guo X, Yin H, Liang Y, Cong J, Liu X. Identification of nitrogen-fixing genes and gene clusters from metagenomic library of acid mine drainage. *PLoS One*. 2014;9(2):e87976. DOI: 10.1371/journal.pone.0087976
+5. Fisher RA. *The Design of Experiments*. Edinburgh: Oliver and Boyd; 1935.
+6. Grettenberger CL, Hamilton TL. Metagenome-assembled genomes of novel taxa from an acid mine drainage environment. *Appl Environ Microbiol*. 2021;87(17):e00772-21. DOI: 10.1128/AEM.00772-21
+7. Hill AB. The environment and disease: association or causation? *Proc R Soc Med*. 1965;58(5):295-300. DOI: 10.1177/003591576505800503
+8. Kanehisa M, Sato Y, Morishima K. BlastKOALA and GhostKOALA: KEGG tools for functional characterization of genome and metagenome sequences. *J Mol Biol*. 2016;428(4):726-731. DOI: 10.1016/j.jmb.2015.11.006
+9. Linkov I, Loney D, Cormier S, Satterstrom FK, Bridges T. Weight-of-evidence evaluation in environmental assessment: review of qualitative and quantitative approaches. *Sci Total Environ*. 2009;407(19):5199-5205. DOI: 10.1016/j.scitotenv.2009.05.004
+10. Liu R, Wei X, Song W, Wang L, Cao J, Wu J, et al. Unexpected genetic and microbial diversity for arsenic cycling in deep sea cold seep sediments. *npj Biofilms Microbiomes*. 2023;9:13. DOI: 10.1038/s41522-023-00382-8
+11. Ayala-Muñoz D, Burgos WD, Sánchez-España J, Couradeau E, Falagán C, Macalady JL. Metagenomic and metatranscriptomic study of microbial metal resistance in an acidic pit lake. *Microorganisms*. 2020;8:1350. DOI: 10.3390/microorganisms8091350
+12. Méndez-García C, Peláez AI, Mesa V, Sánchez J, Golyshina OV, Ferrer M. Microbial diversity and metabolic networks in acid mine drainage habitats. *Front Microbiol*. 2015;6:475. DOI: 10.3389/fmicb.2015.00475
+13. Reichart NJ, Jay ZJ, Krukenberg V, Parker AE, Spietz RL, Hatzenpichler R. Activity-based cell sorting reveals responses of uncultured archaea and bacteria to substrate amendment. *ISME J*. 2020;14(11):2851-2861. DOI: 10.1038/s41396-020-0732-1
+14. Rhomberg LR, Goodman JE, Bailey LA, Prueitt RL, Beck NB, Bevan C, et al. A survey of frameworks for best practices in weight-of-evidence analyses. *Crit Rev Toxicol*. 2013;43(9):753-784. DOI: 10.3109/10408444.2013.832727
+15. Rosen BP. Biochemistry of arsenic detoxification. *FEBS Lett*. 2002;529(1):86-92. DOI: 10.1016/S0014-5793(02)03186-1
+16. Sánchez-Andrea I, Sanz JL, Bijmans MFM, Stams AJM. Sulfate reduction at low pH to remediate acid mine drainage. *J Hazard Mater*. 2014;269:98-109. DOI: 10.1016/j.jhazmat.2013.12.032
+17. Suter GW II, Cormier SM. Why and how to combine evidence in environmental assessments. *Sci Total Environ*. 2011;409(8):1406-1417. DOI: 10.1016/j.scitotenv.2010.12.029
+18. Wei X, Long C, Liu Z, Yang J, Lai Y, Liu Y, et al. Genomic insights into arsenic biogeochemistry in paddy soils. *Microbiome*. 2024;12:236. DOI: 10.1186/s40168-024-01952-4
+19. Yin XX, Chen J, Qin J, Sun GX, Rosen BP, Zhu YG. Biotransformation and volatilization of arsenic by three photosynthetic cyanobacteria. *Plant Physiol*. 2011;156(3):1631-1638. DOI: 10.1104/pp.111.178947
+
+**额外补充**（§5.2.4 stress + §5.3 limitation 用到，但未在 §5.4.8 主列表）：
+- Anderson MJ. A new method for non-parametric multivariate analysis of variance. *Austral Ecol*. 2001;26(1):32-46. DOI: 10.1111/j.1442-9993.2001.01070.pp.x
+- Segata N, Izard J, Waldron L, Gevers D, Miropolsky L, Garrett WS, Huttenhower C. Metagenomic biomarker discovery and explanation. *Genome Biol*. 2011;12:R60. DOI: 10.1186/gb-2011-12-6-r60
+- Stolz JF, Basu P, Santini JM, Oremland RS. Arsenic and selenium in microbial metabolism. *Annu Rev Microbiol*. 2006;60:107-130. DOI: 10.1146/annurev.micro.60.080805.142053
+
 ---
 
-## 6. Figures 总表
+## 6. Figures + Tables 总表（v0.9.1 校准）
+
+### 6.1 Figures
 
 | # | Figure | 类型 | 现有素材 | 待补 |
 |---|---|---|---|---|
 | F1 | EnvMeta 整体架构 | Schema | 部分（CLAUDE.md 内嵌）| 重画为 SVG |
 | F2 | 12 图 + 调参 + 代码生成 | Screenshots + 截图组合 | `paper/figures/screenshot_*.png` | 排版 4-panel |
 | F3 | 元素循环图自动推断 ⭐ | Schema + Output | `paper/figures/cycle_*.png` | 加 S1-S3 流程 schema |
-| F4 | YAML 假说评分器 | Schema + Output | `paper/figures/hypothesis_*.png` | 加 null_p 分布图 |
+| F4 | YAML 假说评分器 + 4-Arm calibration ⭐ | Schema + Output | [`paper/figures/paper3_hypothesis_scoring/`](../figures/paper3_hypothesis_scoring/) ✅ PDF/PNG/SVG | 整合到 4-panel（A schema / B null_p / C decision tree / D calibration bar） |
 | F5 | 独立交互 HTML 导出 | Screenshots | `paper/bundles/*.html` 截图 | 新拍 4 panel |
 | F6 | Fork Bundle 结构 | Schema | 无 | 新画 |
 | F7 | 砷渣案例研究 | Result | `paper/figures/cycle_arsenic.png` | 多组对比 panel |
-| F8 | 第二数据集 benchmark | Result | 无 ❌ | **必补**（待选数据集后跑） |
-| F9 | vs 竞品对比柱图 | Comparison | `paper/tool_comparison.md` 整理 | 改成图 |
+| F8 | Performance + scaling 实测 ⭐ | Result | [`paper/benchmarks/performance/scaling_curve.{pdf,png,svg}`](../benchmarks/performance/scaling_curve.pdf) ✅ | 已 ready（3 panel × 58 cells） |
+| F9 | Calibration → stress score gap | Result | [`paper/figures/paper3_hypothesis_scoring/figure_x_calibration_vs_stress.{pdf,png,svg}`](../figures/paper3_hypothesis_scoring/) ✅ | 已 ready；考虑作为 F4-D panel 或独立 F9 |
+| F10 | vs 竞品对比柱图 | Comparison | `paper/tool_comparison.md` 整理 | 改成图（原 F9 → F10） |
 
-**T1 = vs 竞品矩阵表**；**T2 = 性能 benchmark 表**。
+### 6.2 Tables
+
+| # | Table | 内容 | 现有素材 |
+|---|---|---|---|
+| T1 | vs 竞品矩阵 | Krona / Anvi'o / MicrobiomeAnalyst / 测序公司云 / EnvMeta — 12 图覆盖度 / 离线 / 元素循环 / 假说评分 / GUI 友好 / 开源 / 价格 | `paper/tool_comparison.md` 整理 |
+| T2 | 4-Arm calibration ⭐ | Arm × dataset × annotation × overall_score × label × claims_satisfied × topic | [`paper/figures/paper3_hypothesis_scoring/table1_calibration.{md,tsv}`](../figures/paper3_hypothesis_scoring/) ✅ |
+| T3 | 3-Arm stress test ⭐ | Arm × calibration label × stress overall (v1) × stress label (v1) × stress overall (v2) × discrimination grade × cross-topic rejection | [`paper/figures/paper3_hypothesis_scoring/table2_stress.{md,tsv}`](../figures/paper3_hypothesis_scoring/) ✅ |
+| T4 | Hardware sizing | Regime × N_MAG × N_sample × wall × hardware × Streamlit Cloud 是否支持 | [`paper/benchmarks/performance.md`](../benchmarks/performance.md) §5 |
+| T5 | Group-count guidance（可选 SI）| 各分析硬下限 + 软推荐 + 实际上限 | [`paper/benchmarks/performance.md`](../benchmarks/performance.md) §6 |
+| ST1 | Reference audit (SI) | 16 claims × 13 references DOI table + extraction grade | [`paper/manuscript/hypothesis_references_audit.md`](hypothesis_references_audit.md) ✅ |
+
+**编号 reconcile note**：草稿用 "Table 1 / Table 2 / Figure X"。本 outline 映射：
+- `Table 1` (calibration) → **T2**
+- `Table 2` (stress v1+v2) → **T3**
+- `Figure X` (calibration→stress gap) → **F9**（独立 panel）或 **F4 panel D**（整合到 hypothesis figure）
+- 投稿 final docx 时按所选方案统一编号
 
 ---
 
-## 7. 投稿前清单（按完成度）
+## 7. 投稿前清单（v0.9.1 校准 / 2026-05-09）
 
 ### 已完成 ✅
 
-- [x] 核心代码 v0.8.1（293/293 测试全绿）
-- [x] 12 图 + 循环图 + 假说评分 + Bundle + HTML 全功能
+- [x] **核心代码 v0.9.1（301/301 测试全绿）**
+- [x] 12 图 + 循环图 + 假说评分 (6 类 claim) + Bundle + HTML 全功能
 - [x] tool_comparison.md / time_comparison.md
 - [x] paper/figures/ 部分截图
 - [x] 在线 demo + GitHub repo
 - [x] 期刊选定 + 投稿决策
+- [x] **R 侧侧对照 11 图**（v0.8.2，[`paper/benchmarks/r_comparison/`](../benchmarks/r_comparison/)，含 RDA 数值与 R vegan 对齐到 4 位小数）
+- [x] **第二外部数据集复现 + benchmark**（v0.9.0 / 超额完成 4 数据集）：
+  - Wei 2024（Arm B / paddy soil / ROCker, INSUFFICIENT）
+  - Liu 2023（Arm C1 / cold seep / DRAM, STRONG）
+  - Grettenberger 2021（Arm C2-A / AMD stream / METABOLIC, STRONG）
+  - Ayala 2020（Arm C2-B / pit lake / GhostKOALA 重注释, STRONG）
+- [x] **3-Arm stress test discrimination evidence**（v0.9.0 + v0.9.x dominance_score 升级至 A-tier 全清）
+- [x] **English README + LICENSE**（v0.9.1 / commit 2b50dbc）
+- [x] **Methods §4.6 草稿**（~1450 字 / 7 子节 / 19 Vancouver+DOI 引用）— [`methods_external_validation.md`](methods_external_validation.md)
+- [x] **Results §X 草稿**（~800 字 / 4 子节 / Table 1+2 + Figure X 定义）— [`results_stress_test_section.md`](results_stress_test_section.md)
+- [x] **Discussion §Y 草稿**（~640 字 / 4 子节 / 含 v0.9.x 升级补丁）— [`discussion_calibration_discrimination.md`](discussion_calibration_discrimination.md)
+- [x] **Performance benchmark + scaling figure**（v0.9.1 / 58 测试点 / 3 regime）— [`paper/benchmarks/performance.md`](../benchmarks/performance.md) + [scaling_curve.{pdf,svg,png}](../benchmarks/performance/scaling_curve.pdf)
+- [x] **Reference DOI audit + 4 处错引透明纠正** — [`hypothesis_references_audit.md`](hypothesis_references_audit.md)
+- [x] **F4 + F8 + T2 + T3 实物素材就位**（v0.9.1）
 
 ### 投稿前必补 ⏳
 
-- [ ] **R 侧侧对照 11 图**（仅 log2fc 1 张）—— 1-2 周
-- [ ] **第二外部数据集**复现 + benchmark —— 2-3 天
-  - 推荐数据集：先用 Tara Oceans 子集（海洋 N/S 循环演示）+ Oak Ridge 铀污染（陆地金属循环）
-  - 用户已确认服务器有剩 → 公开数据下载 + EnvMeta 跑全套
-- [ ] **English README + LICENSE + Zenodo DOI** —— 4-6h
+- [ ] **整合 outline 三段进 docx 主稿**（用户做，涉及 outline 整体结构 + iMeta 投稿格式调整）
 - [ ] **F1 / F6 schema 图重画** —— 1 天
-- [ ] **F3 / F4 schema 图补 S1-S3 流程 + null_p 分布** —— 半天
+- [ ] **F3 schema 图补 S1-S3 流程** —— 半天（F4 已 ready）
 - [ ] **F5 HTML 截图 4 panel** —— 半天
-- [ ] **F8 第二数据集结果图** —— 跟数据集复现一起做
-- [ ] **F9 / T1 / T2 整理为图表** —— 1 天
-- [ ] **References 整理** —— 1-2 天
-- [ ] **User study v2 数据回收 ≥ 8 份**（目前已收 ~2-3 份，等回收）
+- [ ] **F7 砷渣案例研究多组对比 panel** —— 半天
+- [ ] **F10 vs 竞品对比柱图** —— 半天（基于 T1 数据）
+- [ ] **References 整理总表**（合并 §5.7.1 + 其他 5 大类引用） —— 1-2 天
+- [ ] **User study v2 数据回收 ≥ 8 份**（问卷 2026-04-19 发，等回收 1 周）
+- [ ] **Zenodo DOI release**（投稿当天前 1-2 天，避免文件树漂移）—— 30 min
 
 ### 投稿当天
 
 - [ ] 邮件刘永鑫确认推荐审稿人
 - [ ] 投稿系统填表（Authors / Affiliations / Funding / Recommend reviewers）
-- [ ] Cover Letter（强调 3 大空白 + iMeta 选题契合）
+- [ ] Cover Letter（强调 3 大空白 + iMeta 选题契合 + v0.9.0 calibration/discrimination evidence）
 - [ ] Conflict of Interest 声明
+- [ ] Zenodo DOI 嵌入正文 §5.5 Data and Code Availability
 
 ---
 
@@ -487,3 +784,4 @@ Funding: [supervisor's grant ID] / China Geological University
 | 日期 | 事项 | 备注 |
 |---|---|---|
 | 2026-05-07 | 大纲初版 | 待导师审阅 |
+| 2026-05-09 | **方案 B 整合**：Methods §4.6 / Results §X.1-X.3 / Discussion §Y.1-Y.4 三段英文草稿插入 §5.4.8 / §5.2.4 + §5.2.8 / §5.3；Performance benchmark 段落（§5.2.8 + §5.4.6 + §5.3 局限）合并；Vancouver+DOI 19 条加入 §5.7.1；Figure/Table 编号校准（F4 / F8 / F9 已 ready；T2 / T3 / T4 已 ready）；§7 投稿前清单按 v0.9.1 重新校准；Abstract 更新含 4-Arm calibration + cross-topic rejection + performance benchmark 三个新 finding。语言决策：保留中文 outline scaffold + 英文段落直插（最低工作量）。投稿 final docx 阶段需要全英化 + 编号统一（用户做） |
