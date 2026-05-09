@@ -598,7 +598,7 @@ def _load_mag_df(name: str | None):
 # ══════════════════════════════════════════════════════════
 if page == "首页":
     st.title("EnvMeta")
-    st.subheader("环境微生物宏基因组可视化分析平台 · v0.8")
+    st.subheader("环境微生物宏基因组可视化分析平台 · v0.9")
     st.markdown("---")
     st.markdown(
         """
@@ -616,11 +616,12 @@ if page == "首页":
         | 能力 | 说明 |
         |---|---|
         | 🔄 **元素循环图自动推断** | 从 KO 注释 + 环境因子自动推断 4 元素 × 18 通路（业界独有） |
-        | 🧪 **假说评分 YAML 评分器** | 5 类 claim + 置换 null_p + 权重敏感度 + 9 档解读（业界独有） |
+        | 🧪 **假说评分 YAML 评分器** | **6 类 claim**（v0.9 新增 `pathway_inactive` Popperian 否证）+ 置换 null_p + 权重敏感度 + 9 档解读（业界独有） |
         | 🌐 **独立交互 HTML 导出** | 400 KB 单文件 D3.js 嵌入，审稿人浏览器直接操作（SI 杀手锏） |
         | 📦 **Fork Bundle** | 打包 KB + YAML + config 为 zip，论文-工具绑定复现 |
         | ⚡ **跨元素化学物耦合** | As↔H₂S→As₂S₃ / Fe↔S 等虚线连接（业界独有） |
         | 💡 **新手落地包** | 数据准备指南 + 图表向导 + 每图「如何解读」+ 一键样例数据 |
+        | 📐 **双层假说写作教程**（v0.9 新增） | calibration + stress 双层模板 + Bradford-Hill 对应 + pre-prediction 防 hindsight bias |
 
         #### 📊 功能矩阵
         | 模块 | 支持内容 |

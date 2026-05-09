@@ -62,7 +62,7 @@ EnvMeta 正在收集第二轮内测反馈用于方法学论文（目标：iMeta 
 | 任意参数可调 | ⚠️ | ✅ | ⚠️ | ❌ 参数锁死 | ✅ |
 | 完全开源免费 | ✅ | ✅ | ✅ | ❌ 加钱 | ✅ |
 
-## 功能矩阵（v0.8 / Phase 1+2+3 全通）
+## 功能矩阵（v0.9.0 / 假说 stress test 完成）
 
 | 模块 | 支持内容 |
 |------|---------|
@@ -70,7 +70,8 @@ EnvMeta 正在收集第二轮内测反馈用于方法学论文（目标：iMeta 
 | 📊 Reads-based（7 图） | 物种组成堆叠图 / α 多样性 / β 多样性 PCoA / RDA 排序 / LEfSe 差异分析 / 元素循环基因热图 / 基因 log2FC |
 | 🧬 MAG-based（5 图） | MAG 质量散点 / MAG 丰度热图 / 通路完整度 / 元素循环基因谱 / 共现网络 Gephi-prep |
 | 🔄 生物地球化学循环图 ⭐ | 4 元素（As/N/S/Fe）× 18 通路自动推断 + 跨元素化学物耦合 + keystone ★ 标注 |
-| 🧪 机制假说 YAML 评分器 | 5 类 claim（pathway_active / coupling_possible / env_correlation / keystone_in_pathway / group_contrast）+ 3 可信度指标（Fisher 置换 p / Saltelli 权重敏感度 / Bradford Hill required veto）+ 9 档解读 |
+| 🧪 机制假说 YAML 评分器 | **6 类 claim**（pathway_active / **`pathway_inactive`** [v0.9 ⭐ Popperian 否证] / coupling_possible / env_correlation / keystone_in_pathway / group_contrast）+ 3 可信度指标（Fisher 置换 p / Saltelli 权重敏感度 / Bradford Hill required veto）+ 9 档解读 |
+| 📐 假说写作教程（v0.9 新增） | 双层模板（calibration + stress claims）+ pre-registration 纪律 + pre-prediction 模板 + 6 类 claim 选择指南 + Bradford-Hill 对应。见 [`docs/hypothesis_writing_guide.md`](docs/hypothesis_writing_guide.md) |
 | 📦 Fork Bundle | 打包 KB + YAML + config + KEGG 快照 → zip，审稿人一键复现 |
 | 🌐 独立交互 HTML | 400 KB 单文件 D3.js 嵌入，4 象限力导向 + 点击穿透 + SVG/JSON 导出，离线可用 |
 | 💾 导出中心 | PNG / PDF / SVG / TIFF 600dpi / TSV / 可运行 `.py` 复现脚本，批量 ZIP |
@@ -111,6 +112,18 @@ streamlit run app.py
 ## 📜 更新日志（近期）
 
 内测期频繁修 bug / 加功能，完整列表见 **[CHANGELOG.md](CHANGELOG.md)**。
+
+### v0.9.0 — 2026-05-09（假说评分对照实验完成 + Stress test discrimination 证据）⭐
+
+**Paper 3 投稿核心证据全部就位**。在 4 个 KEGG-curated 宏基因组数据集（作者数据 + Liu 2023 冷泉 + Grettenberger 2021 AMD 溪流 + Ayala 2020 pit lake）上的对照实验 —— 全部 hypothesis YAML 在跑 EnvMeta 之前 commit（git timestamp 锚定）。
+
+- ✨ **新增 `pathway_inactive` claim type** — 第 6 类 claim，Popperian falsifiability 主力。`n_active_mags == 0 → satisfied`（符合"不应活跃"预期）；不破坏现有 YAML（向后兼容）。
+- ✨ **双层假说写作教程** — [`docs/hypothesis_writing_guide.md`](docs/hypothesis_writing_guide.md) 用户教程（calibration + stress 双层模板、pre-registration 纪律、pre-prediction 防 hindsight bias、6 类 claim 选择指南、Bradford-Hill 对应）+ [`paper/hypotheses/HYPOTHESIS_DESIGN_PRINCIPLES.md`](paper/hypotheses/HYPOTHESIS_DESIGN_PRINCIPLES.md) 论文方法学版（设计哲学、4 类局限）。
+- ✨ **通用 stress runner CLI**：[`tools/external_benchmarks/run_stress_yaml.py`](tools/external_benchmarks/run_stress_yaml.py) 接受 `--dataset` + `--yaml` 跑任一外部数据集；支持 `--all` 批量。
+- 📊 **4 个 KEGG-curated 数据集 calibration 全 STRONG** + **3 个 stress test 分数显著低于 calibration**（Grettenberger weak 0.250 / Liu suggestive 0.625 / Ayala suggestive 0.455）。Cross-topic `arsenate_reduction_should_dominate` 在 **2/2 无砷数据集**（Grettenberger + Ayala）双双 reject（n=0 active MAGs）—— EnvMeta 评分领域中立性铁证。
+- 📚 **引用 DOI 审计** — verify 16 claim × 13 文献 DOI；透明纠正 4 处错引（Yin 2011 期刊错；Bothe "2007 FEMS Rev" 不存在 → 应为 Bothe 2000；Cabrera 2006 期刊+主题错；Auld 2017 主题错 → 替换为 Dai 2014 PLoS One [primary AMD nifHDK metagenomic 实证] + Méndez-García 2015 Front Microbiol review）。
+- 🐛 6 个 hypothesis YAML 引用 metadata 修订（不动 claim 实体；pre-registration audit trail 在 git history 完整保留）。
+- 🧪 pytest **297/297 全绿**（+4 个 `pathway_inactive` 测试）。
 
 ### v0.8.2 — 2026-05-08（RDA 数值对齐 R vegan + 11 图侧侧对照完成）
 

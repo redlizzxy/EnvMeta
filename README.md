@@ -34,7 +34,7 @@ EnvMeta solves the core pain point of environmental-microbiome PhD students: **t
 | All parameters tweakable | ⚠️ | ✅ | ⚠️ | ❌ locked | ✅ |
 | Fully open-source, free | ✅ | ✅ | ✅ | ❌ paid | ✅ |
 
-## Feature matrix (v0.8 / Phase 1+2+3 complete)
+## Feature matrix (v0.9.0 / hypothesis stress test complete)
 
 | Module | What it covers |
 |---|---|
@@ -42,7 +42,8 @@ EnvMeta solves the core pain point of environmental-microbiome PhD students: **t
 | 📊 Reads-based (7 figures) | Taxonomy stacked bar / α-diversity / β-diversity PCoA / RDA ordination / LEfSe / element-cycle gene heatmap / gene log2FC |
 | 🧬 MAG-based (5 figures) | MAG quality scatter / MAG abundance heatmap / pathway completeness / element-cycle gene profile / co-occurrence network (Gephi-prep) |
 | 🔄 Biogeochemical-cycle figure ⭐ | 4 elements (As/N/S/Fe) × 18 pathways auto-inferred + cross-element chemical coupling + keystone ★ annotation |
-| 🧪 Mechanistic-hypothesis YAML scorer | 5 claim types (pathway_active / coupling_possible / env_correlation / keystone_in_pathway / group_contrast) + 3 confidence indicators (Fisher permutation p / Saltelli weight-sensitivity / Bradford-Hill required veto) + 9-tier interpretation |
+| 🧪 Mechanistic-hypothesis YAML scorer | **6 claim types** (pathway_active / **`pathway_inactive`** [v0.9 ⭐ Popperian falsification] / coupling_possible / env_correlation / keystone_in_pathway / group_contrast) + 3 confidence indicators (Fisher permutation p / Saltelli weight-sensitivity / Bradford-Hill required veto) + 9-tier interpretation |
+| 📐 Hypothesis writing guide (v0.9 ⭐) | Two-layer template (calibration + stress claims) + pre-registration discipline + pre-prediction template + 6 claim-type selection guide + Bradford-Hill mapping. See [`docs/hypothesis_writing_guide.md`](docs/hypothesis_writing_guide.md) |
 | 📦 Fork Bundle | Pack KB + YAML + config + KEGG snapshot → zip; reviewers reproduce in one click |
 | 🌐 Standalone interactive HTML | 400 KB single file with D3.js inlined, 4-quadrant force layout + click-through + SVG/JSON export, fully offline |
 | 💾 Export center | PNG / PDF / SVG / TIFF 600 dpi / TSV / runnable `.py` reproduction script, batch ZIP |
@@ -83,6 +84,18 @@ The browser auto-opens `http://localhost:8501`.
 ## 📜 Recent releases
 
 Beta phase ships frequent bug fixes / features. Full list in **[CHANGELOG.md](CHANGELOG.md)**.
+
+### v0.9.0 — 2026-05-09 (hypothesis scoring controlled experiment complete + stress-test discrimination evidence) ⭐
+
+**Paper 3 core evidence fully in place.** A controlled experiment over 4 KEGG-curated metagenomic datasets (in-house + Liu 2023 cold seep + Grettenberger 2021 AMD stream + Ayala 2020 pit lake) with all hypothesis YAMLs pre-registered (git timestamp anchored before EnvMeta runs).
+
+- ✨ **New `pathway_inactive` claim type** — the 6th claim type, Popperian falsifiability primary instrument. Evaluates as `satisfied` when n_active_mags == 0 (matches the "should NOT be active" prediction); backward-compatible with all existing YAMLs.
+- ✨ **Two-layer hypothesis writing tutorial** — [`docs/hypothesis_writing_guide.md`](docs/hypothesis_writing_guide.md) for users (calibration + stress dual-layer template, pre-registration discipline, pre-prediction template, 6 claim-type guide, Bradford-Hill mapping) + [`paper/hypotheses/HYPOTHESIS_DESIGN_PRINCIPLES.md`](paper/hypotheses/HYPOTHESIS_DESIGN_PRINCIPLES.md) for paper Methods (design philosophy, 4 categories of limitations).
+- ✨ **General stress runner CLI**: [`tools/external_benchmarks/run_stress_yaml.py`](tools/external_benchmarks/run_stress_yaml.py) takes any `--dataset` + `--yaml` and runs cycle_diagram + scoring; supports `--all`.
+- 📊 **4 KEGG-curated datasets all STRONG (calibration)** + **3 stress tests with score gaps below calibration** (Grettenberger weak 0.250 / Liu suggestive 0.625 / Ayala suggestive 0.455). Cross-topic `arsenate_reduction_should_dominate` rejected in **2/2 non-arsenic datasets** (n=0 active MAGs in both Grettenberger and Ayala) — ironclad evidence that EnvMeta's scoring engine is domain-neutral.
+- 📚 **Reference DOI audit** — verified DOIs for all 16 hypothesis claims × 13 review citations; corrected 4 citation errors transparently (Yin 2011 wrong journal; Bothe "2007 FEMS Rev" non-existent → Bothe 2000; Cabrera 2006 wrong journal+topic; Auld 2017 wrong topic → replaced by Dai 2014 PLoS One [primary AMD nifHDK metagenomic evidence] + Méndez-García 2015 Front Microbiol review).
+- 🐛 6 hypothesis YAMLs reference metadata corrected (no claim entity changed; pre-registration audit trail preserved in git history).
+- 🧪 pytest **297/297 green** (+4 new `pathway_inactive` test cases).
 
 ### v0.8.2 — 2026-05-08 (RDA values aligned to R vegan + 11-figure side-by-side validation complete)
 
