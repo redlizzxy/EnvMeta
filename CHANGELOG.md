@@ -81,6 +81,16 @@
 - **Publication strategy 存档**：[`paper/manuscript/publication_strategy.md`](paper/manuscript/publication_strategy.md)
   记录 Path A 改良版（EnvMeta + bioRxiv preprint + 课题论文并行起草）满足 2026 接收
   + 2027-05 见刊硬约束
+- **1-day perturbation analysis 落地**：mock review v0.9.2 Major #1 应对（auxiliary
+  evidence on author selection bias）。新增 [`tools/external_benchmarks/perturbation_analysis.py`](tools/external_benchmarks/perturbation_analysis.py)
+  双模式 runner：within-element + cross-element，N=20 / mode / dataset，3 个
+  external calibrations（Liu / Grettenberger / Ayala）共 123 runs。Headline：
+  Liu 2023 cross-element 0/20 STRONG（median 0.000）→ 元素级 target accuracy
+  机制刚需；within-element 40-50% 仍 STRONG（与 §Y.1 KEGG-coverage-dependent 框架一致）。
+  写作素材：[`paper/manuscript/perturbation_analysis_results.md`](paper/manuscript/perturbation_analysis_results.md)；
+  集成 Methods §4.6.7 + Results §X.3 + Discussion §Y.3 limitation #1；
+  figure: `paper/benchmarks/external/perturbation/perturbation_curve.{pdf,png,svg}`。
+  pytest 301/301 仍全绿（无 API 变更）。
 
 ---
 

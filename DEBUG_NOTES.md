@@ -17,6 +17,72 @@
 
 > 每次 session 结束前更新此区块。新对话开始时 Claude Code 自动读取，了解当前进度。
 
+### 2026-05-09 后续 session（**1-day perturbation analysis — Mock Review v0.9.2 Major #1 auxiliary evidence ⭐**）
+
+**背景**：v0.9.2 mock review 还剩 1 个 Major Issue（"author selection bias 仅
+acknowledgment 未升级到 evidence"）。审稿人建议两个出路：(a) 完成 blind hypothesis
+writing（重，4-6 周），或 (b) 用 1-day perturbation analysis 提供 auxiliary
+evidence（轻，1 天）。用户选 (b)。
+
+**核心工作**：
+
+1. **新建 [`tools/external_benchmarks/perturbation_analysis.py`](tools/external_benchmarks/perturbation_analysis.py)**
+   双模式 runner：
+   - within-element：每条带 `params.pathway` 的 claim 替换为同一 KB element 内
+     不同的 pathway（保守测试 — 审稿人原始建议）
+   - cross-element：替换为**不同** element 的 pathway（强阴性对照）
+   - N=20 per mode per dataset，deterministic seeds (within: 0-19；cross: 1000-1019)
+   - run_null=False / run_sensitivity=False 节省时间（120 perturbed runs + 3 originals 30s）
+
+2. **3 个外部 calibration 实测**（作者 Arm A 因 coupling+group_contrast claim 未含 pathway 字段排除）：
+
+   | Dataset | Mode | Original | Perturbed median | Strong frac |
+   |---|---|---|---|---|
+   | Liu 2023 (As cold seep) | within | 1.000 | 0.770 | 50% |
+   | Liu 2023 | **cross** | 1.000 | **0.000** | **0%** ⭐ |
+   | Grettenberger 2021 (AMD) | within | 1.000 | 0.772 | 50% |
+   | Grettenberger 2021 | cross | 1.000 | 0.455 | 30% |
+   | Ayala 2020 (AMD pit lake) | within | 1.000 | 0.500 | 40% |
+   | Ayala 2020 | cross | 1.000 | 0.500 | 15% |
+
+3. **Headline finding**：Liu 2023 cross-element **0/20 STRONG** （median 0.000）—
+   因为 Liu 数据是 As-only，cross-element 替换必落到 inactive 通路 → required-claim
+   veto → insufficient。这是 element-level target accuracy 机制刚需的最强证据。
+
+4. **Within-element 40-50% STRONG retention 是 *feature* 不是 bug**：与 Discussion
+   §Y.1 "calibration evidence is KEGG-coverage-dependent, not domain-neutral" 完全
+   一致。当 element 内 KEGG annotation 充分时，多通路同时 active 是预期行为。
+
+5. **写作集成**：
+   - Methods §4.6.7 新增 (~250 字 perturbation 段)
+   - Results §X.3 新增 (~280 字 narrative)，原 §X.3 reference audit → §X.4
+   - Discussion §Y.3 limitation #1 (作者偏见) 段尾整合 perturbation auxiliary evidence
+   - 详细文档：[`paper/manuscript/perturbation_analysis_results.md`](paper/manuscript/perturbation_analysis_results.md)
+   - 双面板 figure：`paper/benchmarks/external/perturbation/perturbation_curve.{pdf,png,svg}`
+   - outline_imeta.md §5.4.8 子节列表更新（§4.6.7 + §4.6.8）+ §X.3 narrative drop-in 加入
+
+**测试**：pytest **301/301 全绿**（无 API 变更，仅新工具脚本 + 文档更新）
+
+**关键决策**：
+- 作者 Arm A 排除：其 coupling + group_contrast claim 不含 `params.pathway`，单字段
+  perturbation 不适用；reviewer 建议针对 4 STRONG，但实际可执行的是 3 个外部数据集
+- N=20 而非 N=200：CI 较宽（Wilson 95% for 10/20 ≈ [0.30, 0.70]），文档明确标注
+  作 auxiliary evidence 而非 primary 统计检验
+- 软化措辞："consistent with — not ironclad proof of"：与 mock review v0.9.2 的
+  "ironclad evidence" 整改方向一致；blind-writing 仍保留为 future work
+- Major #1 状态从 "honestly acknowledged + deferred" 升级为 "honestly acknowledged
+  + auxiliary evidence (perturbation) + blind-writing future"。预期下次 mock review
+  把 Major #1 → Resolved（剩 v0.9.2 出现的 Major #2 stress test n=3 caveat 待修）
+
+**下一步建议**：
+1. 6 张 placeholder figures（投稿 mandatory）
+2. mock review v0.9.2 Major #2 stress test 3-dataset caveat（30 min）
+3. mock review v0.9.2 余下 7 Minor（1-2h）
+4. rerun mock review v0.9.3（验证 Major #1 升级到 Resolved）
+5. bioRxiv 投稿
+
+---
+
 ### 2026-05-09 paper-side session（**Plan B 整合 + ImageGP 2 reframing + 性能 benchmark + mock review v0.9.1→v0.9.2 修订 ⭐**）
 
 **背景**：v0.9.1 dominance_score 兑现后用户继续推进 Paper 3 投稿。本次 session 聚焦

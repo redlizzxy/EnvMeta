@@ -259,6 +259,12 @@ Microbiology）。开发时持续积累：
   - 选定 Path A 改良版：EnvMeta 先发（bioRxiv preprint + iMeta 投稿）+ 课题论文并行起草
   - 时间表满足 2026 内 ≥ 1 篇接收 + 2027-05 前所有文章见刊的硬约束
   - bioRxiv 投稿 checklist + 风险评估完整
+- ✅ **1-day perturbation analysis**（mock review v0.9.2 Major #1 auxiliary evidence）：
+  - Runner: [`tools/external_benchmarks/perturbation_analysis.py`](tools/external_benchmarks/perturbation_analysis.py)（within-element + cross-element 双模式，N=20 / mode / dataset）
+  - **Cross-element headline finding**：Liu 2023 collapse 到 0/20 STRONG（median 0.000）→ 元素级 target 准确性是机制刚需
+  - Within-element bound：mean 跌 25-48%，但 40-50% 仍 STRONG（与 §Y.1 KEGG-coverage-dependent 一致）
+  - 集成 Methods §4.6.7 / Results §X.3 / Discussion §Y.3 limitation #1
+  - 写作素材：[`paper/manuscript/perturbation_analysis_results.md`](paper/manuscript/perturbation_analysis_results.md)；figure: `paper/benchmarks/external/perturbation/perturbation_curve.{pdf,png,svg}`
 
 ## Backlog（投稿前 + Phase 4）
 
@@ -277,7 +283,7 @@ Microbiology）。开发时持续积累：
 
 | 任务 | 工时 | 理由 |
 |---|---|---|
-| **1-day perturbation analysis** | 1 天 | mock review v0.9.2 仅剩的 Major Issue：把"作者偏见"从 acknowledgment 升级为 auxiliary evidence；现有数据，把 4 个 calibration claim 的 target pathway 随机替换看 STRONG 是否依然出现 |
+| ~~1-day perturbation analysis~~ | ✅ 完成 | within + cross 双模式 / N=20 each；cross-element Liu 0/20 STRONG headline；已集成 Methods §4.6.7 + Results §X.3 + Discussion §Y.3 |
 | **Stress test §Y.2 加 3-dataset constraint caveat** | 30 min | mock review v0.9.2 新出 Major #2，1 句话搞定 |
 | **Mock review v0.9.2 余下 7 个 Minor 修订** | 1-2h | "calibration evidence" disambiguation / "consistent with" 重复 / Newman 1997 vs 1998 reconcile / DRAM-KEGG 区别说明 / "dense annotation" §5.2.8 clarify / 引擎加 KEGG-coverage indicator（future feature）|
 
@@ -305,11 +311,11 @@ Microbiology）。开发时持续积累：
 
 ## 下次 session 建议起点
 
-按优先级（v0.9.2 paper-side 修订完成后）：
+按优先级（perturbation analysis 完成后）：
 
-1. **1-day perturbation analysis**（推荐做，从 acknowledgment 升级为 evidence；mock review v0.9.2 仅剩 Major Issue 的最强应对）
-2. **6 张 placeholder figures** —— 投稿 mandatory；用户配截图 + 我可辅助排版（F1 架构图 / F3 算法流程 / F5 HTML 截图 / F6 Bundle 结构 / F7 砷渣案例 / F10 vs Tools）
-3. **mock review v0.9.2 余下 7 个 Minor** —— 1-2h 纯文字修订
+1. **6 张 placeholder figures** —— 投稿 mandatory；用户配截图 + 我可辅助排版（F1 架构图 / F3 算法流程 / F5 HTML 截图 / F6 Bundle 结构 / F7 砷渣案例 / F10 vs Tools）
+2. **mock review v0.9.2 余下 7 个 Minor + 新 Major #2 (3-dataset caveat)** —— 1-2h 纯文字修订
+3. **rerun mock review v0.9.3** —— 验证 perturbation 是否兑换 Major #1 → Resolved
 4. **bioRxiv 投稿** —— 6 月初前完成；3 天审核拿 DOI
 5. **EnvMeta 投 iMeta** —— bioRxiv DOI 上线后立即投
 6. **课题论文起草并行** —— As 形态重测启动（用户主导）+ EnvMeta bioRxiv DOI 引用

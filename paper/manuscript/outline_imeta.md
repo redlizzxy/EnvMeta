@@ -469,7 +469,34 @@ by its 200 MB upload-file cap rather than by RAM.
 30-60s / 课题组 1-2 min / 大型项目 5-15 min / 超出设计范围 > 15 min）×（推荐硬件 +
 Streamlit Cloud 是否支持）。Source: [`paper/benchmarks/performance.md`](../benchmarks/performance.md) §5。
 
-**Drop-in §X.3 reference audit narrative**（~150 words；可放 §5.2.8 末尾或 §5.4.8.6）— source: [`results_stress_test_section.md`](results_stress_test_section.md) §X.3
+**Drop-in §X.3 perturbation analysis narrative**（~280 words；放 §5.2.4 末尾或独立 §5.2.4.5）— source: [`results_stress_test_section.md`](results_stress_test_section.md) §X.3
+
+> To distinguish whether the four STRONG calibration outcomes reflect
+> authors' specific pre-data target choices or arise mechanically from
+> KEGG annotation breadth, we perturbed every `params.pathway` field
+> across the three external calibration YAMLs (Liu 2023, Grettenberger
+> 2021, Ayala 2020) and rescored under default thresholds (Methods
+> §4.6.7). Two perturbation modes were applied: within-element (random
+> alternative pathway from the same KB element) and cross-element (random
+> pathway from a different KB element); N=20 per mode per dataset.
+> Cross-element control is strongly discriminating: Liu 2023, the most
+> narrowly As-focused dataset, retains STRONG in **0/20** cross-element
+> perturbations (median score 0.000) because cross-element substitution
+> lands on inactive N/S/Fe pathways and triggers required-claim veto.
+> Grettenberger 2021 and Ayala 2020 retain STRONG in 6/20 and 3/20
+> cross-element runs (70–85% label change). Within-element control bounds
+> the KEGG-coverage caveat: mean scores drop 25–48% but 40–50% of
+> within-element runs still register STRONG, consistent with the
+> manuscript's framing that calibration evidence is KEGG-coverage-
+> dependent rather than domain-neutral. We treat these as auxiliary
+> evidence consistent with — not ironclad proof of — non-mechanical
+> calibration. The cleanest definitive mitigation, blind hypothesis
+> writing by collaborators unfamiliar with target findings, remains
+> future work (§Y.4). Full results in Supplementary Table S_pert and
+> Figure X-bis (`perturbation_curve.pdf`); reproduction protocol in
+> [`paper/manuscript/perturbation_analysis_results.md`](perturbation_analysis_results.md).
+
+**Drop-in §X.4 reference audit narrative**（~150 words；可放 §5.2.8 末尾或 §5.4.8.6）— source: [`results_stress_test_section.md`](results_stress_test_section.md) §X.4
 
 > Post-hoc DOI verification identified four reference errors in the
 > pre-registered YAMLs that do not affect scoring outputs (no claim entity
@@ -731,7 +758,8 @@ expected to transfer. Full benchmark report at
 > - **§4.6.4** Calibration results — 4 KEGG-curated arms STRONG (overall=1.000); Arm B INSUFFICIENT due to required-veto on incomplete denitrification annotation
 > - **§4.6.5** Stress test — 3-Arm × 3-class (reversed/cross-topic/`pathway_inactive`); cross-topic rejection in 2/2 non-arsenic datasets (n=0 active MAGs); v0.9.x `dominance_score` extension upgrades B-tier → A-tier
 > - **§4.6.6** Reference audit and post-hoc corrections — 4 errors corrected transparently in YAML metadata (commits `ddd3098`, `cae2de7`); claim entities frozen; full audit at [`hypothesis_references_audit.md`](hypothesis_references_audit.md)
-> - **§4.6.7** Data and code availability — reshape scripts at `tools/external_benchmarks/`; YAMLs at `paper/benchmarks/external/{dataset}/`; results at `envmeta_outputs/`
+> - **§4.6.7** Auxiliary perturbation analysis — random pathway-target substitution in 2 modes (within-element / cross-element); N=20 each per 3 external datasets; cross-element collapses Liu 2023 to 0/20 STRONG → element-level target accuracy is mechanistically required
+> - **§4.6.8** Data and code availability — reshape scripts at `tools/external_benchmarks/`; perturbation runner at `tools/external_benchmarks/perturbation_analysis.py`; YAMLs at `paper/benchmarks/external/{dataset}/`; results at `envmeta_outputs/` and `paper/benchmarks/external/perturbation/`
 >
 > 19 条 Vancouver 引用（含 DOI） — 见 §5.7 References。投稿时整段插入。
 

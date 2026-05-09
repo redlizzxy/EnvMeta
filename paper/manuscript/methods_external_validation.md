@@ -259,7 +259,35 @@ pre-registered versions remain accessible in git history at commits
 (`Direct` / `Inferred` / `Weak`) for each claim × reference pair is at
 `paper/manuscript/hypothesis_references_audit.md`.
 
-### 4.6.7 Data and code availability
+### 4.6.7 Auxiliary perturbation analysis
+
+To address the concern that the four STRONG calibration outcomes might
+arise mechanically from KEGG annotation breadth rather than from authors'
+specific pre-data target choices, we performed an auxiliary
+target-pathway perturbation analysis (Mock Review v0.9.2 Major #1
+auxiliary alternative; complementary to but not a substitute for the
+deferred blind-hypothesis-writing exercise of §Y.4). For each external
+calibration YAML (Liu 2023, Grettenberger 2021, Ayala 2020), every claim
+with a `params.pathway` field had that field replaced by a randomly drawn
+alternative pathway, in two modes: (a) **within-element**, drawn from
+the same KB element (e.g., `Arsenate reduction` → `As methylation`); and
+(b) **cross-element**, drawn from a different KB element (e.g., `Arsenate
+reduction` → `Sulfide oxidation`). All other YAML fields — weight,
+required flag, completeness threshold, env_factor for `env_correlation`,
+expected_sign — were preserved. N=20 perturbations per mode per dataset
+(seeds 0–19 within; 1000–1019 cross), default engine settings (run_null
+and run_sensitivity disabled to amortize over 120 runs; default
+strong=0.75 and suggestive=0.40 thresholds). The author Arm A YAML was
+excluded because its joint `coupling_possible` and `group_contrast`
+claims are not pathway-targeted in a manner that admits a clean
+single-field perturbation. Runner script:
+[`tools/external_benchmarks/perturbation_analysis.py`](../../tools/external_benchmarks/perturbation_analysis.py);
+results table:
+[`paper/benchmarks/external/perturbation/perturbation_summary.tsv`](../benchmarks/external/perturbation/perturbation_summary.tsv);
+distribution figure:
+[`perturbation_curve.{pdf,png,svg}`](../benchmarks/external/perturbation/).
+
+### 4.6.8 Data and code availability
 
 Reshape and runner scripts are open-sourced under MIT license at
 `tools/external_benchmarks/{liu2023,grettenberger2021,ayala2020,wei2024}_*.py`

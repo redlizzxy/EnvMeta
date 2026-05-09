@@ -1,0 +1,7 @@
+dataset	mode	original_score	original_label	perturbed_n	perturbed_score_min	perturbed_score_median	perturbed_score_max	perturbed_score_mean	perturbed_n_strong	perturbed_n_suggestive	perturbed_n_weak	perturbed_n_insufficient	fraction_label_strong	fraction_label_changed
+Ayala 2020	cross_element	1.0	strong	20	0.091	0.5	0.909	0.4636	3	6	0	11	0.15	0.85
+Ayala 2020	within_element	1.0	strong	20	0.0	0.5	0.909	0.5213999999999999	8	4	0	8	0.4	0.6
+Grettenberger 2021	cross_element	1.0	strong	20	0.0	0.455	1.0	0.47135	6	5	0	9	0.3	0.7
+Grettenberger 2021	within_element	1.0	strong	20	0.394	0.7725	1.0	0.7529000000000001	10	5	0	5	0.5	0.5
+Liu 2023	cross_element	1.0	strong	20	0.0	0.0	0.0	0.0	0	0	0	20	0.0	1.0
+Liu 2023	within_element	1.0	strong	20	0.459	0.7705	1.0	0.7866500000000001	10	0	0	10	0.5	0.5

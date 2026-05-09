@@ -106,10 +106,21 @@ for the cognitive selection bias of choosing claims plausibly satisfiable
 by KEGG-curated datasets in the topics surveyed. The four `STRONG`
 calibration outcomes therefore conflate two effects that cannot be cleanly
 separated within the present design: the scoring engine's behaviour under
-default thresholds, and the authors' skill in claim selection. The cleanest
-mitigation is **blind hypothesis writing** by collaborators unfamiliar with
-the dataset's findings, which we discuss in §Y.4 and identify as the most
-direct path forward.
+default thresholds, and the authors' skill in claim selection. As partial
+auxiliary evidence on this point, we performed a target-pathway
+perturbation analysis (Methods §4.6.7; Results §X.3) randomly replacing
+each `params.pathway` field across the three external calibration YAMLs
+under two modes — within-element and cross-element. Cross-element
+perturbation collapses Liu 2023 to 0/20 STRONG (median score 0.000) and
+degrades Grettenberger and Ayala by 70–85% label change, confirming that
+element-level target accuracy is mechanistically required. Within-element
+perturbation moderately degrades scores (mean drop 25–48%) but retains
+STRONG in 40–50% of runs, bounding the KEGG-coverage caveat already
+acknowledged in §Y.1. We treat these as auxiliary evidence consistent
+with — not ironclad proof of — non-mechanical calibration; the cleanest
+remaining mitigation is **blind hypothesis writing** by collaborators
+unfamiliar with the dataset's findings, which we discuss in §Y.4 and
+identify as the most direct path forward.
 
 **(2) KEGG-coverage dependency.** As discussed in §Y.1, the calibration
 evidence is conditional on adequate KEGG-orthology coverage of the target

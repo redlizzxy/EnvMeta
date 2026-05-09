@@ -119,7 +119,46 @@ expressed cleanly. We classify this as a `B-tier` discrimination outcome
 stress claims to specify a `min_dominance_fraction` parameter, which would
 upgrade Liu and Ayala to `A-tier` clean discrimination.
 
-## §X.3 Reference audit and corrections
+## §X.3 Auxiliary perturbation analysis bounds annotation-density-driven inflation
+
+To distinguish whether the four STRONG calibration outcomes reflect authors'
+specific pre-data target choices or arise mechanically from KEGG annotation
+breadth, we perturbed every `params.pathway` field across the three external
+calibration YAMLs (Liu 2023, Grettenberger 2021, Ayala 2020) and rescored
+under default thresholds (Methods §4.6.7). Two perturbation modes were
+applied: within-element (random alternative pathway from the same KB
+element) and cross-element (random pathway from a different KB element);
+N=20 per mode per dataset, deterministic seeds.
+
+The cross-element control is strongly discriminating. Liu 2023, the most
+narrowly As-focused dataset (cold-seep sediment), retains STRONG in
+**0/20** cross-element perturbations (median score collapses from 1.000
+to 0.000) because cross-element substitution lands on inactive N/S/Fe
+pathways and triggers required-claim veto. Grettenberger 2021 and Ayala
+2020, both AMD systems with multi-element activity, retain STRONG in 6/20
+and 3/20 cross-element runs respectively, with mean scores degrading by
+53% and 54%. The 70–100% label-change rate confirms that **element-level
+target accuracy is mechanistically required for the calibration outcome**.
+
+The within-element control bounds the KEGG-coverage caveat acknowledged
+in Discussion §Y.1. Within-element mean scores are 25–48% below the
+original 1.000, but **40–50% of within-element perturbations still
+produce STRONG**. This is consistent with — not in conflict with — the
+manuscript's framing that calibration evidence is KEGG-coverage-dependent:
+when a target element has high annotation breadth, multiple parallel
+pathway-active claims register satisfied irrespective of which subset
+the author selected. Ayala 2020 (n=13 MAGs, smallest dataset) is the
+most discriminating at 8/20 STRONG retention; Liu and Grettenberger
+sit at 10/20. We therefore report the perturbation result as
+**auxiliary evidence consistent with** the calibration claims being
+non-mechanical, while flagging that the within-element fraction-STRONG
+is **not** a false-positive rate and that the more definitive
+blind-hypothesis-writing exercise (§Y.4) remains future work. Full
+results in Supplementary Table S_pert (`perturbation_summary.tsv`) and
+Figure X-bis (`perturbation_curve.pdf`); reproduction protocol in
+[`paper/manuscript/perturbation_analysis_results.md`](perturbation_analysis_results.md).
+
+## §X.4 Reference audit and corrections
 
 Post-hoc DOI verification identified four reference errors in the
 pre-registered YAMLs that do not affect scoring outputs (no claim entity was
@@ -139,7 +178,7 @@ history. A complete proof-of-extraction quality audit (per claim × reference,
 graded `Direct` / `Inferred` / `Weak`) is provided in Supplementary Table
 S_refs.
 
-## §X.4 Tables and figures
+## §X.5 Tables and figures
 
 **Table 1.** *Four-arm calibration results.* Columns: Arm, dataset, sample
 size, annotation method, overall_score, label, claims satisfied, claim

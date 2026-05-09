@@ -40,6 +40,7 @@
 | [stress_test_predictions.md](stress_test_predictions.md) | **冻结的盲预测**（pre-registration anchor `50c4687`）|
 | [stress_test_results.md](stress_test_results.md) | ⭐ **Stress test 实测对照** + 论文叙事段落（直接拷贝）|
 | [hypothesis_references_audit.md](hypothesis_references_audit.md) | **引用审计** — DOI 表 + 提炼度评估 + 4 处错引纠正 |
+| [perturbation_analysis_results.md](perturbation_analysis_results.md) | ⭐ **Perturbation analysis 结果** — within + cross 双模式；Liu cross 0/20 STRONG headline；mock review v0.9.2 Major #1 auxiliary evidence |
 
 ### 配套外部资源（不在本目录但相关）
 
