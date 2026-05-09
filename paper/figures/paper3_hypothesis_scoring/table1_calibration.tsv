@@ -1,0 +1,6 @@
+Arm	Dataset	Sample_Count	MAG_Count	Annotation_Method	Overall_Score	Label	Claims_Satisfied	Claims_Total	Topic	Topic_Class	Pre_Registered_Commit	Run_Commit
+A	In-house steel-slag (CK/A/B)	10	168	KofamScan KEGG full (57 KOs / 4 elements)	1.000	STRONG	4	4	Arsenic remediation (high-As)	arsenic	in-house	in-house
+B	Wei 2024 Microbiome	36	179	Custom ROCker (14 genes)	0.63	INSUFFICIENT	3	5	Arsenic-contaminated paddy soils	arsenic	pre-existing	pre-existing
+C1	Liu 2023 npj Biofilms Microbiomes	87	1084	DRAM KEGG-curated	1.000	STRONG	4	4	Deep-sea cold seep (high-As)	arsenic	42168da	1e4571f
+C2-A	Grettenberger 2021 Appl Environ Microbiol	1	29	METABOLIC step-level KEGG	1.000	STRONG	4	4	AMD stream (non-arsenic)	cross-topic	44d7f5f	e8d5133
+C2-B	Ayala 2020 Microorganisms	1	13	Pyrodigal + GhostKOALA KEGG	1.000	STRONG	4	4	Pit-lake deep layer (non-arsenic)	cross-topic	76a4f77	60a5be4

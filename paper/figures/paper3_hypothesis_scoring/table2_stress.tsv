@@ -1,0 +1,4 @@
+Arm	Dataset	Topic_Class	Calibration_Label	Calibration_Overall	Stress_Overall	Stress_Label	Class_A_Reversed	Class_B_CrossTopic	Class_C_PathwayInactive	Calibration_Anchor	Discrimination_Grade	Cross_Topic_NotActive	Reversed_Pathway	Reversed_Contribution	Backbone_Contribution	Contribution_Gap
+C1	Liu 2023 cold seep	same-topic	STRONG	1.000	0.625	suggestive	satisfied (weak signal)	skipped	unsatisfied	satisfied	B	n/a	Arsenite oxidation	0.3	6.4	21x
+C2-A	Grettenberger 2021 AMD stream	cross-topic	STRONG	1.000	0.250	weak	skipped	unsatisfied	unsatisfied	satisfied	A	YES (n=0 active MAGs)	N/A	N/A	N/A	N/A
+C2-B	Ayala 2020 pit lake	cross-topic	STRONG	1.000	0.455	suggestive	satisfied (weak signal)	unsatisfied	unsatisfied	satisfied	B	YES (n=0 active MAGs)	Sulfide oxidation	66.7	675	10x
