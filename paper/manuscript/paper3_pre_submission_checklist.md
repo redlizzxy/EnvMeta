@@ -11,14 +11,16 @@
 
 ---
 
-## 总览：4 大任务
+## 总览：4 大任务（2026-05-09 更新）
 
 | # | 任务 | 工时 | 优先级 | 状态 | 完成时间 |
 |---|---|---|---|---|---|
-| 1 | **R 侧侧对照 11 图补全** | 1-2 周 | 🟥 P0 | 进行中（2026-05-07 启动） | TBD |
-| 2 | **第二外部数据集 benchmark** | 2-3 天 | 🟥 P0 | 待启动 | TBD |
-| 3 | **English README + LICENSE + Zenodo DOI** | 4-6h | 🟥 P0 | 待启动 | TBD |
-| 4 | **Methods 第一稿起草** | 1 周 | 🟧 P1（依赖前 3 项） | 待启动 | TBD |
+| 1 | **R 侧侧对照 11 图补全** | 1-2 周 | 🟥 P0 | ✅ **完成 v0.8.2** | 2026-05-08 |
+| 2 | **第二外部数据集 benchmark** | 2-3 天 | 🟥 P0 | ✅ **超额完成 v0.9.0/0.9.1**（4 datasets + 3 stress test，n=4 calibration STRONG + n=3 stress 全 A 级 discrimination） | 2026-05-09 |
+| 3 | **English README + LICENSE + Zenodo DOI** | 4-6h | 🟥 P0 | ⏳ 待启动（LICENSE 已有 MIT；剩 README 英文校对 + Zenodo release） | TBD |
+| 4 | **Methods 第一稿起草** | 1 周 | 🟧 P1 | ✅ **三段全套完成 v0.9.1** — Methods §4.6 (~1450 字) + Results §X (~800 字) + Discussion §Y (~640 字) + Table 1/2 + Figure X | 2026-05-09 |
+
+**剩余真正阻塞任务**：仅 #3（English README + Zenodo DOI），4-6h 工时。完成后投稿 ready。
 
 ---
 

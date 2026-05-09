@@ -1,7 +1,18 @@
-# Paper 3 任务 2 — 第二外部数据集 Benchmark 方案
+# Paper 3 任务 2 — 第二外部数据集 Benchmark 方案 [HISTORICAL ARCHIVE]
 
-> **创建日期**：2026-05-08
-> **状态**：Phase 0 进行中
+> ⚠️ **本文件已被 v0.9.0/0.9.1 超额完成**（2026-05-09）。Paper 3 实际跑了 **4
+> 个外部数据集**（Wei 2024 + Liu 2023 + Grettenberger 2021 + Ayala 2020）+ **3 个
+> stress test discrimination test**（含 dominance_score v2 B→A 升级）。当前进度
+> 见 [scoring_validation_experiment_results.md](scoring_validation_experiment_results.md)
+> 主结果文档 + [stress_test_results.md](stress_test_results.md)。
+>
+> 本文件保留作为 Stage 1 (Wei 单数据集) 早期计划的 **historical archive**，记录
+> 决策过程；**不要据此规划新工作**，请优先看上述主结果文档。
+>
+> ---
+>
+> **原创建日期**：2026-05-08
+> **原状态**：Phase 0 进行中（已被超越）
 > **关联**：[paper3_pre_submission_checklist.md](paper3_pre_submission_checklist.md) 任务 2
 > **目标**：提供"EnvMeta 不只能跑作者自己数据"的泛化性证据，回答 iMeta 审稿
 > 人 90% 概率会问的"only works on your own data?"

@@ -45,22 +45,32 @@
 
 ---
 
-## 当前状态（2026-05-09）
+## 当前状态（2026-05-09，v0.9.1）
 
-**对照实验完成度**：✅ **4 Arm 全部完成 + Stress test 3/3 完成**
+**对照实验完成度**：✅ **4 Arm calibration 全 STRONG + Stress test 3/3 全 A 级**
 
-| Arm | 数据集 | Calibration | Stress | Discrimination |
-|---|---|---|---|---|
-| A | 作者 168 MAG (砷渣) | STRONG | — | (positive control) |
-| B | Wei 2024 (砷+N) | INSUFFICIENT | — | — |
-| C1 | Liu 2023 (冷泉砷) | STRONG (1.000) | suggestive (0.625) | B 级 |
-| C2-A | Grettenberger 2021 (AMD 跨主题) | STRONG (1.000) | weak (0.250) | **A 级** ⭐ |
-| C2-B | Ayala 2020 (pit lake 跨主题) | STRONG (1.000) | suggestive (0.455) | B 级 |
+| Arm | 数据集 | Calibration | Stress v1 | Stress v2（dominance-aware）| Discrimination |
+|---|---|---|---|---|---|
+| A | 作者 168 MAG (砷渣) | STRONG | — | — | (positive control) |
+| B | Wei 2024 (砷+N) | INSUFFICIENT | — | — | — |
+| C1 | Liu 2023 (冷泉砷) | STRONG (1.000) | suggestive (0.625) | **weak (0.250)** ⭐ | v1 B → **v2 A** |
+| C2-A | Grettenberger 2021 (AMD 跨主题) | STRONG (1.000) | weak (0.250) | n/a (已 A) | **A 级** ⭐ |
+| C2-B | Ayala 2020 (pit lake 跨主题) | STRONG (1.000) | suggestive (0.455) | **weak (0.182)** ⭐ | v1 B → **v2 A** |
 
 **最强单条证据**：cross-topic arsenate_reduction 在 2/2 无砷数据集 (Grettenberger + Ayala) 都 n=0 active MAGs → EnvMeta 领域中立性铁证。
 
-**待完成**（按优先级）：
-1. 论文 Methods 4.6 假说评分章节 + Results stress test 章节起草
-2. ~~Verify Korehi 2014 / Mendez-Garcia 2015~~ ✅ 完成（2026-05-09）：Korehi 2014 主题错（同 Auld 错引模式），改引 **Dai 2014 PLoS One** (10.1371/journal.pone.0087976) + **Méndez-García 2015 Front Microbiol** (10.3389/fmicb.2015.00475)
-3. 实现 dominance_score 字段解决二元阈值 limit（v0.9 future work）
-4. 英文 README + LICENSE + Zenodo DOI（投稿硬指标）
+**Paper 3 投稿核心证据全部就位**：
+- ✅ Methods §4.6 完整草稿（[methods_external_validation.md](methods_external_validation.md)，~1450 字 / 7 子节 / 19 条 Vancouver+DOI）
+- ✅ Results §X stress test 章节（[results_stress_test_section.md](results_stress_test_section.md)，~800 字 / 4 子节 / Table 1+2+Figure X 定义）
+- ✅ Discussion §Y limitation+future（[discussion_calibration_discrimination.md](discussion_calibration_discrimination.md)，~640 字 / 4 子节）
+- ✅ Table 1 + Table 2 + Figure X 实物素材（[../figures/paper3_hypothesis_scoring/](../figures/paper3_hypothesis_scoring/)，PDF + PNG + SVG）
+- ✅ 引用 audit + 4 处错引透明纠正（含 Sánchez-España + Dai 2014 + Méndez-García 2015 verified）
+- ✅ dominance_score 字段 v0.9.x 兑现（v2 stress test B→A 升级）
+
+**剩余工作**（按优先级）：
+1. **English README + LICENSE + Zenodo DOI**（4-6h，投稿硬指标 2/4）
+2. **整合三段进 paper 主稿**（用户做，涉及 outline 整体决策 + 最终 docx）
+3. **User study 数据回收**（问卷已发，预计本周）
+
+**已暂缓**：
+- 盲法 stress test（用户判断暂时不可行；Discussion §Y.4 保留作为 future work proposal）

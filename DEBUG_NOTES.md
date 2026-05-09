@@ -17,6 +17,95 @@
 
 > 每次 session 结束前更新此区块。新对话开始时 Claude Code 自动读取，了解当前进度。
 
+### 2026-05-09 下半场（**v0.9.1 — Paper 3 写作素材 + dominance_score 兑现 ⭐**）
+
+**背景**：v0.9.0 (push 完成) 后用户决定起草 Paper 3 投稿核心三段（Methods + Results +
+Discussion）。在写作过程中实现 dominance_score 字段兑现 v0.9 Discussion §Y.4 的
+future work 承诺，让 Liu/Ayala 的 stress test 从 B 级升 A 级。
+
+**完成的工作**（按时间顺序）：
+
+1. **手动 verify Sánchez-España 2008 DOI** ✅（用户截图 doi.org 解析到
+   *Appl Geochem* 23(5):1260-1287，与 audit 文档完全匹配）
+
+2. **Agent verify Korehi 2014 / Mendez-Garcia 2015**：
+   - ❌ Korehi 2014 *Res Microbiol* 主题不对（与 Auld 2017 同类错引模式：群落
+     paper 不讲 diazotrophy）
+   - ✅ Méndez-García 2015 *Front Microbiol* 6:475 (10.3389/fmicb.2015.00475)
+     review 含 AMD diazotrophy section
+   - ⭐ **Agent 新发现 Dai 2014 *PLoS One* 9(2):e87976** (10.1371/journal.pone.0087976)
+     primary metagenomic 742 nif sequences from AMD — 最直接的 AMD diazotrophy
+     一手实证文献
+   - 2 calibration YAML 引用 metadata 修订（commit `cae2de7`），audit 文档 §6
+     Methods 透明纠正声明含完整 Vancouver + DOI
+
+3. **Paper 3 Methods §4.6 完整版**（commit `452c2f9`）：
+   - 从 Wei 单数据集 ~600 字早期草稿扩写为 ~1450 字完整 §4.6
+   - 7 子节：scoring engine design / pre-registration / 4-Arm calibration /
+     calibration results / stress test discrimination / reference audit /
+     data and code availability
+   - 19 条 Vancouver 引用 + DOI（含 MCDA / Bradford-Hill / 4 datasets / Wei
+     ROCker / GhostKOALA / Dai 2014 + Méndez-García 2015 + 4 处订正后正确引用）
+
+4. **Paper 3 Results §X + Discussion §Y**（commit `ef26f90`）：
+   - Results §X (~800 字)：4 子节，含 Table 1/Table 2/Figure X 定义 + ready-to-copy
+     英文段落
+   - Discussion §Y (~640 字)：4 子节，calibration vs discrimination / 二元阈值 limit
+     诚实承认 / 3 类 limitations / future work（dominance_score / 盲法 stress /
+     LLM-assisted YAML drafting）
+
+5. **Tables + Figure X 实物素材**（commit `9a3f23b`）：
+   - Table 1 calibration（5 行）+ Table 2 stress（3 行）markdown + TSV 双格式
+   - Figure X 横向 bar plot（calibration 蓝 / stress 红 + cross-topic ★ 标注 +
+     A/B-tier discrimination 等级注释）PDF + PNG 600dpi + SVG 三格式 +
+     matplotlib 复现脚本（DejaVu Sans + ★ U+2605 + pdf.fonttype=42 editable）
+
+6. **dominance_score 字段实现 v0.9.x**（commit `fdfae77`）：
+   - `_compute_dominance_score(pw, element_id, data)` 辅助函数：
+     `dominance_score = pathway.total_contribution / sum(all pathways in element)`
+   - `_eval_pathway_active` 加 evidence['dominance_score'] +
+     ['element_total_contribution']；可选 `min_dominance_fraction` 硬阈值
+     （不达即 unsatisfied，向后兼容）
+   - `_eval_pathway_inactive` 加 evidence 字段（信息透明，未来可加阈值）
+   - +4 测试 case，全套 297 → 301 全绿
+   - 新建 v2 stress YAML（Liu + Ayala，Class A claim 加
+     `min_dominance_fraction: 0.20`，其他 claim 不变）→ B → A 级升级：
+     - Liu: 0.625 → 0.250；As ox dominance 0.05% << 20% → unsatisfied ✅
+     - Ayala: 0.455 → 0.182；S ox dominance 7.08% < 20% → unsatisfied ✅
+     - 3/3 stress test 现全 A 级 clean discrimination ⭐
+   - Pre-registration 纪律：v2 是新 YAML（commit `fdfae77`），不动 v1（commit
+     `50c4687`），git history 完整 audit trail
+   - Figure X v2 重生成（3 bar/dataset：calibration / stress v1 橙 / stress v2 红）
+
+**关键决策**：
+- Pre-registration 不是文件冻结：可修订 metadata（DOI/期刊名错），不能改 claim
+  实体（type/pathway/threshold/weight/required/expected_label）。这次 dominance_score
+  没有"修订原 v1 YAML"，而是 commit 新 v2 YAML（增加而非替换）。
+- 盲法 stress test 用户判断"暂时不可行"（没有合适未读过目标论文的同事），论文
+  Discussion §Y.4 保留作为 future work proposal，CLAUDE.md backlog 标记 ⏸ 暂缓。
+
+**今日下半场 git commits**（自 push 之后，6 个）：
+- `cae2de7` fix(refs): AMD diazotrophy 替代 Auld 2017 — Dai 2014 + Méndez-García 2015 verified
+- `452c2f9` docs(paper3): Methods §4.6 完整版 — 假说评分 + 4 Arm + Stress test + 引用 audit
+- `ef26f90` docs(paper3): Results §X stress test + Discussion §Y limitation/future work 草稿
+- `9a3f23b` feat(paper3): Table 1 / Table 2 / Figure X 实物素材 — calibration vs stress
+- `fdfae77` feat(hypothesis): dominance_score field (v0.9.x) — 兑现 Discussion §Y.4 future work
+
+**量化**：
+- 新增代码：`_compute_dominance_score` 函数 + `_eval_pathway_active` 升级 ~30 行
+  + 4 dominance 测试 ~80 行 + Figure X matplotlib 脚本 ~150 行 ≈ 260 行
+- 新增/更新文档：Methods §4.6 (1450 字) + Results §X (800 字) + Discussion §Y
+  (640 字) + Table 1+2 (markdown + TSV) + Figure X (PDF/PNG/SVG) + audit 文档
+  二次更新 + 6 个 YAML 引用修订 + 教程 §4.1.5 dominance_score ≈ 3500 字 + 9 文件
+- 测试覆盖：297 → 301（+4 dominance），全绿 165 秒
+- Paper 3 投稿核心证据：n=4 calibration STRONG + n=3 stress (1A + 2B v1) → v2
+  升级 (3A) + 16 claim × 13 文献 audit + Methods/Results/Discussion 三段全套草稿
+
+**下次 session 起点**：English README + LICENSE 检查 + Zenodo DOI（4-6h，扫
+iMeta 投稿硬指标 2/4），或用户整合 Paper 3 三段进 outline 主稿。
+
+---
+
 ### 2026-05-08-09（**v0.9.0 — 假说评分对照实验完成 + Stress test ⭐⭐**）
 
 **背景**：v0.8.2 完成 R 对照后开始 Paper 3 投稿核心证据收集。Wei 2024 INSUFFICIENT

@@ -213,12 +213,12 @@ Microbiology）。开发时持续积累：
 4. **开发日志量化**：每次日志加一行量化数据（代码行数、验证结果、耗时对比），
    写入 [DEBUG_NOTES.md](DEBUG_NOTES.md)
 
-## 当前进度（2026-05-09，v0.9.0）
+## 当前进度（2026-05-09，v0.9.1）
 
-**v0.9.0 — 假说评分对照实验完成 + Stress test discrimination evidence**：
-- Phase 0-3 全部完成 + Paper 3 投稿核心证据全部就位
-- 测试 **297/297 全绿**（+4 pathway_inactive 测试）
-- **12 种分析图表 + 独立交互 HTML + 6 类 claim 假说评分器**
+**v0.9.1 — Paper 3 投稿核心证据 + 写作素材全部就位**：
+- Phase 0-3 全部完成 + Paper 3 Methods/Results/Discussion 三段全套草稿 ready
+- 测试 **301/301 全绿**（+4 pathway_inactive + 4 dominance_score 测试）
+- **12 种分析图表 + 独立交互 HTML + 6 类 claim 假说评分器（含 dominance_score）**
 - 更新日志见 [CHANGELOG.md](CHANGELOG.md)
 
 ### 已完成（按架构层分组）
@@ -240,7 +240,12 @@ Microbiology）。开发时持续积累：
   - **领域中立性铁证**：cross-topic arsenate_reduction 在 2/2 无砷数据集双双 n=0 active MAGs ⭐
   - 第 6 类 claim `pathway_inactive`（Popperian falsifiability 主力）
   - 双层假说写作教程（[`docs/hypothesis_writing_guide.md`](docs/hypothesis_writing_guide.md) + [`paper/hypotheses/HYPOTHESIS_DESIGN_PRINCIPLES.md`](paper/hypotheses/HYPOTHESIS_DESIGN_PRINCIPLES.md)）
-  - 引用审计 + 6 YAML 引用 metadata 修订（4 处错引透明纠正）
+  - 引用审计 + 6 YAML 引用 metadata 修订（4 处错引透明纠正 + Sánchez-España 2008 verified + Auld 2017 → Dai 2014 + Méndez-García 2015 verified）
+- ✅ **v0.9.1 dominance_score 字段** + Paper 3 写作素材：
+  - `min_dominance_fraction` 硬阈值参数（pathway_active claim）+ evidence 字段（两 evaluator 信息透明）
+  - **Stress test v2 B → A 级升级**：Liu 0.625 → 0.250；Ayala 0.455 → 0.182；3/3 现全 A 级 clean discrimination ⭐
+  - Paper 3 三段完整草稿：Methods §4.6（~1450 字）+ Results §X（~800 字）+ Discussion §Y（~640 字）
+  - Table 1 + Table 2 + Figure X 实物素材（PDF/PNG/SVG）](paper/figures/paper3_hypothesis_scoring/)
 
 ## Backlog（投稿前 + Phase 4）
 
@@ -251,7 +256,7 @@ Microbiology）。开发时持续积累：
 | **English README + LICENSE + Zenodo DOI** | ~4-6h | iMeta 投稿硬性要求；LICENSE 先选 MIT |
 | ~~R 侧侧对比验证~~ | ✅ 完成 v0.8.2 | 11 图对照完成 + RDA 数值对齐 |
 | ~~第二数据集复现~~ | ✅ 完成 v0.9.0 | **超额完成**：Wei + Liu + Grettenberger + Ayala 共 4 数据集 + 3 stress test |
-| **论文 Methods + Results + Discussion 起草** | 1-2 周 | 素材完全就位（v0.9.0 stress test 证据加 Discussion 杀手锏；Methods 4.6 假说评分章节素材 = `paper/manuscript/scoring_validation_experiment_results.md` + `stress_test_results.md` 直接拷叙事段落） |
+| ~~论文 Methods + Results + Discussion 起草~~ | ✅ 完成草稿 v0.9.1 | Methods §4.6 (1450 字) + Results §X (800 字) + Discussion §Y (640 字) + Table 1/2 + Figure X 全部就位；剩余工作是整合到 paper 主稿（涉及 outline 整体结构决策，用户做） |
 | **User study 数据回收分析** | 1 周 | 问卷已发（2026-04-19），1 周内回收，汇总 `paper/user_study/results.md` |
 | **Verify Korehi 2014 / Mendez-Garcia 2015 真正 AMD diazotrophy 引用** | 10 min | 替换 Auld 2017 错引（详见 `paper/manuscript/hypothesis_references_audit.md`）|
 
@@ -259,8 +264,8 @@ Microbiology）。开发时持续积累：
 
 | 任务 | 工时 | 理由 |
 |---|---|---|
-| **`dominance_score` 字段**（pathway contribution / element_total）| ~1.5h | 解决 Liu A + Ayala A stress test 的二元阈值 limit；让 stress claim 能区分"主导 vs 微弱"信号；论文 Discussion 自指 future work |
-| **盲法 stress test**（请师弟独立写 stress YAML）| 1-2 周 | reviewer 杀手锏的 selection bias 反驳；当前所有 stress YAML 是作者写，存在隐性 bias |
+| ~~`dominance_score` 字段~~ | ✅ 完成 v0.9.1 | Liu/Ayala stress v2 B→A 升级；evidence 字段对所有 claim 透明 |
+| ~~盲法 stress test~~ | ⏸ 暂缓（不可行）| 没有合适的"未读过目标论文"的同事可邀请；论文 Discussion §Y.4 仅作为 future work 提议保留 |
 | Q7 新手 UX 精调 | ~1h | HTML 控件分组 / SVG-JSON 下拉 / 3 步 onboarding / tab 重排 / 参数 debug mode |
 | 大数据集性能 benchmark | 1 天 | 500+ MAG × 50+ sample，证明可扩展性 |
 | tool_comparison.md 细化 | 4h | 表格对比 Krona / Anvi'o / MicrobiomeAnalyst / 测序公司云平台 |
@@ -279,14 +284,17 @@ Microbiology）。开发时持续积累：
 
 ## 下次 session 建议起点
 
-按优先级：
-1. **论文 Methods 4.6 + Results stress test 章节起草** — 素材**完全就位**
-   （[`scoring_validation_experiment_results.md`](paper/manuscript/scoring_validation_experiment_results.md)
-   + [`stress_test_results.md`](paper/manuscript/stress_test_results.md) 含 ready-to-copy 英文叙事段落）
-2. **English README + LICENSE + Zenodo DOI** — 4-6h 扫清投稿硬指标 2/4
-3. **dominance_score 字段实现** — ~1.5h，解决 stress test 的二元阈值 limit + Discussion 自指 future work
-4. **Verify Korehi 2014 / Mendez-Garcia 2015 替代 Auld 2017** — 10 min Agent task，论文引用更稳
-5. **User study 回收** — 问卷 2026-04-19 发，本周可能有数据回收
+按优先级（v0.9.1 后剩余工作）：
+
+1. **English README + LICENSE + Zenodo DOI** — 4-6h 扫清 iMeta 投稿硬指标 2/4
+   （LICENSE 已有 MIT；主要工作是 README 英文化校对 + Zenodo release）
+2. **整合 paper 主稿**（用户做）— Methods §4.6 + Results §X + Discussion §Y 三段
+   插入 [`outline_imeta.md`](paper/manuscript/outline_imeta.md) §5.2.4 / §5.2.8 / §5.3 / §5.4
+   合适位置 + iMeta 投稿格式调整（最终 docx）
+3. **User study 回收** — 问卷 2026-04-19 发，本周可能有数据回收，汇总
+   [`paper/user_study/results.md`](paper/user_study/results.md)
+4. **大数据集性能 benchmark** — 1 天，500+ MAG × 50+ sample，证明可扩展性
+5. **tool_comparison.md 细化** — 4h，表格对比 Krona/Anvi'o/MicrobiomeAnalyst/云平台
 
 ---
 

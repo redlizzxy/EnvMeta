@@ -8,6 +8,57 @@
 
 ---
 
+## [0.9.1] — 2026-05-09 (later)
+
+> **dominance_score 字段兑现 + Paper 3 写作素材完整**：v0.9 Discussion 中
+> 标的 future work 已落地工程；Paper 3 投稿核心证据（Methods + Results +
+> Discussion + Tables + Figure X）全部就位。
+
+### ✨ 新增
+
+- **`dominance_score` 字段** + 可选 `min_dominance_fraction` 硬阈值
+  （`pathway_active` claim type）：
+  ```
+  dominance_score = pathway.total_contribution /
+                    sum(all pathways in element)
+  ```
+  evidence 字典总是含 `dominance_score` + `element_total_contribution`
+  （`pathway_active` + `pathway_inactive` 两 evaluator 都加，信息透明）。
+  解决 v0.9 stress test 暴露的二元 `mean_completeness ≥ 50%` 阈值 limit。
+  向后兼容（不指定 min_dominance_fraction 即不加阈值）。
+  ([fdfae77](https://github.com/redlizzxy/EnvMeta/commit/fdfae77))
+
+- **Stress test v2 YAMLs**（Liu + Ayala，commit `fdfae77`）：Class A reversed
+  claim 加 `min_dominance_fraction: 0.20`，其他 claims 不变。v1（commit `50c4687`）
+  保留作为 B-tier 历史证据，v2 作为 A-tier 升级证据，git history 完整 audit trail。
+  - **B → A 级 discrimination 升级**：Liu 0.625 → **0.250 (weak)** ⭐；Ayala
+    0.455 → **0.182 (weak)** ⭐。Class A claim dominance 实测 0.05% (Liu) / 7.08%
+    (Ayala) << 20% 阈值 → 正确 `unsatisfied`。**3/3 stress test 现全 A 级 clean
+    discrimination**。
+
+- **Paper 3 投稿核心写作素材**：
+  - [`paper/manuscript/methods_external_validation.md`](paper/manuscript/methods_external_validation.md)
+    Methods §4.6 完整版（~1450 字，7 子节，19 条 Vancouver 引用 + DOI）
+  - [`paper/manuscript/results_stress_test_section.md`](paper/manuscript/results_stress_test_section.md)
+    Results §X stress test 章节（~800 字，4 子节）
+  - [`paper/manuscript/discussion_calibration_discrimination.md`](paper/manuscript/discussion_calibration_discrimination.md)
+    Discussion §Y limitation + future work（~640 字，4 子节）
+  - [`paper/figures/paper3_hypothesis_scoring/`](paper/figures/paper3_hypothesis_scoring/)
+    Table 1 + Table 2 + Figure X（PDF + PNG 600dpi + SVG + matplotlib 复现脚本）
+
+- **AMD diazotrophy 引用 verify 完成**：用户手动 verify Sánchez-España 2008
+  DOI ✅；Agent verify Korehi 2014 (主题不对，与 Auld 同类错引模式) + 真正
+  AMD diazotrophy 文献 = **Dai 2014 PLoS One** (10.1371/journal.pone.0087976,
+  primary metagenomic 742 nif sequences) + **Méndez-García 2015 Front Microbiol**
+  (10.3389/fmicb.2015.00475, review). 2 calibration YAML 引用 metadata 修订
+  ([cae2de7](https://github.com/redlizzxy/EnvMeta/commit/cae2de7))
+
+### 🧪 测试
+
+- pytest **301/297 全绿**（+4 dominance_score 测试，无回归）
+
+---
+
 ## [0.9.0] — 2026-05-09
 
 > **假说评分对照实验完成 + Stress test discrimination evidence**：4 Arm KEGG-curated
