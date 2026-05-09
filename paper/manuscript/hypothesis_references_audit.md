@@ -43,7 +43,7 @@
 | 13 | Johnson & Hallberg 2005 | Johnson DB, Hallberg KB. Acid mine drainage remediation options: a review. Sci Total Environ. 2005;338(1-2):3-14. | 10.1016/j.scitotenv.2004.09.002 | ✅ 正确 |
 | 14 | Diaby et al. 2007 | Diaby N, Dold B, Pfeifer HR, Holliger C, Johnson DB, Hallberg KB. Microbial communities in a porphyry copper tailings impoundment. Environ Microbiol. 2007;9(2):298-307. | 10.1111/j.1462-2920.2006.01138.x | ✅ 正确 |
 | 15 | Falagán & Johnson 2014 | Falagán C, **Sánchez-España J**, Johnson DB. New insights into the biogeochemistry of extremely acidic environments revealed by a combined cultivation-based and culture-independent study of two stratified pit lakes. FEMS Microbiol Ecol. 2014;87(1):231-243. | 10.1111/1574-6941.12218 | ⚠️ 漏作者：是 3 作者（YAML 写 2 作者，Sánchez-España 是 co-author）|
-| 16 | Sánchez-España et al. 2008 | Sánchez-España J, López-Pamo E, Santofimia E, Diez-Ercilla M. The acidic mine pit lakes of the Iberian Pyrite Belt. Appl Geochem. 2008;23(5):1260-1287. | 10.1016/j.apgeochem.2007.12.036 | ⚠️ DOI 推断（Agent 未直接 verify；建议手动 doi.org 确认）|
+| 16 | Sánchez-España et al. 2008 | Sánchez España J, López Pamo E, Santofimia Pastor E, Diez Ercilla M. The acidic mine pit lakes of the Iberian Pyrite Belt: An approach to their physical limnology and hydrogeochemistry. Appl Geochem. 2008;23(5):1260-1287. | 10.1016/j.apgeochem.2007.12.036 | ✅ 用户手动 verify (2026-05-09)：DOI 解析到 *Applied Geochemistry* 23(5):1260-1287，作者完整匹配 |
 
 ### 2.1 引用错误等级统计
 
@@ -58,7 +58,23 @@
 1. **Yin 2011 期刊错（Plant Physiol 不是 ES&T）** — claim 提炼度仍 Direct（Plant Physiol 论文确实讲 cyanobacteria arsM），但 reviewer 一查 ES&T 找不到会提问
 2. **Bothe 2007 文献本身错（应为 Bothe 2000 FEMS）** — Liu stress YAML 引用"Bothe 2007 FEMS"不存在；应改 Bothe 2000 FEMS Microbiol Rev（claim 提炼度仍 Direct）
 3. **Cabrera 2006 期刊+主题错** — YAML 引用"acidophilic SRB 综述"不存在；Cabrera 2006 是金属毒性 SRB 实验论文。Grettenberger calibration claim 引用 Cabrera 应改 Sánchez-Andrea 2014（J Hazard Mater，是真正的 acidophilic SRB 综述）
-4. **Auld 2017 主题错（是 seasonal variation，不是 diazotrophy）** — Grettenberger + Ayala calibration 的 nitrogen_fixation_explored claim 引用 Auld 2017 支持"AMD 寡营养偶发 nifHDK 报告"，**实际 Auld 2017 没明说 diazotrophy**。这条 claim 的引用支持降级为 **Weak**，应改引真正的 AMD diazotrophy 文献（候选：Korehi et al. 2014 *Front Microbiol*, Mendez-Garcia et al. 2015 *Front Microbiol*）
+4. **Auld 2017 主题错（是 seasonal variation，不是 diazotrophy）** — Grettenberger + Ayala calibration 的 nitrogen_fixation_explored claim 引用 Auld 2017 支持"AMD 寡营养偶发 nifHDK 报告"，**实际 Auld 2017 没明说 diazotrophy**。这条 claim 的引用支持降级为 **Weak**。
+
+   **Verified 替代文献**（Agent + 用户 2026-05-09 二次 verify）：
+   - ⭐ **Dai et al. 2014 *PLoS One* 9(2):e87976**（DOI: 10.1371/journal.pone.0087976）
+     "Identification of nitrogen-fixing genes and gene clusters from metagenomic library
+     of acid mine drainage" — primary metagenomic evidence: 742 nif sequences + 32.5-kb
+     nif/fix 基因簇 from Dexing copper mine AMD。**最直接的 AMD diazotrophy 一手文献**
+   - **Méndez-García et al. 2015 *Front Microbiol* 6:475**（DOI: 10.3389/fmicb.2015.00475）
+     "Microbial diversity and metabolic networks in acid mine drainage habitats" —
+     review 含 §3.1.1 + §4.3 明确讨论 AMD N₂ fixation；列出 *Acidithiobacillus
+     ferrooxidans / Leptospirillum ferrooxidans / L. ferrodiazotrophum / Ferrovum
+     myxofaciens* 为 AMD 主要 diazotrophs，含 nifHDKENX operon。**synthesis review**
+
+   **应避免的错候选**：
+   - ❌ **Korehi et al. 2014 *Res Microbiol* 165(9):713-718** (DOI: 10.1016/j.resmic.2014.08.007)
+     真实存在但**主题不对** — 只讨论 16S rRNA 群落结构，不涉及 nifH/diazotrophy/N fixation。
+     与 Auld 2017 同类错引模式（群落 paper 被误用为机制证据）。Methods 中**不要**引用
 
 ---
 
@@ -173,13 +189,19 @@
 > (10.1016/j.jhazmat.2005.11.058), and is a metal toxicity study rather than
 > the acidophilic SRB review intended; (4) Auld et al. 2017 Can J Microbiol
 > 63(2):137-152 (10.1139/cjm-2016-0215) is a seasonal community variation
-> study, not an AMD diazotrophy report; the nitrogen_fixation_explored claims
-> (Grettenberger, Ayala) therefore lack direct literature support and are
-> downgraded to weak-evidence claims. None of these reference errors affect
-> the EnvMeta scoring outputs themselves; they affect only the literature
-> grounding of the corresponding claims. We acknowledge this as a methodological
-> limitation and recommend future hypothesis YAMLs include verified DOIs
-> alongside each claim citation."
+> study, not an AMD diazotrophy report. For (4), the nitrogen_fixation_explored
+> claims (Grettenberger, Ayala) are therefore re-grounded in two corrected
+> primary literature references: Dai et al. 2014 PLoS One 9(2):e87976
+> (10.1371/journal.pone.0087976; metagenomic identification of 742 nif
+> sequences and a 32.5-kb nif/fix gene cluster from acid mine drainage) and
+> Méndez-García et al. 2015 Front Microbiol 6:475 (10.3389/fmicb.2015.00475;
+> review of AMD diazotrophs including Acidithiobacillus ferrooxidans,
+> Leptospirillum ferrooxidans, L. ferrodiazotrophum, and Ferrovum myxofaciens
+> with nifHDKENX operon). None of these reference errors affect the EnvMeta
+> scoring outputs themselves; they affect only the literature grounding of the
+> corresponding claims. We acknowledge this as a methodological limitation and
+> recommend future hypothesis YAMLs include verified DOIs alongside each claim
+> citation."
 
 ---
 
@@ -189,4 +211,5 @@
 |---|---|
 | 2026-05-08 | 初版 — 16 claim × 13 文献提炼度评估；6/13 DOI 已 verify，7 待 verify（Agent 异步） |
 | 2026-05-08（深夜）| **Agent verify 完成 → 发现 4 个引用错误（Yin 期刊 / Bothe 文献本身 / Cabrera 期刊+主题 / Auld 主题）。提炼度统计修正：Direct 9 / Inferred 5 / Weak 2。Methods 必须加纠正声明** |
-| TBD | 真正的 AMD diazotrophy 文献候选（替代 Auld 2017）verify：Korehi 2014 / Mendez-Garcia 2015 |
+| 2026-05-09 | 用户手动 verify Sánchez-España 2008 DOI ✅（doi.org 解析到 *Appl Geochem* 23(5):1260-1287，作者完整匹配）；Agent 启动 Korehi 2014 / Mendez-Garcia 2015 真正 AMD diazotrophy 替代文献 verify |
+| 2026-05-09（次） | Agent verify 完成：Korehi 2014 ❌ 主题错（同 Auld 2017 模式），Méndez-García 2015 ✅ Front Microbiol review 含 AMD diazotrophy 章节，**新发现 Dai 2014 PLoS One** ⭐ 真正一手 metagenomic AMD nifHDK 实证（742 nif sequences）；推荐 Methods 双引 Dai 2014 (primary) + Méndez-García 2015 (review) 替代 Auld 2017 |

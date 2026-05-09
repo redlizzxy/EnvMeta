@@ -39,8 +39,12 @@
 #      仍可能 nitrate reduction 或 N fixation
 #      （Tan et al. 2009 *FEMS Microbiol Ecol* AMD seasonal study；
 #       Auld et al. 2017 *Can J Microbiol* AMD seasonal community variation
-#       — ⚠️ 主题订正：Auld 2017 不直接讲 diazotrophy，应替换为 Korehi 2014 /
-#       Mendez-Garcia 2015 之 AMD diazotrophy 文献，待手动 verify）
+#       — ⚠️ 主题订正：Auld 2017 不直接讲 diazotrophy；Methods 已改引：
+#       ① Dai et al. 2014 *PLoS One* 9(2):e87976 [primary metagenomic 742 nif
+#          sequences + 32.5-kb nif gene cluster from AMD] DOI:10.1371/journal.pone.0087976
+#       ② Méndez-García et al. 2015 *Front Microbiol* 6:475 [review with AMD
+#          diazotrophy section] DOI:10.3389/fmicb.2015.00475
+#       ⚠️ 不要引 Korehi 2014 — 同 Auld 2017 错引模式）
 #
 # 因此预设：1 个 confirmatory required + 1 个 confirmatory not-required + 2 个 exploratory
 
@@ -106,8 +110,9 @@ claims:
   # H4（exploratory, NOT required）: AMD 寡营养环境 N fixation 可能偶发
   # 先验依据: Auld et al. 2017 *Can J Microbiol* 63(2):137-152
   # ⚠️ 主题订正：Auld 2017 不是 diazotrophy 报告，是 AMD seasonal community
-  # variation。该 claim 的 N fixation 引用支持降级 weak；建议改引 Korehi 2014/
-  # Mendez-Garcia 2015 verified AMD diazotrophy 文献（待手动 verify DOI）
+  # variation。该 claim 的 N fixation 引用支持降级 weak。Methods 已改引：
+  # ① Dai et al. 2014 *PLoS One* 9(2):e87976 (DOI:10.1371/journal.pone.0087976)
+  # ② Méndez-García et al. 2015 *Front Microbiol* 6:475 (DOI:10.3389/fmicb.2015.00475)
   # ─────────────────────────────────────────────────────────────────────
   - id: nitrogen_fixation_explored
     type: pathway_active
@@ -161,5 +166,20 @@ claims:
 #     DOI: 10.1139/cjm-2016-0215
 #     [⚠️ 主题订正：本 YAML 引用其支撑 "AMD diazotrophy"，但 Auld 2017
 #      实际是 seasonal community variation。该 claim 文献支持降级 weak。
-#      Methods 中应改引 Korehi et al. 2014 *Front Microbiol* / Mendez-Garcia
-#      et al. 2015 *Front Microbiol* AMD diazotrophy 文献（待手动 verify）]
+#      Methods 已改引下列两篇 verified 文献]
+#
+# [7] ⭐ Dai Z, Guo X, Yin H, Liang Y, Cong J, Liu X. Identification of
+#     nitrogen-fixing genes and gene clusters from metagenomic library of
+#     acid mine drainage. PLoS One. 2014;9(2):e87976.
+#     DOI: 10.1371/journal.pone.0087976
+#     [primary AMD diazotrophy metagenomic evidence — 742 nif sequences +
+#      32.5-kb nif/fix gene cluster from Dexing copper mine AMD;
+#      replaces Auld 2017 for nitrogen_fixation_explored claim]
+#
+# [8] Méndez-García C, Peláez AI, Mesa V, Sánchez J, Golyshina OV, Ferrer M.
+#     Microbial diversity and metabolic networks in acid mine drainage
+#     habitats. Front Microbiol. 2015;6:475.
+#     DOI: 10.3389/fmicb.2015.00475
+#     [synthesis review including AMD diazotrophy section §3.1.1 + §4.3:
+#      Acidithiobacillus ferrooxidans / Leptospirillum ferrooxidans /
+#      L. ferrodiazotrophum / Ferrovum myxofaciens with nifHDKENX operon]

@@ -61,6 +61,6 @@
 
 **待完成**（按优先级）：
 1. 论文 Methods 4.6 假说评分章节 + Results stress test 章节起草
-2. Verify Korehi 2014 / Mendez-Garcia 2015 替代 Auld 2017 错引（10 min Agent task）
+2. ~~Verify Korehi 2014 / Mendez-Garcia 2015~~ ✅ 完成（2026-05-09）：Korehi 2014 主题错（同 Auld 错引模式），改引 **Dai 2014 PLoS One** (10.1371/journal.pone.0087976) + **Méndez-García 2015 Front Microbiol** (10.3389/fmicb.2015.00475)
 3. 实现 dominance_score 字段解决二元阈值 limit（v0.9 future work）
 4. 英文 README + LICENSE + Zenodo DOI（投稿硬指标）
