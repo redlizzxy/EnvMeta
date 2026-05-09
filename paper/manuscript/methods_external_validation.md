@@ -51,33 +51,49 @@ For non-skipped claims, the overall score is the weight-normalized aggregate
 unsatisfied}. Three independent confidence indicators accompany the overall
 score: a Fisher permutation null-p (Fisher, 1935; randomly redistributing
 satisfaction across claims to estimate the chance of the observed score under
-the null of no claim-weight correspondence), a one-at-a-time (OAT) ±20%
-weight-robustness flag (whether label survives any single-weight perturbation),
-and Bradford-Hill required-veto reasons (claims marked `required: true` whose
-failure forces the overall label down to `insufficient` regardless of overall
-score). The full schema is documented at `paper/hypotheses/README.md` and
+the null of no claim-weight correspondence; we use n = 999 permutations
+following the precedent established by Anderson (2001) for PERMANOVA, where
+999 permutations resolve p-values to the third decimal place at α = 0.05
+and provide a stable balance between resolution and runtime), a
+one-at-a-time (OAT) ±20% weight-robustness flag (whether label survives
+any single-weight perturbation), and Bradford-Hill required-veto reasons
+(claims marked `required: true` whose failure forces the overall label
+down to `insufficient` regardless of overall score). The full schema is documented at `paper/hypotheses/README.md` and
 `docs/hypothesis_writing_guide.md`.
 
-### 4.6.2 Pre-registration discipline
+### 4.6.2 Pre-registration discipline (and its limits)
 
-To prevent post-hoc rationalization and confirmation bias, every hypothesis
-YAML in the controlled experiment was **pre-registered**: committed to git
-before EnvMeta was run on the corresponding dataset, with the commit hash
-serving as an immutable timestamp. Default thresholds (`min_completeness=30`,
-`strong=0.75`, `suggestive=0.40`) were not tuned per dataset. Each claim's
-`description` field cited only review/primary literature published at least
-five years before the publication year of the target paper, ensuring no
-specific finding from the target paper informed the claim's design. Each
-claim further declared an `expected_label` and a one-line reasoning under a
-`[PREDICTION]` / `[REASONING]` annotation block; predictions were frozen in
-a separate file (`paper/manuscript/stress_test_predictions.md`) before
-EnvMeta runs and diffed against observed outcomes after.
+To partially mitigate post-hoc rationalisation and confirmation bias, every
+hypothesis YAML in the controlled experiment was **time-pre-registered**:
+committed to git before EnvMeta was run on the corresponding dataset, with
+the commit hash serving as an immutable timestamp on the claim entities
+(claim type, target pathway, weight, threshold, required flag, and
+expected_label). Default thresholds (`min_completeness=30`, `strong=0.75`,
+`suggestive=0.40`) were not tuned per dataset. Each claim's `description`
+field cited only review or primary literature published at least five years
+before the publication year of the target paper, ensuring that no specific
+finding from the target paper informed the claim's design. Each claim
+further declared an `expected_label` and one-line reasoning under a
+`[PREDICTION]` / `[REASONING]` annotation block; predictions were frozen
+in a separate file (`paper/manuscript/stress_test_predictions.md`) before
+EnvMeta runs and diffed against observed outcomes afterwards.
 
-We acknowledge that the authors of the present paper had read all four target
-papers prior to writing the YAMLs, which is a residual selection bias that
-git timestamps cannot eliminate. Future iterations should employ blind
-hypothesis writing by collaborators unfamiliar with the target dataset's
-findings.
+We are explicit about what time-pre-registration **can** and **cannot**
+control. It establishes verifiable temporal ordering between
+hypothesis-authoring and data-running, and it locks the scoring entities
+against post-hoc adjustment. It does **not** control for the cognitive
+selection bias that arises when the authors had already read the target
+papers before authoring claims. We acknowledge this residual bias as the
+single largest methodological limitation of the present calibration
+experiment: the four `STRONG` calibration outcomes therefore conflate
+two effects that cannot be cleanly separated by git timestamps alone — the
+scoring engine's behaviour under default thresholds, and the authors'
+skill at choosing claims plausibly satisfiable by KEGG-curated datasets in
+the topics we surveyed. We discuss this limitation and the planned
+mitigation (blind hypothesis writing by collaborators unfamiliar with the
+target paper's findings, and the planned domain-paper publication of the
+arsenic-slag case study by an independent reviewer track) further in §Y.3
+and §Y.4.
 
 ### 4.6.3 Four-Arm calibration experiment
 
@@ -95,7 +111,7 @@ breadth and study topics:
   required input formats; 12 of Wei's 14 ROCker genes mapped to canonical
   KEGG orthologs (`aioA→K08356`, `arrA→K28466`, `arsC1→K00537`, etc.); two
   (`arxA`, `nrfA`) were skipped due to absent KO mappings or pathway gaps in
-  EnvMeta KB v1.1.
+  EnvMeta KB v2.0 (KEGG snapshot 2026-04-15).
 - **Arm C1** (KEGG-curated, same topic): Liu et al. (2023 *npj Biofilms
   Microbiomes* 9:13, 10.1038/s41522-023-00382-8), deep-sea cold-seep arsenic
   cycling, 87 samples × 1084 MAGs with DRAM-derived KEGG annotation.
@@ -159,11 +175,20 @@ Observed stress-test results showed score gaps below their respective
 calibration STRONG (1.000): Grettenberger 2021 returned label `weak` (0.250,
 1/3 satisfied) — Arm C2-A; Liu 2023 and Ayala 2020 returned `suggestive`
 (0.625 and 0.455 respectively, 2/3 and 2/4 satisfied) — Arms C1 and C2-B.
-The single most informative discriminator was the cross-topic claim
+The most informative single discriminator was the cross-topic claim
 "arsenate_reduction should dominate", which was correctly rejected with
-**n = 0 active MAGs in both non-arsenic datasets** (Grettenberger and Ayala),
-ruling out the concern that the universal `arsC` detoxification homolog
-(Rosen, 2002) would inflate cross-topic scores to satisfied.
+**n = 0 active MAGs in both non-arsenic datasets** (Grettenberger n = 29
+MAGs; Ayala n = 13 MAGs). We interpret this two-dataset rejection as
+**consistent with** — rather than ironclad proof of — the scoring engine
+being uninfluenced by the universal `arsC` detoxification homolog (Rosen,
+2002) under cross-topic mismatch. Two caveats apply: (i) the absolute MAG
+counts are small enough that absence of `arsC`-bearing MAGs could partly
+reflect sampling undercount; (ii) both stress datasets sample acid mine
+drainage / pit-lake systems where dissolved arsenic is plausibly
+subdetectable rather than zero. A larger non-arsenic dataset (≥ 100 MAGs
+from a soil or marine system) would provide a more statistically robust
+test of the cross-topic rejection result, and we discuss this as future
+work in §Y.4.
 
 In two of three datasets (Liu and Ayala), the reversed-direction stress claim
 ("arsenite oxidation should dominate") returned satisfied because real but
@@ -175,23 +200,30 @@ exposes a binary `satisfied / unsatisfied` reporting limitation: the current
 engine cannot distinguish "dominant" from "detectable but weak" pathway
 activity in v0.9.0.
 
-To resolve this, **EnvMeta v0.9.x adds a `dominance_score` field** computed
-as `pathway.total_contribution / sum(all pathways in the same element)`
+In response, **EnvMeta v0.9.x added a `dominance_score` field** computed as
+`pathway.total_contribution / sum(all pathways in the same element)`
 (provided in every `pathway_active` and `pathway_inactive` evidence
 dictionary), plus an optional `min_dominance_fraction` hard threshold for
-`pathway_active` claims. A second pre-registered stress YAML
-(`{dataset}_hypothesis_stress_v2.yaml`) with the Class-A reversed claim
-augmented by `min_dominance_fraction = 0.20` re-tested the same datasets:
-Liu's "arsenite_oxidation should dominate" returned `unsatisfied` with
-observed dominance 0.05% (far below the 20% threshold); Ayala's
-"sulfide_oxidation should dominate" returned `unsatisfied` with dominance
-7.08%. Both v2 stress overall scores converged to the `weak` label (Liu
-0.625 → 0.250; Ayala 0.455 → 0.182), upgrading their discrimination outcomes
-from B-tier to A-tier and matching Grettenberger 2021's already-clean
-result. The v2 YAMLs preserve all other claims unchanged from v1; v1 results
-remain accessible in git history at commit `50c4687`. The before/after pair
-documents that the `dominance_score` extension resolves the binary-threshold
-limitation without reintroducing claim selection bias.
+`pathway_active` claims. We emphasize that this is an **engineering
+retrofit informed by the v1 stress-test outputs**, not an independent
+validation: the threshold value (20%) was chosen after observing the v1
+dominance values for Liu (0.05%) and Ayala (7.08%) and is therefore
+data-informed rather than predicted *a priori*. A second pre-registered
+YAML (`{dataset}_hypothesis_stress_v2.yaml`) with the Class-A reversed
+claim augmented by `min_dominance_fraction = 0.20` was committed and run
+on the same datasets to verify the retrofit's behaviour: Liu's
+"arsenite_oxidation should dominate" returned `unsatisfied` (observed
+dominance 0.05%); Ayala's "sulfide_oxidation should dominate" returned
+`unsatisfied` (dominance 7.08%); both v2 overall scores moved to the
+`weak` label (Liu 0.625 → 0.250; Ayala 0.455 → 0.182). We report these
+v1/v2 outcomes side by side (Table 2) so that readers can judge the
+retrofit's effect directly; we do **not** treat the v2 outcomes as
+independent confirmation of EnvMeta's discrimination power. Independent
+validation would require a fresh dataset not used in either v1 or v2,
+which we identify as future work alongside the broader blind-hypothesis-
+writing exercise (§Y.4). The v2 YAMLs preserve all other claims unchanged
+from v1; v1 results remain accessible in git history at commit `50c4687`,
+and v2 retrofit at commit `fdfae77`.
 
 ### 4.6.6 Reference audit and post-hoc corrections
 

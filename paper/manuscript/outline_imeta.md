@@ -272,7 +272,9 @@ hypothesis）→ 下 1/3 导出。
 - KEGG-driven KB（4 元素 × 18 通路 × 57 KO）
 - 3 阶段推断：**S1 去偏 → S2 999 次置换 → S3 敏感度扫描**
 - Mockup 10 合并细胞布局（substrate-gene-product 三段式）
-- 跨元素化学物耦合（雌黄沉淀 As(III)↔H₂S → As₂S₃）
+- 跨元素化学物耦合（orpiment / 雌黄沉淀 As(III) + H₂S → As₂S₃，primary refs:
+  Newman et al., 1997 *J Bacteriol* 179:6952; Rodriguez-Freire et al., 2014
+  *Environ Sci Technol* 48:4107）
 
 **Figure 3 内容**：
 - A) KB schema（4 元素 × 18 通路）
@@ -342,16 +344,21 @@ hypothesis）→ 下 1/3 导出。
 >
 > Observed stress scores fell substantially below the calibration STRONG
 > baseline (Table 2; Figure X). Grettenberger 2021 returned `weak` (0.250,
-> 1/3 satisfied) — the cleanest single-Arm discrimination. Liu 2023 and Ayala
-> 2020 returned `suggestive` (0.625 / 0.455, with skipped claims contributing
-> to partial scores). The single most informative discriminator was the
-> cross-topic claim "arsenate_reduction should dominate", which was correctly
-> rejected with **n = 0 active MAGs in both non-arsenic datasets** (Grettenberger
-> AMD stream and Ayala pit lake). This double-rejection rules out the *a priori*
-> concern that the universal *arsC* arsenate-reductase homolog (Rosen, 2002)
-> would inflate cross-topic scores. EnvMeta's scoring is therefore
-> **domain-neutral** — neither hard-wired to confirm arsenic hypotheses nor
-> biased against alternative contexts.
+> 1/3 satisfied) — the cleanest single-Arm discrimination. Liu 2023 and
+> Ayala 2020 returned `suggestive` (0.625 / 0.455, with skipped claims
+> contributing to partial scores). The most informative single discriminator
+> was the cross-topic claim "arsenate_reduction should dominate", which was
+> correctly rejected with **n = 0 active MAGs in both non-arsenic datasets**
+> (Grettenberger n = 29 MAGs; Ayala n = 13 MAGs). We treat this two-dataset
+> rejection as **consistent with** — rather than ironclad proof of — the
+> scoring engine being uninfluenced by the universal *arsC* arsenate-reductase
+> homolog (Rosen, 2002) under cross-topic mismatch; small dataset sizes mean
+> absence of *arsC* could partly reflect sampling undercount, and a larger
+> non-arsenic dataset (≥ 100 MAGs) is flagged as future work (§5.3 / §Y.4).
+> Within the scope of the KEGG-curated datasets we tested, EnvMeta's scoring
+> is **consistent with** being neither hard-wired to confirm arsenic-cycle
+> hypotheses nor biased against alternative contexts, **conditional on
+> adequate KEGG coverage**.
 >
 > In two of three datasets (Liu and Ayala), the reversed-direction stress
 > claim "arsenite oxidation should dominate" returned satisfied because real
@@ -359,11 +366,17 @@ hypothesis）→ 下 1/3 导出。
 > 10-fold below the dominant reduction pathway, but above the binary
 > `mean_completeness ≥ 50%` threshold). This exposes a **binary-threshold
 > reporting limitation** addressed in v0.9.x by the `dominance_score =
-> total_contribution / element_total` field. A second pre-registered v2 YAML
-> (`*_stress_v2.yaml`) with `min_dominance_fraction = 0.20` upgraded both Liu
-> (0.625 → 0.250) and Ayala (0.455 → 0.182) stress scores to clean A-tier
-> discrimination, with observed dominance scores of 0.05% and 7.08% — well
-> below the 20% threshold (Table 2 v2 column).
+> total_contribution / element_total` field. We are explicit that the v0.9.x
+> extension is an **engineering retrofit informed by v1 outputs** rather
+> than independent validation: the `min_dominance_fraction = 0.20` threshold
+> was chosen after observing v1 dominance values (Liu 0.05%, Ayala 7.08%).
+> A second pre-registered v2 YAML (`*_stress_v2.yaml`, commit `fdfae77`)
+> with this threshold returned `unsatisfied` for both datasets and reduced
+> overall scores to Liu 0.250 / Ayala 0.182 (Table 2 v2 column). We report
+> v1 and v2 outcomes side by side so that readers can judge the retrofit's
+> effect directly; we do **not** interpret v2 as independent confirmation
+> of discrimination power. Independent validation of the `dominance_score`
+> field on a fresh dataset is identified as future work (§5.3 Future).
 
 #### 5.2.5 独立交互 HTML 导出（Figure 5）
 
@@ -417,19 +430,28 @@ what a fully KofamScan/DRAM/METABOLIC-annotated 1000+ MAG dataset would
 behave like, and ran an 8-cell sweep across N_MAGs ∈ {200, 500, 1000} ×
 N_samples ∈ {30, 60, 87}.
 
-Two findings emerged that are inverted from a typical user's expectation.
-First, **cycle_diagram cost is independent of MAG count**: at fixed dense
-annotation and 4 env factors, going from 200 → 1000 MAGs added only 24% to
-runtime (14.8 s → 18.4 s); going from 30 → 87 samples at fixed 1000 MAGs
-added zero (within measurement noise). The asymptotic complexity is
-**N_pathway_active × N_env × 999 × O(N_sample × log N_sample)** — set by the
-permutation test in the cycle-inference S2 step ([`envmeta/geocycle/inference.py`](../envmeta/geocycle/inference.py))
-— rather than by N_MAG. Second, **annotation breadth dominates**: the same
+Two findings emerged. First, within the scope of our measurements,
+**cycle_diagram cost appears largely independent of MAG count**: at fixed
+synthetic-dense annotation and 4 env factors, going from 200 → 1000 MAGs
+added only 24% to runtime (14.8 s → 18.4 s); going from 30 → 87 samples at
+fixed 1000 MAGs added zero (within measurement noise). The asymptotic
+complexity is **N_pathway_active × N_env × 999 × O(N_sample × log N_sample)**
+— set by the permutation test in the cycle-inference S2 step
+([`envmeta/geocycle/inference.py`](../envmeta/geocycle/inference.py)) —
+rather than by N_MAG. We caution that this finding is established under a
+**synthetic random KO assignment** rather than a realistic KofamScan / DRAM
+/ METABOLIC annotation distribution; real annotations cluster around
+organism-specific functional repertoires and may show different cost-by-N_MAG
+behaviour. A direct comparison against one fully KofamScan-annotated dataset
+is identified as future validation. Second, the dataset-anchored finding
+that **annotation density matters more than dataset size** — the same
 1084-MAG Liu dataset ran cycle inference in 0.4 s with 8 published As-target
-KOs but in 18.4 s with our synthetic-dense 25 KO/MAG annotation. This
-positions EnvMeta favorably for the typical PhD-scale metagenome (200-1000
-MAGs × 30-100 samples × 4-6 env factors), where the entire 14-figure
-pipeline finishes in 30-120 s on a standard 8-16 GB laptop.
+KOs versus 18.4 s under our synthetic 25 KO/MAG augmentation — is robust to
+the synthetic-regime caveat above (the two endpoints are both real-data
+or real-data-derived). Together, these observations position EnvMeta
+favourably for the typical PhD-scale metagenome (200-1000 MAGs × 30-100
+samples × 4-6 env factors), where the entire 14-figure pipeline finishes
+in 30-120 s on a standard 8-16 GB laptop.
 
 EnvMeta is also memory-light. Across all 58 measured (dataset × figure)
 combinations, the maximum observed peak ΔRSS over baseline was 9.3 MB, and
@@ -529,54 +551,84 @@ scoring + Bundle + offline HTML"。
 4. **Calibration vs Discrimination framing**（NEW —— 1 段过渡 / ~150 words / 接 §Y.1-Y.2）
 
 > Drop-in English text — source: [`discussion_calibration_discrimination.md`](discussion_calibration_discrimination.md) §Y.1 + §Y.2 abridged
+> (post mock-review v0.9.1 reframe: KEGG-coverage-dependent, not domain-neutral)
 
 > The four-arm controlled experiment (§5.2.4) provides what we term
-> **calibration evidence**: under fixed default thresholds, EnvMeta's scoring
-> engine returns `STRONG` for KEGG-curated datasets across two arsenic-cycle
-> topics and two non-arsenic AMD topics, and `INSUFFICIENT` only for the
-> dataset whose published annotation provides too few canonical KOs to span
-> the target pathways. The stress-test layer (§5.2.4 paragraph 2) provides
-> direct evidence of **discrimination power**: the cross-topic
-> "arsenate_reduction should dominate" claim was rejected with n = 0 active
-> MAGs in 2/2 non-arsenic datasets, ruling out the *a priori* concern that
-> the universal *arsC* detoxification homolog would inflate cross-topic scores.
-> Together with the Wei 2024 `INSUFFICIENT` outcome, the engine appears
-> **domain-neutral** — neither hard-wired to confirm arsenic hypotheses nor
-> biased against alternative contexts. EnvMeta's role is therefore best
-> framed as a *diagnostic instrument* for matching hypothesis claims against
-> available annotation breadth, not as an oracle that validates user
-> interpretations.
+> **KEGG-coverage-dependent calibration evidence**: under fixed default
+> thresholds, EnvMeta's scoring engine returns `STRONG` for the four datasets
+> that supply canonical KEGG annotation (KofamScan, DRAM, METABOLIC, or
+> end-to-end Pyrodigal + GhostKOALA), and `INSUFFICIENT` for the one dataset
+> whose published annotation is restricted to a custom ROCker fourteen-gene
+> subset. This pattern reflects two coupled effects: the engine performs as
+> designed when KEGG-orthology coverage is adequate, and it correctly flags
+> coverage mismatch on Arm B rather than failing silently. The stress-test
+> layer (§5.2.4 paragraph 2) provides additional evidence that, **conditional
+> on adequate KEGG coverage**, the engine resists awarding high scores to
+> claims that violate environmental priors: the cross-topic "arsenate_reduction
+> should dominate" claim was rejected with n = 0 active MAGs in 2/2
+> non-arsenic datasets — a result consistent with (rather than ironclad proof
+> of) the engine being uninfluenced by the universal *arsC* detoxification
+> homolog. Together, these observations position EnvMeta as a *diagnostic
+> instrument* whose performance is conditional on adequate KEGG coverage of
+> the target pathways, rather than as a domain-blind tool that performs
+> equally on any annotation regime, and rather than as an oracle that
+> validates user interpretations.
 
-5. **局限性**（~250 words / merged §Y.3 + performance §5.3）
+5. **局限性**（~340 words / merged §Y.3 + performance §5.3）
 
 > Drop-in English text — source: [`discussion_calibration_discrimination.md`](discussion_calibration_discrimination.md) §Y.3
 > + [`performance_paragraph_snippets.md`](performance_paragraph_snippets.md) §5.3
+> (post mock-review v0.9.1: lead with author selection bias as #1 limitation)
 
-> **(1) Author familiarity with target papers.** Despite explicit
-> pre-registration discipline (§5.4.8.2), we (the authors) had read all four
-> target papers before writing the YAMLs, so the claim selection itself
-> reflects implicit knowledge of which pathways were likely to score well.
-> The cleanest mitigation is **blind hypothesis writing** by collaborators
-> unfamiliar with the dataset's findings — a study design we recommend for
-> future iterations. **(2) KB coverage.** EnvMeta KB v1.1 covers 4 elements ×
-> 18 pathways × 57 KOs (As / N / S / Fe). Two of Wei's 14 target genes
-> (*arxA* anaerobic arsenite oxidase; *nrfA* DNRA pathway) lacked KB
-> mappings; iron(II) oxidation and iron(III) reduction pathways central to
-> AMD biogeochemistry are not yet encoded. KB v1.2 will extend ROCker-model
-> alias support and add iron-redox plus DNRA blocks. **(3) Pre-publication
-> hand-checks.** Post-hoc DOI verification identified four citation errors
-> (§5.2.8 audit). These do not affect scoring outputs but emphasize the value
-> of building DOI verification into the hypothesis-writing workflow itself.
-> **(4) Empirical scaling envelope.** From the performance benchmark
+> **(1) Residual author selection bias** — the single largest limitation of
+> the four-arm calibration experiment. Despite explicit time-pre-registration
+> discipline (§5.4.8.2), the authors had read all four target papers before
+> writing the hypothesis YAMLs. Time-pre-registration locks the claim
+> entities against post-hoc adjustment but does not control for the
+> cognitive selection bias of choosing claims plausibly satisfiable by
+> KEGG-curated datasets in the topics surveyed. The four `STRONG` calibration
+> outcomes therefore conflate two effects that cannot be cleanly separated
+> within the present design: the scoring engine's behaviour under default
+> thresholds, and the authors' skill in claim selection. The cleanest
+> mitigation is **blind hypothesis writing** by collaborators unfamiliar
+> with the dataset's findings (§5.3 Future).
+>
+> **(2) KEGG-coverage dependency** — as discussed in §Y.1 / §5.3 paragraph
+> 4, the calibration evidence is conditional on adequate KEGG-orthology
+> coverage of the target pathways. The `INSUFFICIENT` outcome on Arm B
+> (Wei 2024 ROCker-only annotation) is itself diagnostic of this
+> conditional, but it limits the generalisation of the four `STRONG`
+> results to environments where canonical KEGG annotations are available.
+>
+> **(3) KB coverage.** EnvMeta KB v2.0 (KEGG snapshot 2026-04-15) covers 4
+> elements × 18 pathways × 57 KOs (As / N / S / Fe). Two of Wei's 14 target
+> genes (*arxA*; *nrfA*) lacked KB mappings; iron(II) oxidation and iron(III)
+> reduction pathways central to AMD biogeochemistry are not yet encoded.
+> KB v2.1 will extend ROCker-model alias support and add iron-redox plus
+> DNRA blocks.
+>
+> **(4) Pre-publication hand-checks.** Post-hoc DOI verification identified
+> four citation errors (§5.2.8 audit). These do not affect scoring outputs
+> but emphasise the value of building DOI verification into the
+> hypothesis-writing workflow itself.
+>
+> **(5) Synthetic-dense scaling regime.** The 58-cell performance benchmark
+> uses a synthetic random KO assignment (25 KOs/MAG) to approximate full-KEGG
+> annotation density. Real KofamScan / DRAM / METABOLIC annotations cluster
+> around organism-specific functional repertoires and may show different
+> cost-by-N_MAG behaviour. The synthetic-dense scaling numbers (§5.2.8)
+> should be read as upper-bound estimates rather than as a faithful
+> reproduction of real-world annotation distributions.
+>
+> **(6) Empirical scaling envelope.** From the performance benchmark
 > (§5.2.8), full-pipeline runtime stays under 2 minutes for the typical
-> PhD-thesis metagenome (200-1000 MAGs × 30-100 samples × 4 env factors ×
-> ~25 KO/MAG); under 15 minutes for ~5000 MAGs; and is dominated by the
-> cycle inference's permutation test, not by any matplotlib-rendering step.
-> The 5000-MAG ceiling is therefore not a runtime cliff but a soft constraint
-> imposed by heatmap legibility and by the typical iMeta-class user data
-> scale, consistent with our design philosophy of an open-source local tool
-> aimed at graduate-student and small-lab users, complementing rather than
-> competing with HPC-grade pipelines such as Anvi'o.
+> PhD-thesis metagenome (200-1000 MAGs × 30-100 samples × 4 env factors);
+> under 15 minutes for ~5000 MAGs; and is dominated by the cycle inference's
+> permutation test. The 5000-MAG ceiling is a soft constraint imposed by
+> heatmap legibility and typical iMeta-class user data scale rather than a
+> runtime cliff, consistent with our design philosophy of an open-source
+> local tool aimed at graduate-student and small-lab users, complementing
+> rather than competing with HPC-grade pipelines such as Anvi'o.
 
 6. **Future work**（~150 words / §Y.4）
 
@@ -713,12 +765,15 @@ and its accessibility-first GUI philosophy directly inherits from
 the EasyAmplicon and ImageGP 2 design tradition.
 
 We thank [supervisor name] for guidance and [research group] for
-data sharing and beta testing. We acknowledge feedback from n=8+
-graduate student users in the v2 user study, and the authors of the
-four external-validation datasets (Wei 2024, Liu 2023, Grettenberger
-2021, Ayala 2020) for openly sharing their MAG-level annotations
-without which the present calibration and stress-test experiments
-would not have been possible.
+data sharing and beta testing. We acknowledge feedback from the
+graduate student volunteers participating in the v2 user-study
+questionnaire (final n to be reported in the v1.0 release; if user
+study data is available at submission time, replace this with the
+actual n and consolidated SUS / task-success summary), and the
+authors of the four external-validation datasets (Wei 2024, Liu
+2023, Grettenberger 2021, Ayala 2020) for openly sharing their
+MAG-level annotations without which the present calibration and
+stress-test experiments would not have been possible.
 
 Funding: [supervisor's grant ID] / China University of Geosciences
 (Beijing) graduate research support.
@@ -795,10 +850,12 @@ Funding: [supervisor's grant ID] / China University of Geosciences
 18. Wei X, Long C, Liu Z, Yang J, Lai Y, Liu Y, et al. Genomic insights into arsenic biogeochemistry in paddy soils. *Microbiome*. 2024;12:236. DOI: 10.1186/s40168-024-01952-4
 19. Yin XX, Chen J, Qin J, Sun GX, Rosen BP, Zhu YG. Biotransformation and volatilization of arsenic by three photosynthetic cyanobacteria. *Plant Physiol*. 2011;156(3):1631-1638. DOI: 10.1104/pp.111.178947
 
-**额外补充**（§5.2.4 stress + §5.3 limitation 用到，但未在 §5.4.8 主列表）：
-- Anderson MJ. A new method for non-parametric multivariate analysis of variance. *Austral Ecol*. 2001;26(1):32-46. DOI: 10.1111/j.1442-9993.2001.01070.pp.x
-- Segata N, Izard J, Waldron L, Gevers D, Miropolsky L, Garrett WS, Huttenhower C. Metagenomic biomarker discovery and explanation. *Genome Biol*. 2011;12:R60. DOI: 10.1186/gb-2011-12-6-r60
-- Stolz JF, Basu P, Santini JM, Oremland RS. Arsenic and selenium in microbial metabolism. *Annu Rev Microbiol*. 2006;60:107-130. DOI: 10.1146/annurev.micro.60.080805.142053
+**额外补充**（§5.2.4 stress + §5.3 limitation + §5.4.8 methods 引用，
+final docx 阶段统一编号）：
+
+20. Anderson, Marti J. 2001. "A New Method for Non-Parametric Multivariate Analysis of Variance." *Austral Ecology* 26: 32-46. https://doi.org/10.1111/j.1442-9993.2001.01070.pp.x  *(used to justify n=999 permutation count, §5.4.8.1)*
+21. Segata, Nicola, Jacques Izard, Levi Waldron, Dirk Gevers, Larisa Miropolsky, Wendy S. Garrett, and Curtis Huttenhower. 2011. "Metagenomic Biomarker Discovery and Explanation." *Genome Biology* 12: R60. https://doi.org/10.1186/gb-2011-12-6-r60  *(used to justify per-group n ≥ 4 recommendation, §5.4.6)*
+22. Stolz, John F., Partha Basu, Joanne M. Santini, and Ronald S. Oremland. 2006. "Arsenic and Selenium in Microbial Metabolism." *Annual Review of Microbiology* 60: 107-130. https://doi.org/10.1146/annurev.micro.60.080805.142053  *(used in §Y.2 to ground sporadic-oxidizer literature, §5.2.4 stress test discussion)*
 
 #### 5.7.2 iMeta sister-tools 引用清单（§5.1 ecosystem 段落引用，强烈推荐保留）
 
@@ -840,6 +897,12 @@ Funding: [supervisor's grant ID] / China University of Geosciences
 21. Letunic, Ivica, and Peer Bork. 2024. "Interactive Tree of Life (iTOL) v6: Recent Updates to the Phylogenetic Tree Display and Annotation Tool." *Nucleic Acids Research* 52: W78-W82. https://doi.org/10.1093/nar/gkae268
 22. Shannon, Paul, Andrew Markiel, Owen Ozier, Nitin S. Baliga, Jonathan T. Wang, Daniel Ramage, et al. 2003. "Cytoscape: A Software Environment for Integrated Models of Biomolecular Interaction Networks." *Genome Research* 13: 2498-2504. https://doi.org/10.1101/gr.1239303
 23. Bastian, Mathieu, Sebastien Heymann, and Mathieu Jacomy. 2009. "Gephi: An Open Source Software for Exploring and Manipulating Networks." *Proceedings of the International AAAI Conference on Web and Social Media* 3: 361-362. https://doi.org/10.1609/icwsm.v3i1.13937
+
+#### 5.7.4 Cross-element coupling chemistry (§5.4.3 / §5.2.3)
+
+24. Newman, Dianne K., Daniel Ahmann, and François M. M. Morel. 1998. "A Brief Review of Microbial Arsenate Respiration." *Geomicrobiology Journal* 15: 255-268. https://doi.org/10.1080/01490459809378082
+25. Rodriguez-Freire, Lucia, Reyes Sierra-Alvarez, Robert Root, Jon Chorover, and James A. Field. 2014. "Biomineralization of Arsenate to Arsenic Sulfides Is Greatly Enhanced at Mildly Acidic Conditions." *Water Research* 66: 242-253. https://doi.org/10.1016/j.watres.2014.08.016
+26. Hollibaugh, James T., Carrie Carini, Heath Gürleyük, Roumiana Jellison, Steven B. Joye, Greg Lecleir, et al. 2005. "Arsenic Speciation in Mono Lake, California: Response to Seasonal Stratification and Anoxia." *Geochimica et Cosmochimica Acta* 69: 1925-1937. https://doi.org/10.1016/j.gca.2004.10.011
 
 ---
 

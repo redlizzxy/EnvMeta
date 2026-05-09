@@ -1,6 +1,6 @@
 {
-  "version": "1.1",
-  "source": "砷渣-钢渣修复宏基因组研究；抽取自 scripts/python/05_gene_heatmap_log2fc.py。v1.1 新增 substrate/product/schematic/couplings 字段，支持循环图 Mockup 10 级联渲染（Phase 3 S2.5）。",
+  "version": "2.0",
+  "source": "砷渣-钢渣修复宏基因组研究；抽取自 scripts/python/05_gene_heatmap_log2fc.py。v1.1 新增 substrate/product/schematic/couplings 字段，支持循环图 Mockup 10 级联渲染（Phase 3 S2.5）。v2.0 经 KEGG snapshot 重建并扩展至 57 KOs / 18 pathways（v0.9.0 Paper 3 校准实验所用版本）。",
   "elements": {
     "arsenic": {
       "display_name": {

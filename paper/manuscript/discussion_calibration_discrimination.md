@@ -10,24 +10,37 @@
 
 ---
 
-## §Y.1 Calibration evidence, not validation
+## §Y.1 Calibration evidence is KEGG-coverage-dependent, not domain-neutral
 
-The four-arm controlled experiment provides what we term **calibration
-evidence**: under fixed default thresholds, EnvMeta's scoring engine returns
-`STRONG` for KEGG-curated datasets across two arsenic-cycle topics and two
-non-arsenic AMD topics, and `INSUFFICIENT` only for the dataset whose
-published annotation provides too few canonical KOs to span the target
-pathways. This is consistent with the engine's intended design as a
-descriptive evidence-weighting scorecard rather than a frequentist hypothesis
-test, and it positions EnvMeta as a *diagnostic instrument* for matching
-hypothesis claims against available annotation breadth — not as an oracle
-that confirms or denies the user's preferred biological interpretation. The
-single most concrete recommendation that follows from this calibration is
-that metagenomic studies should publish full KEGG annotation (e.g. KofamScan,
-DRAM, or METABOLIC outputs) alongside any custom ROCker / hand-curated gene
-sets; otherwise, secondary analyses including ours and any future
-KEGG-grounded tool will face the same coverage-driven coarse-graining we
-report on Arm B.
+The four-arm controlled experiment provides what we term **KEGG-coverage-
+dependent calibration evidence**: under fixed default thresholds, EnvMeta's
+scoring engine returns `STRONG` for the four datasets that supply canonical
+KEGG annotation (KofamScan, DRAM, METABOLIC, or end-to-end Pyrodigal +
+GhostKOALA re-annotation), and `INSUFFICIENT` for the one dataset whose
+published annotation is restricted to a custom ROCker subset of fourteen
+arsenic-cycle genes. This pattern reflects two coupled effects rather than
+one. **First**, the engine performs as designed when KEGG-orthology coverage
+is broad enough to span the target pathways encoded in the knowledge base
+— a calibration-style result confirming that thresholds and scoring logic
+behave consistently across heterogeneous study topics. **Second**, the
+INSUFFICIENT outcome on Arm B is itself diagnostic: it correctly flags the
+mismatch between Wei's 14-gene ROCker set and EnvMeta's 57-KO knowledge base,
+rather than failing silently or falsely awarding partial credit. Together,
+these observations position EnvMeta as a *diagnostic instrument* whose
+performance is **conditional on adequate KEGG coverage of the target
+pathways** — not as an oracle that confirms or denies the user's preferred
+biological interpretation, and not as a domain-blind tool that performs
+equally on any annotation regime.
+
+This conditional-performance framing has two practical implications. First,
+metagenomic studies that intend to use EnvMeta or similar KEGG-grounded
+secondary tools should publish full KEGG annotations (e.g. KofamScan, DRAM,
+or METABOLIC outputs) alongside any custom ROCker or hand-curated gene
+sets. Without this, the tool's coverage-driven coarse-graining (as
+illustrated on Arm B) limits the resolvable mechanism-space. Second, the
+boundary between "KEGG coverage adequate" and "KEGG coverage insufficient"
+should itself be reportable as part of the scoring output — a refinement
+we discuss as future work in §Y.4.
 
 ## §Y.2 Discrimination power, with a binary-threshold caveat
 
@@ -62,44 +75,69 @@ B-tier discrimination outcomes for Liu and Ayala into A-tier clean rejections,
 matching the Grettenberger result. We deliberately do not apply this fix
 retroactively because the pre-registered claim entities must remain frozen.
 
-**Update (v0.9.x)**: the `dominance_score` extension has been implemented in
-EnvMeta v0.9.x. A second pre-registered stress YAML (`*_stress_v2.yaml`) with
-the Class-A reversed claim augmented by `min_dominance_fraction = 0.20`
-upgraded both Liu (0.625 → 0.250) and Ayala (0.455 → 0.182) stress scores from
-the `suggestive` (B-tier) to the `weak` (A-tier) label, with observed
-dominance scores of 0.05% and 7.08% respectively, both well below the 20%
-threshold. All three datasets now exhibit clean A-tier discrimination. The v2
-YAMLs are *additional* to v1 (committed alongside, not replacing v1), so the
-original B-tier evidence remains in git history as documentation of the
-binary-threshold limitation that motivated the engineering change.
+**Engineering retrofit (v0.9.x)**: motivated by the limitation above, we
+implemented a `dominance_score` extension in EnvMeta v0.9.x and a second
+pre-registered stress YAML (`*_stress_v2.yaml`) augmenting the Class-A
+reversed claim with `min_dominance_fraction = 0.20`. We are explicit that
+**the threshold value was chosen after observing v1 dominance outputs**
+(Liu 0.05%, Ayala 7.08%) and is therefore not an independent prediction.
+The v2 outcomes (Liu 0.625 → 0.250; Ayala 0.455 → 0.182) confirm that the
+retrofit behaves as designed under the engineering choice we made, but we
+do not interpret them as independent validation of EnvMeta's discrimination
+power. The v1 and v2 results are reported side by side in Table 2 so that
+readers can judge the retrofit's effect on the same data. The v2 YAMLs are
+*additional* to v1 (committed alongside at `fdfae77`, not replacing v1 at
+`50c4687`), preserving the v1 binary-threshold result as documentation of
+the limitation that motivated the engineering change. Independent
+validation of the `dominance_score` extension on a fresh dataset is part
+of the future-work agenda outlined in §Y.4.
 
 ## §Y.3 Limitations
 
-Several limitations remain that no software change can resolve. **(1) Author
-familiarity with target papers.** Despite explicit pre-registration discipline,
-we (the authors) had read all four target papers before writing the YAMLs, so
-the claim selection itself reflects implicit knowledge of which pathways were
-likely to score well. The cleanest mitigation is **blind hypothesis writing**
-by collaborators unfamiliar with the dataset's findings — a study design we
-recommend for future iterations. **(2) KB coverage.** EnvMeta KB v1.1 covers
-4 elements × 18 pathways × 57 KOs (As / N / S / Fe). Two of Wei's 14 target
+We list four interlinked limitations of the present validation experiment in
+descending order of methodological importance.
+
+**(1) Residual author selection bias.** This is the single largest
+limitation of the four-arm calibration experiment. Despite explicit
+time-pre-registration discipline (§4.6.2), the authors had read all four
+target papers before writing the hypothesis YAMLs. Time-pre-registration
+locks the claim entities against post-hoc adjustment but does not control
+for the cognitive selection bias of choosing claims plausibly satisfiable
+by KEGG-curated datasets in the topics surveyed. The four `STRONG`
+calibration outcomes therefore conflate two effects that cannot be cleanly
+separated within the present design: the scoring engine's behaviour under
+default thresholds, and the authors' skill in claim selection. The cleanest
+mitigation is **blind hypothesis writing** by collaborators unfamiliar with
+the dataset's findings, which we discuss in §Y.4 and identify as the most
+direct path forward.
+
+**(2) KEGG-coverage dependency.** As discussed in §Y.1, the calibration
+evidence is conditional on adequate KEGG-orthology coverage of the target
+pathways. The `INSUFFICIENT` outcome on Arm B (Wei 2024 ROCker-only
+annotation) is itself diagnostic of this conditional, but it limits the
+generalisation of the four `STRONG` results to environments where canonical
+KEGG annotations are available.
+
+**(3) KB coverage.** EnvMeta KB v2.0 (KEGG snapshot 2026-04-15) covers 4
+elements × 18 pathways × 57 KOs (As / N / S / Fe). Two of Wei's 14 target
 genes (*arxA* anaerobic arsenite oxidase; *nrfA* DNRA pathway) lacked KB
 mappings and were skipped; iron(II) oxidation and iron(III) reduction
-pathways central to AMD biogeochemistry are not yet encoded. KB v1.2 will
+pathways central to AMD biogeochemistry are not yet encoded. KB v2.1 will
 extend ROCker-model alias support and add iron-redox plus DNRA blocks.
-**(3) Pre-publication hand-checks.** Post-hoc DOI verification of the
+
+**(4) Pre-publication hand-checks.** Post-hoc DOI verification of the
 hypothesis YAMLs (Results §X.3) identified four citation errors (incorrect
-journal names for Yin 2011 and Cabrera 2006; a non-existent "Bothe 2007 *FEMS
-Rev*"; topic-mismatched Auld 2017 cited as AMD diazotrophy). These do not
-affect scoring outputs but they emphasize the value of building DOI verification
-into the hypothesis-writing workflow itself; future YAMLs in
+journal names for Yin 2011 and Cabrera 2006; a non-existent "Bothe 2007
+*FEMS Rev*"; topic-mismatched Auld 2017 cited as AMD diazotrophy). These do
+not affect scoring outputs but they emphasise the value of building DOI
+verification into the hypothesis-writing workflow itself; future YAMLs in
 `docs/hypothesis_writing_guide.md` now require an inline `# DOI:` annotation
-on each cited reference and a `Direct` / `Inferred` / `Weak` proof-of-extraction
-grade.
+on each cited reference and a `Direct` / `Inferred` / `Weak`
+proof-of-extraction grade.
 
 ## §Y.4 Future work
 
-Beyond the `dominance_score` extension (now delivered in v0.9.x) and KB v1.2
+Beyond the `dominance_score` extension (now delivered in v0.9.x) and KB v2.1
 backlog mentioned above, two methodological future items follow directly from
 the stress-test experience. First, **third-party blind stress YAMLs**: in the next user-study
 iteration, collaborators unfamiliar with the four target papers will be

@@ -54,7 +54,8 @@ For each (dataset × figure) combination:
 - **Wall-time on a single machine** — absolute numbers will vary across CPUs (we measured an Intel i7-class laptop). Relative scaling (ratios across cells) is the more transferable signal.
 - **Peak ΔRSS underestimates true peak** during very short calls if matplotlib's allocator has retained pages from prior runs. We report ΔRSS over baseline rather than absolute RSS for this reason.
 - **No GPU usage** — EnvMeta is pure CPU; results extrapolate directly to any CPU-bound environment.
-- **Liu's published annotation is pre-filtered to 8 As-cycle KOs**, which understates real-world cycle_diagram cost on full-KEGG datasets. The synthetic-dense regime corrects for this.
+- **Liu's published annotation is pre-filtered to 8 As-cycle KOs**, which understates real-world cycle_diagram cost on full-KEGG datasets. We approximate dense annotation with the synthetic-dense regime described above.
+- **The synthetic-dense regime randomly assigns KOs from the 57-KO knowledge base, which is not biologically realistic.** Real KofamScan / DRAM / METABOLIC annotations cluster around organism-specific functional repertoires, not uniform across taxa. The synthetic-dense scaling numbers should therefore be read as **upper-bound estimates** of permutation-test cost under "every pathway has active MAGs" conditions, rather than as a faithful reproduction of real-world annotation distributions. A direct comparison against one fully KofamScan-annotated public dataset (e.g., reprocessing Liu 2023's MAGs through KofamScan rather than using the published 8-KO subset) is identified as future validation work.
 
 ---
 
@@ -177,16 +178,26 @@ matplotlib qualitative palette ceiling at 12 colors.
 
 ## 7. Key finding for the paper
 
-> EnvMeta's cycle inference cost is dominated by **environmental-factor breadth ×
-> active-pathway breadth × permutation count**, not by MAG count or sample count.
-> A user with a 1000 MAG dataset annotated with 4 env factors will see cycle
-> inference run in ~18 s; doubling MAGs adds ≤ 12 % to that time.
+> Within the scope of our measurements (Intel i7 laptop, Windows 10, three
+> dataset regimes), EnvMeta's cycle inference cost appears to be dominated by
+> **environmental-factor breadth × active-pathway breadth × permutation count**
+> rather than by MAG count or sample count. A user with a 1000-MAG dataset
+> assigned 25 random KOs/MAG and 4 env factors observed cycle inference at
+> ~18 s; under the same conditions, doubling MAGs adds ≤ 12 % to that time.
 
-This is the architectural inversion of what users typically expect ("more MAGs
-= slower"), and it makes EnvMeta surprisingly tractable on large metagenomes.
-The matching countervailing finding is that **annotation density matters more
-than dataset size** — a sparsely annotated 1084 MAG dataset (8 KOs) runs in
-0.4 s; a densely annotated 200 MAG one (30 KO/MAG) runs in 14 s.
+We caution that this scaling generalisation rests on a **synthetic random
+KO assignment**, not on a real KofamScan / DRAM / METABOLIC annotation
+distribution. Real annotations cluster around organism-specific functional
+repertoires, so the cost-by-N_MAG curve under realistic annotation could
+plateau earlier (if many MAGs share the same KO subset and contribute
+redundantly to the same pathways) or stretch out (if KO frequency tracks
+taxonomy-based diversity). The matching countervailing finding from the
+real-data regime is that **annotation density matters more than dataset
+size** — a sparsely annotated 1084 MAG dataset (Liu's published 8 KOs) runs
+in 0.4 s; a densely annotated 200 MAG one (sample data with ~30 KO/MAG
+KofamScan) runs in 14 s. This finding is supported by both real-data
+endpoints and is therefore more robust than the synthetic-regime scaling
+curves alone.
 
 ---
 

@@ -78,19 +78,28 @@ calibration STRONG (1.000) labels (Table 2; Figure X). Grettenberger 2021
 returned label `weak` (0.250, 1/3 satisfied) — the cleanest single-Arm
 discrimination result. Liu 2023 and Ayala 2020 returned `suggestive` (0.625
 and 0.455 respectively, with skipped claims contributing to the partial
-scores). The single most informative discriminator was the cross-topic claim
-"arsenate_reduction should dominate", which was correctly rejected with
-**n = 0 active MAGs in both non-arsenic datasets** (Grettenberger and Ayala).
-This double-rejection rules out the *a priori* concern that the universal
-*arsC* arsenate-reductase homolog (Rosen, 2002) would inflate cross-topic
-scores to satisfied: in environments without sustained arsenic pressure,
-KEGG annotations of *arsC* and related operon members are absent or below
-detection threshold, and EnvMeta's scoring engine reflects this faithfully.
-Together with the `INSUFFICIENT` label on Arm B, the converging stress
-results provide direct evidence that EnvMeta's hypothesis scoring is **domain-
-neutral** — it is neither hard-wired to confirm arsenic-cycle hypotheses
-(which would falsely "pass" the AMD and pit-lake stress tests) nor biased
-against alternative environmental contexts.
+scores). The most informative single discriminator was the cross-topic
+claim "arsenate_reduction should dominate", which was correctly rejected
+with **n = 0 active MAGs in both non-arsenic datasets** (Grettenberger n =
+29 MAGs and Ayala n = 13 MAGs).
+
+We treat this two-dataset rejection as **consistent with** — rather than
+ironclad proof of — the scoring engine being uninfluenced by the universal
+*arsC* arsenate-reductase homolog (Rosen, 2002) under cross-topic mismatch.
+Two caveats temper the strength of this evidence. First, the absolute MAG
+counts in Grettenberger (29) and Ayala (13) are small enough that the
+absence of any *arsC*-bearing MAG could in part reflect sampling
+undercount rather than genuine absence in the underlying community.
+Second, both datasets sample acid mine drainage / pit-lake systems where
+arsenic is plausibly subdetectable rather than truly zero, so the rejection
+result is conditional on the published annotations being faithful to the
+underlying biology. A larger non-arsenic dataset (≥ 100 MAGs from a soil
+or marine system) would provide a more statistically robust test, and we
+flag this as future work in §Y.4. Combined with the `INSUFFICIENT` label
+on Arm B, the present stress results are nevertheless **consistent with**
+EnvMeta's scoring being neither hard-wired to confirm arsenic-cycle
+hypotheses nor biased against alternative environmental contexts, within
+the scope of KEGG-curated datasets we tested.
 
 In two of three datasets (Liu and Ayala), the reversed-direction stress claim
 "arsenite oxidation should dominate" returned satisfied because real but
