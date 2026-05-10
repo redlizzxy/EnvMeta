@@ -114,7 +114,11 @@ breadth and study topics:
   EnvMeta KB v2.0 (KEGG snapshot 2026-04-15).
 - **Arm C1** (KEGG-curated, same topic): Liu et al. (2023 *npj Biofilms
   Microbiomes* 9:13, 10.1038/s41522-023-00382-8), deep-sea cold-seep arsenic
-  cycling, 87 samples × 1084 MAGs with DRAM-derived KEGG annotation.
+  cycling, 87 samples × 1084 MAGs with DRAM-derived KEGG annotation. (DRAM
+  uses KOfam HMM profiles with custom rule-based scoring thresholds rather
+  than the canonical KofamScan E-value cutoff; we treat DRAM KO assignments
+  as equivalent to KofamScan KO assignments for the purposes of EnvMeta's
+  KO-aggregation logic, but flag the threshold difference for completeness.)
 - **Arm C2-A** (KEGG-curated, cross-topic plug-and-play): Grettenberger &
   Hamilton (2021 *Appl Environ Microbiol* 87:e00772-21, 10.1128/AEM.00772-21),
   acid mine drainage stream (Cabin Branch, Pennsylvania, USA), 29 MAGs with
@@ -152,10 +156,14 @@ weight-tuning artifact.
 The contrast between the four Arms calibrates the scoring engine: the
 `INSUFFICIENT` label on Arm B reflects faithful annotation-coverage diagnostics
 under default thresholds, not engine malfunction or threshold mismatch. We
-emphasize that this is *calibration evidence* — all KEGG-curated `STRONG`
-results were obtained with claims targeting backbone biogeochemical pathways
-near-universally expected in their respective environments, and a stress test
-of the engine's discrimination power was performed separately.
+emphasize that this is *calibration evidence* in the sense of demonstrating
+that the engine yields consistent STRONG outputs under fixed default
+thresholds across diverse KEGG-curated datasets — the term is not used
+in the strict metrological sense of instrument adjustment against a
+known standard. All KEGG-curated `STRONG` results were obtained with
+claims targeting backbone biogeochemical pathways near-universally
+expected in their respective environments, and a stress test of the
+engine's discrimination power was performed separately.
 
 ### 4.6.5 Stress test for discrimination power
 
@@ -262,30 +270,58 @@ pre-registered versions remain accessible in git history at commits
 ### 4.6.7 Auxiliary perturbation analysis
 
 To address the concern that the four STRONG calibration outcomes might
-arise mechanically from KEGG annotation breadth rather than from authors'
-specific pre-data target choices, we performed an auxiliary
-target-pathway perturbation analysis (Mock Review v0.9.2 Major #1
-auxiliary alternative; complementary to but not a substitute for the
-deferred blind-hypothesis-writing exercise of §Y.4). For each external
-calibration YAML (Liu 2023, Grettenberger 2021, Ayala 2020), every claim
-with a `params.pathway` field had that field replaced by a randomly drawn
-alternative pathway, in two modes: (a) **within-element**, drawn from
-the same KB element (e.g., `Arsenate reduction` → `As methylation`); and
-(b) **cross-element**, drawn from a different KB element (e.g., `Arsenate
-reduction` → `Sulfide oxidation`). All other YAML fields — weight,
-required flag, completeness threshold, env_factor for `env_correlation`,
-expected_sign — were preserved. N=20 perturbations per mode per dataset
-(seeds 0–19 within; 1000–1019 cross), default engine settings (run_null
-and run_sensitivity disabled to amortize over 120 runs; default
-strong=0.75 and suggestive=0.40 thresholds). The author Arm A YAML was
-excluded because its joint `coupling_possible` and `group_contrast`
-claims are not pathway-targeted in a manner that admits a clean
-single-field perturbation. Runner script:
+arise mechanically from KEGG annotation breadth rather than from
+authors' specific pre-data target choices, we performed an auxiliary
+target-pathway perturbation analysis (originally suggested as Mock
+Review v0.9.2 Major #1 auxiliary alternative; complementary to but not
+a substitute for the deferred blind-hypothesis-writing exercise of
+§Y.4). For each calibration YAML, claims with a `params.pathway` field
+had that field replaced by a randomly drawn alternative pathway in two
+modes: **(a) within-element**, drawn from the same KB element (e.g.,
+`Arsenate reduction` → `As methylation`); and **(b) cross-element**,
+drawn from a different KB element (e.g., `Arsenate reduction` →
+`Sulfide oxidation`). All other YAML fields — weight, required flag,
+completeness threshold, env_factor for `env_correlation`, expected_sign
+— were preserved. The three external YAMLs (Liu 2023, Grettenberger
+2021, Ayala 2020) used **full perturbation** of all pathway-targeted
+claims. The author Arm A YAML used **partial perturbation** restricted
+to its three `pathway_active` claims (`iron_transport_active`,
+`arsenate_reduction_active`, `as_transport_active`); its
+`coupling_possible` (×2), `env_correlation` (×2), `keystone_in_pathway`
+(×1), and `group_contrast` (×1) claims were preserved because these
+either lack a `pathway` parameter (couplings) or pair `pathway` with a
+semantically-tied second parameter (env_factor for env_correlation,
+group ratio for group_contrast) such that perturbing pathway alone
+would not isolate a single-axis target-choice effect. Arm A's partial
+perturbation therefore does not test target-choice sensitivity for the
+six unperturbed claims (which together carry roughly 72% of the
+overall-score weight); we discuss this asymmetry in §Y.3 limitation #1
+and revisit it under "annotation-breadth saturation" in the Results.
+
+N=20 perturbations were run per mode per dataset (seeds 0–19 for
+within-element; 1000–1019 for cross-element), giving 160 perturbed
+runs plus 4 originals = 164 scorings total. N=20 was selected to
+amortize total compute against ~1-minute wall time while providing
+visual scatter for Figure X-bis; Wilson 95% confidence intervals on
+observed STRONG-retention fractions are broad at this N (e.g., 10/20
+⇒ [0.30, 0.70]), and the across-dataset *ordering* (rather than
+absolute percentages) is the load-bearing finding. The N=20 choice
+was made before any results were inspected; N=200 would tighten CIs
+to roughly ±0.07 and is left as a future-work extension. Default
+engine settings were used (default strong=0.75 / suggestive=0.40
+thresholds; default `min_completeness=30` from each YAML). The
+permutation null-p calculation and OAT weight-sensitivity scan were
+disabled for perturbed runs because the question of interest is the
+marginal effect of target perturbation, not the weight-robustness of
+each perturbed YAML; running weight sensitivity on perturbed runs would
+conflate two independent perturbation axes. Runner script:
 [`tools/external_benchmarks/perturbation_analysis.py`](../../tools/external_benchmarks/perturbation_analysis.py);
 results table:
 [`paper/benchmarks/external/perturbation/perturbation_summary.tsv`](../benchmarks/external/perturbation/perturbation_summary.tsv);
 distribution figure:
-[`perturbation_curve.{pdf,png,svg}`](../benchmarks/external/perturbation/).
+[`perturbation_curve.{pdf,png,svg}`](../benchmarks/external/perturbation/);
+detailed results document:
+[`paper/manuscript/perturbation_analysis_results.md`](perturbation_analysis_results.md).
 
 ### 4.6.8 Data and code availability
 

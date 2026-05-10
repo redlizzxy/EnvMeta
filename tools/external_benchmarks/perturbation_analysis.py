@@ -42,12 +42,27 @@ OUT_DIR = EXTERNAL / "perturbation"
 
 
 # 4 校准 dataset 配置
+# `restrict_claim_types`：若设，仅对这些 claim type 做 perturbation；其他 claim
+# 保持原 YAML 不动（Arm A 的 partial perturbation 用，遵循 mock review v0.9.3
+# Major #1 reviewer 建议：仅扰动 3 个 pathway_active claim）。
+# `data_loader`: optional callable returning (metadata, env, abund, ko_long, qual, tax)；
+# 默认走 load_inputs（input_data_local/{file}.tsv 标准命名）。
+# `compare_groups`: optional list — 若给出，对每次评分都计算 compare_df 用于 group_contrast claim。
 DATASETS = [
+    {
+        "key": "arm_a_arsenic_steel_slag",
+        "label": "Arm A (in-house)",
+        "yaml": str(ROOT / "paper" / "hypotheses" / "arsenic_steel_slag.yaml"),
+        "topic_element": "arsenic",
+        "data_loader": "sample_data",   # 标记，runner 用专用 loader
+        "compare_groups": ["CK", "A", "B"],
+        "restrict_claim_types": ["pathway_active"],   # partial perturbation
+    },
     {
         "key": "liu_2023_coldseep",
         "label": "Liu 2023",
         "yaml": "liu2023_hypothesis.yaml",
-        "topic_element": "arsenic",  # 主目标元素
+        "topic_element": "arsenic",
     },
     {
         "key": "grettenberger_2021_amd_stream",
@@ -107,8 +122,24 @@ def load_inputs(data_dir: Path):
     return metadata, env, abund, ko_long, qual, tax
 
 
+def load_inputs_sample_data():
+    """tests/sample_data 加载器 — 文件名 .txt 而非 .tsv（Arm A 作者数据精简版）。"""
+    dd = ROOT / "tests" / "sample_data"
+    metadata = pd.read_csv(dd / "metadata.txt", sep="\t")
+    env = pd.read_csv(dd / "env_factors.txt", sep="\t")
+    abund = pd.read_csv(dd / "abundance.tsv", sep="\t")
+    ko_long = pd.read_csv(dd / "kegg_target_only.tsv", sep="\t")
+    qual = pd.read_csv(dd / "quality_report.tsv", sep="\t")
+    tax = pd.read_csv(
+        dd / "mag_taxonomy_labels.tsv",
+        sep="\t", header=None, names=["MAG", "classification"],
+    )
+    return metadata, env, abund, ko_long, qual, tax
+
+
 def perturb_yaml(
     orig_dict: dict, rng: random.Random, mode: str = "within_element",
+    restrict_claim_types: list[str] | None = None,
 ) -> tuple[dict, list[dict]]:
     """随机替换所有含 `pathway` 参数的 claim 的 pathway 名。
 
@@ -116,6 +147,9 @@ def perturb_yaml(
         审稿人原始建议）。
     mode = "cross_element"：从**不同** element 中随机选通路（强阴性对照，
         预期数据不包含相应通路 → 大多 skipped → 退化到 0 分）。
+    restrict_claim_types: 若给出，仅扰动这些 claim type；其他保持不变
+        （Arm A partial perturbation 用，仅扰 3 个 pathway_active claim，
+        保留 coupling_possible / env_correlation / group_contrast 不动）。
 
     Returns:
         (新 YAML dict, 替换记录 list[{claim_id, original, perturbed, ...}])
@@ -123,6 +157,8 @@ def perturb_yaml(
     new = deepcopy(orig_dict)
     log: list[dict] = []
     for claim in new.get("claims", []):
+        if restrict_claim_types is not None and claim.get("type") not in restrict_claim_types:
+            continue
         params = claim.get("params") or {}
         pw = params.get("pathway")
         if not pw or pw not in PATHWAY_TO_ELEMENT:
@@ -152,11 +188,11 @@ def perturb_yaml(
     return new, log
 
 
-def score_one(yaml_dict: dict, cycle_data) -> dict:
+def score_one(yaml_dict: dict, cycle_data, compare_df=None) -> dict:
     """评分一份 hypothesis dict，返回核心字段（不跑 null/sensitivity 节省时间）。"""
     from envmeta.geocycle.hypothesis import load_hypothesis, score
     hyp = load_hypothesis(yaml_dict)
-    s = score(hyp, cycle_data, run_null=False, run_sensitivity=False)
+    s = score(hyp, cycle_data, compare_df=compare_df, run_null=False, run_sensitivity=False)
     return {
         "overall_score": s.overall_score,
         "label": s.label,
@@ -172,16 +208,27 @@ def run_dataset(dataset_cfg: dict, n_perturb: int, seed_base: int = 0) -> list[d
     (within-element + cross-element)."""
     key = dataset_cfg["key"]
     label = dataset_cfg["label"]
-    yaml_path = EXTERNAL / key / dataset_cfg["yaml"]
-    data_dir = EXTERNAL / key / "input_data_local"
+    raw_yaml = dataset_cfg["yaml"]
+    yaml_path = Path(raw_yaml) if Path(raw_yaml).is_absolute() else EXTERNAL / key / raw_yaml
+    restrict_claim_types = dataset_cfg.get("restrict_claim_types")
+    compare_groups_arg = dataset_cfg.get("compare_groups")
 
     print(f"\n{'=' * 70}\n  PERTURBATION RUN -- {label}\n{'=' * 70}")
+    if restrict_claim_types:
+        print(f"  [partial] restricted to claim types: {restrict_claim_types}")
 
-    if not yaml_path.exists() or not data_dir.exists():
-        print(f"  [SKIP] missing yaml or data: {yaml_path}, {data_dir}")
+    if not yaml_path.exists():
+        print(f"  [SKIP] missing yaml: {yaml_path}")
         return []
 
-    metadata, env, abund, ko_long, qual, tax = load_inputs(data_dir)
+    if dataset_cfg.get("data_loader") == "sample_data":
+        metadata, env, abund, ko_long, qual, tax = load_inputs_sample_data()
+    else:
+        data_dir = EXTERNAL / key / "input_data_local"
+        if not data_dir.exists():
+            print(f"  [SKIP] missing data dir: {data_dir}")
+            return []
+        metadata, env, abund, ko_long, qual, tax = load_inputs(data_dir)
     print(f"  inputs: {len(metadata)} samples / {len(qual)} MAGs / {abund.shape[0]} abund rows")
 
     print("  [1/N+1] Cycle diagram (1x cached)...")
@@ -193,6 +240,16 @@ def run_dataset(dataset_cfg: dict, n_perturb: int, seed_base: int = 0) -> list[d
     )
     print(f"      cycle runtime: {time.time() - t0:.2f} s")
 
+    compare_df = None
+    if compare_groups_arg:
+        print(f"  [+compare_groups] for group_contrast claims: {compare_groups_arg}")
+        from envmeta.analysis import cycle_compare
+        compare_df = cycle_compare.compare_groups(
+            ko_annotation_df=ko_long, taxonomy_df=tax,
+            abundance_df=abund, env_df=env, metadata_df=metadata,
+            groups=compare_groups_arg,
+        )
+
     with open(yaml_path, "r", encoding="utf-8") as f:
         orig_dict = yaml.safe_load(f)
 
@@ -200,7 +257,7 @@ def run_dataset(dataset_cfg: dict, n_perturb: int, seed_base: int = 0) -> list[d
 
     # Original
     print("  [original] scoring...")
-    s_orig = score_one(orig_dict, cycle_result.data)
+    s_orig = score_one(orig_dict, cycle_result.data, compare_df=compare_df)
     rows.append({
         "dataset": label,
         "mode": "original",
@@ -218,8 +275,11 @@ def run_dataset(dataset_cfg: dict, n_perturb: int, seed_base: int = 0) -> list[d
     for i in range(n_perturb):
         seed = seed_base + i
         rng = random.Random(seed)
-        perturbed_dict, log = perturb_yaml(orig_dict, rng, mode="within_element")
-        s = score_one(perturbed_dict, cycle_result.data)
+        perturbed_dict, log = perturb_yaml(
+            orig_dict, rng, mode="within_element",
+            restrict_claim_types=restrict_claim_types,
+        )
+        s = score_one(perturbed_dict, cycle_result.data, compare_df=compare_df)
         rows.append({
             "dataset": label,
             "mode": "within_element",
@@ -231,14 +291,18 @@ def run_dataset(dataset_cfg: dict, n_perturb: int, seed_base: int = 0) -> list[d
             **s,
         })
         print(f"      [within] {i:02d} seed={seed} overall={s['overall_score']:.3f}"
-              f" label={s['label']} satisfied={s['n_satisfied']}/{s['n_total']}")
+              f" label={s['label']} satisfied={s['n_satisfied']}/{s['n_total']}"
+              f" (n_pert={len(log)})")
 
     # Cross-element perturbations (stronger negative control)
     for i in range(n_perturb):
         seed = seed_base + 1000 + i
         rng = random.Random(seed)
-        perturbed_dict, log = perturb_yaml(orig_dict, rng, mode="cross_element")
-        s = score_one(perturbed_dict, cycle_result.data)
+        perturbed_dict, log = perturb_yaml(
+            orig_dict, rng, mode="cross_element",
+            restrict_claim_types=restrict_claim_types,
+        )
+        s = score_one(perturbed_dict, cycle_result.data, compare_df=compare_df)
         rows.append({
             "dataset": label,
             "mode": "cross_element",
@@ -250,7 +314,8 @@ def run_dataset(dataset_cfg: dict, n_perturb: int, seed_base: int = 0) -> list[d
             **s,
         })
         print(f"      [cross]  {i:02d} seed={seed} overall={s['overall_score']:.3f}"
-              f" label={s['label']} satisfied={s['n_satisfied']}/{s['n_total']}")
+              f" label={s['label']} satisfied={s['n_satisfied']}/{s['n_total']}"
+              f" (n_pert={len(log)})")
 
     return rows
 

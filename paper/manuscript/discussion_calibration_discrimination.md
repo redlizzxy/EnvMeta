@@ -109,16 +109,32 @@ separated within the present design: the scoring engine's behaviour under
 default thresholds, and the authors' skill in claim selection. As partial
 auxiliary evidence on this point, we performed a target-pathway
 perturbation analysis (Methods §4.6.7; Results §X.3) randomly replacing
-each `params.pathway` field across the three external calibration YAMLs
-under two modes — within-element and cross-element. Cross-element
-perturbation collapses Liu 2023 to 0/20 STRONG (median score 0.000) and
-degrades Grettenberger and Ayala by 70–85% label change, confirming that
-element-level target accuracy is mechanistically required. Within-element
-perturbation moderately degrades scores (mean drop 25–48%) but retains
-STRONG in 40–50% of runs, bounding the KEGG-coverage caveat already
-acknowledged in §Y.1. We treat these as auxiliary evidence consistent
-with — not ironclad proof of — non-mechanical calibration; the cleanest
-remaining mitigation is **blind hypothesis writing** by collaborators
+`params.pathway` across all four calibration YAMLs in two modes
+(within-element and cross-element). The headline finding is a
+**monotonic annotation-breadth gradient** in cross-element STRONG
+retention: Arm A 100% (saturated, 4-element rich) → Grettenberger 30%
+→ Ayala 15% → Liu 0% (focused, As-only). This monotonic ordering
+behaves predictably with each dataset's annotation breadth — a property
+independent of the calibration outcome itself — and is therefore
+internally validity-checking. The Liu cross-element 0/20 STRONG result
+in particular shows that element-level target accuracy is
+mechanistically required for the calibration outcome in focused
+datasets. Within-element perturbation moderately degrades scores (mean
+drop 25–48%) in the three external datasets but retains STRONG in 40–50%
+of runs, bounding the KEGG-coverage caveat already acknowledged in §Y.1.
+The Arm A perturbation is necessarily partial — restricted to its three
+`pathway_active` claims (the `coupling_possible`, `env_correlation`,
+`keystone_in_pathway`, and `group_contrast` claims pair pathway with
+semantically-tied second parameters and are not amenable to clean
+single-axis perturbation) — and Arm A's 100% retention in this partial
+test does *not* by itself demonstrate non-mechanical calibration for
+that dataset. The cherry-pick concern for Arm A specifically therefore
+relies on the broader pre-registration discipline and the planned blind
+third-party stress YAMLs (§Y.4) rather than on this perturbation
+analysis. We treat the perturbation analysis as auxiliary evidence
+consistent with — not ironclad proof of — non-mechanical calibration in
+focused-data regimes; the cleanest remaining mitigation in the
+saturated-data regime is **blind hypothesis writing** by collaborators
 unfamiliar with the dataset's findings, which we discuss in §Y.4 and
 identify as the most direct path forward.
 

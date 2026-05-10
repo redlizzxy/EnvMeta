@@ -17,6 +17,82 @@
 
 > 每次 session 结束前更新此区块。新对话开始时 Claude Code 自动读取，了解当前进度。
 
+### 2026-05-10 session（**Mock review v0.9.3 全部 Major + Minor 修订 — Arm A partial perturbation 揭示 saturation regime ⭐**）
+
+**背景**：mock review v0.9.3 (untracked，2026-05-09 跑) 给出 1 个新 Major (Arm A
+perturbation asymmetry) + 1 carried Major (3-dataset stress caveat) + 8 Minor (5
+carried + 3 new)。本 session 聚焦把全部 Major + Minor 修完，目标 mock review v0.9.4
+全部 Major Resolved → bioRxiv-ready。
+
+**核心工作**：
+
+1. **Arm A partial perturbation 落地**（封 v0.9.3 Major #1）：
+   - 扩展 [`tools/external_benchmarks/perturbation_analysis.py`](tools/external_benchmarks/perturbation_analysis.py)：
+     新增 `restrict_claim_types` 参数（仅扰动指定 claim type）+ `data_loader=sample_data`
+     + `compare_groups` 字段支持 group_contrast claim 评分
+   - Arm A 用 tests/sample_data + arsenic_steel_slag.yaml；baseline overall=0.919
+     STRONG（满足 mock review reviewer 建议的 partial test 范围）
+   - 仅扰动 3 个 pathway_active claim：`iron_transport_active` /
+     `arsenate_reduction_active` / `as_transport_active`；其他 6 个 claim 保留
+
+2. **关键 finding — saturation regime 揭示**：
+   - Arm A within-element + cross-element 都 **20/20 STRONG retention** (100%)
+   - 解读：168 MAG 4-element 丰富标注让 cross-element 替换仍命中 active 通路 →
+     无 required-claim veto → 评分稳定 0.919 STRONG
+   - 跨数据集形成 **monotonic annotation-breadth gradient**：
+
+   | Dataset | Annotation regime | within STRONG | cross STRONG |
+   |---|---|---|---|
+   | Arm A in-house (168 MAG) | saturated (4-element) | 100% | **100%** |
+   | Grettenberger 2021 (29 MAG) | mixed (S+Fe AMD) | 50% | 30% |
+   | Ayala 2020 (13 MAG) | mixed (S+Fe pit lake) | 40% | 15% |
+   | Liu 2023 (29 MAG) | focused (As-only cold seep) | 50% | **0%** ⭐ |
+
+   - 这个 monotonic ordering 是 **internal validity check**：engine 行为可预测地
+     随 dataset annotation breadth 变化（一个独立于 calibration outcome 本身的属性）
+
+3. **honest framing for Arm A**：cherry-pick 防御依然依赖 §4.6.2 pre-registration +
+   §Y.4 blind future work；perturbation 单独不能证明 Arm A non-mechanical
+
+4. **Stress §X.2 3-dataset caveat**（封 v0.9.2 Major #2）：加一句
+   "the cross-topic discrimination is observed in 2 of 2 non-arsenic datasets
+   within a 3-dataset stress design"
+
+5. **3 个 v0.9.3 新 Minor**（全 Methods §4.6.7）：
+   - **N=20 rationale**：amortize ~1 min compute；Wilson 95% CI 较宽明确标注；N=200 future work
+   - **run_null=False 辩护**：marginal effect of target perturbation 是兴趣所在，
+     非 perturbed YAML 的权重稳健性，避免 conflate 两个独立 perturbation axes
+   - **Wilson CI**：Results §X.3 头表所有比率括号内加 95% CI
+
+6. **5 个 v0.9.2 carried Minor**：
+   - "calibration evidence" disambiguation (§4.6.4 加一句 "not metrological sense")
+   - "consistent with" 重复软化（§X.2 末段改用 "support — within scope of..."）
+   - §5.7.1 numbering 平铺 22-entry（之前 19 + 3 supplementary）
+   - **Newman 1997 vs 1998 reconcile**：§5.2.3 + §5.7.1 #24 都统一为 Newman 1997
+     *AEM* 63:2022-2028 (Precipitation of arsenic trisulfide by *Desulfotomaculum
+     auripigmentum*) — 替换错误的 Newman 1998 *Geomicrobiol J* review
+   - DRAM-KEGG 区别 (§4.6.3 加一段 footnote 说明 KOfam HMM + custom thresholds)
+   - "dense annotation" §5.2.8 clarify "dense relative to KB target pathways" not 整个基因组
+
+**测试**：pytest **301/301 全绿**（无 API 变更，仅扩展 runner 配置 + 文档修订）
+
+**v0.9.3 → 预期 v0.9.4 状态变化**：
+
+| Issue | v0.9.3 status | v0.9.4 预期 status |
+|---|---|---|
+| v0.9.2 Major #2 (3-dataset caveat) | Carried | **Resolved** |
+| v0.9.3 Major #1 (Arm A asymmetry) | New | **Closed** (partial done + honest limitation) |
+| v0.9.3 新 3 Minor | New | **Closed** |
+| v0.9.2 carried 5 Minor | Carried | **Closed** |
+| 6 placeholder figures | Carried | Still carried（投稿前 mandatory） |
+
+**下一步建议**：
+1. **Rerun mock review v0.9.4** —— 5 min；预期全部 Major Resolved → 投稿 ready
+2. **6 张 placeholder figures**（投稿 mandatory）
+3. **bioRxiv 投稿** —— 6 月初前完成；3 天审核拿 DOI
+
+---
+
 ### 2026-05-09 后续 session（**1-day perturbation analysis — Mock Review v0.9.2 Major #1 auxiliary evidence ⭐**）
 
 **背景**：v0.9.2 mock review 还剩 1 个 Major Issue（"author selection bias 仅

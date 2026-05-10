@@ -271,6 +271,15 @@ Microbiology）。开发时持续积累：
   - **v0.9.3 新 Major**：Arm A perturbation asymmetry — 作者数据排除于 perturbation 控制，可补 partial Arm A perturbation（≈30 min compute）封口
   - 余 1 Major (3-dataset stress caveat 仍未修) + 8 Minor（5 carried + 3 new）= 2-4 天到 acceptance-ready
   - 详见 [`paper/manuscript/mock_review_v0.9.3_post_perturbation.md`](paper/manuscript/mock_review_v0.9.3_post_perturbation.md)（不 push）
+- ✅ **Mock review v0.9.3 全部 Major + Minor 修订**（2026-05-10 session）：
+  - **v0.9.3 Major #1 (Arm A asymmetry) → Closed**：补 Arm A partial perturbation（仅 3 个 pathway_active claim）
+    - **Arm A 100% STRONG retention**（within + cross 都 20/20）→ 揭示 saturation regime；168 MAG 4-element 丰标注让任何通路替换都仍命中 active；honest framing 为该数据集 cherry-pick 防御依然依赖 §4.6.2 pre-registration + §Y.4 blind future work
+    - 跨数据集形成 monotonic gradient：**Arm A 100% (saturated) → Grettenberger 30% → Ayala 15% → Liu 0% (focused)**，Wilson 95% CI 标注；这是 internal validity check
+  - **v0.9.2 Major #2 (3-dataset caveat) → Closed**：§X.2 加 "2-of-2 within 3-dataset stress design" 一句话
+  - **v0.9.3 新 Minor 3 个全 Closed**：§4.6.7 加 N=20 rationale + Wilson CI + run_null=False 辩护
+  - **v0.9.2 Minor 5 个全 Closed**：calibration evidence disambig (§4.6.4) / consistent with 重复软化 / Newman 1997→1998 reconcile (§5.7.1 #24 改 Newman 1997 AEM) / DRAM-KEGG 区别 (§4.6.3) / dense annotation (§5.2.8) clarify "dense relative to KB target pathways"
+  - **§5.7.1 numbering 平铺 22-entry**（v0.9.2 Minor #3 carried）
+  - 测试 **301/301 全绿**；预期 mock review v0.9.4 全部 Major Resolved → bioRxiv ready
 
 ## Backlog（投稿前 + Phase 4）
 
@@ -285,14 +294,15 @@ Microbiology）。开发时持续积累：
 | **Verify Korehi 2014 / Mendez-Garcia 2015 真正 AMD diazotrophy 引用** | 10 min | 已 Verified Dai 2014 + Méndez-García 2015 → §5.7.1 #4 + #12（见 [`hypothesis_references_audit.md`](paper/manuscript/hypothesis_references_audit.md)）|
 | **User study 数据回收分析**（条件性）| 1 周 | 问卷已发 2026-04-19；如投稿前 n ≥ 8 回收成功则加进 §5.6 Acknowledgments；否则 Acknowledgments 已 tempering 处理 |
 
-### 🟧 推荐做（mock review v0.9.3 → acceptance-ready）
+### 🟧 推荐做（mock review v0.9.4 验证 → bioRxiv-ready）
 
 | 任务 | 工时 | 理由 |
 |---|---|---|
 | ~~1-day perturbation analysis~~ | ✅ 完成 | v0.9.2 Major #1 → Resolved；mock review v0.9.3 Recommendation = Minor Revision (acceptance-track) |
-| **Arm A partial perturbation**（v0.9.3 新 Major） | 30 min compute + 30 min 写作 | mock review v0.9.3 唯一新 Major：作者 Arm A 排除于 perturbation control 形成 asymmetry。补 3 个 pathway_active claim 的 partial perturbation 可封口 |
-| **Stress test §X.2 加 3-dataset constraint caveat** | 30 min | mock review v0.9.2 Major #2 仍 carried，1 句话搞定 |
-| **Mock review v0.9.2/v0.9.3 余下 8 个 Minor 修订** | 1-2h | 5 carried (calibration evidence disambig / "consistent with" 重复 / §5.7.1 numbering / Newman 1997 vs 1998 / DRAM-KEGG / "dense annotation" §5.2.8) + 3 new (Wilson CI on perturbation rates / N=20 rationale / run_null=False defence) |
+| ~~Arm A partial perturbation~~ | ✅ 完成 (2026-05-10) | v0.9.3 Major #1 → Closed；100% STRONG retention 揭示 saturation regime；跨数据集 monotonic gradient 100→0% |
+| ~~Stress §X.2 3-dataset caveat~~ | ✅ 完成 | v0.9.2 Major #2 → Closed |
+| ~~v0.9.2/v0.9.3 全部 8 Minor~~ | ✅ 完成 | 5 carried + 3 new 全部修；§5.7.1 平铺 22 entries；Newman 1997 AEM reconciled |
+| **Rerun mock review v0.9.4** | 5 min | 验证全部 Major Resolved → bioRxiv 投稿 ready |
 
 ### 🟡 加分项（投稿后 / 课题论文阶段做）
 
@@ -318,16 +328,13 @@ Microbiology）。开发时持续积累：
 
 ## 下次 session 建议起点
 
-按优先级（mock review v0.9.3 后；2-4 天到 acceptance-ready）：
+按优先级（v0.9.3 全部 Major+Minor 修订完成；待 v0.9.4 验证 → bioRxiv）：
 
-1. **Arm A partial perturbation** —— v0.9.3 唯一新 Major；30 min compute + 30 min 写作；最便宜的封口
-2. **Stress §X.2 3-dataset caveat 一句话** —— v0.9.2 Major #2 carried；30 min
-3. **6 张 placeholder figures** —— 投稿 mandatory；用户配截图 + 我可辅助排版（F1 架构 / F3 算法流程 / F5 HTML 截图 / F6 Bundle / F7 砷渣案例 / F10 vs Tools）
-4. **8 个 Minor 修订**（5 carried + 3 new）—— 1-2h 纯文字
-5. **rerun mock review v0.9.4** —— 验证 Arm A 封口 + 3-dataset caveat → 全部 Major Resolved
-6. **bioRxiv 投稿** —— 6 月初前完成；3 天审核拿 DOI
-7. **EnvMeta 投 iMeta** —— bioRxiv DOI 上线后立即投
-8. **课题论文起草并行** —— As 形态重测启动（用户主导）+ EnvMeta bioRxiv DOI 引用
+1. **Rerun mock review v0.9.4** —— 5 min；验证全部 Major Resolved → 投稿 ready
+2. **6 张 placeholder figures** —— 投稿 mandatory；用户配截图 + 我可辅助排版（F1 架构 / F3 算法流程 / F5 HTML 截图 / F6 Bundle / F7 砷渣案例 / F10 vs Tools）
+3. **bioRxiv 投稿** —— 6 月初前完成；3 天审核拿 DOI
+4. **EnvMeta 投 iMeta** —— bioRxiv DOI 上线后立即投
+5. **课题论文起草并行** —— As 形态重测启动（用户主导）+ EnvMeta bioRxiv DOI 引用
 
 ---
 

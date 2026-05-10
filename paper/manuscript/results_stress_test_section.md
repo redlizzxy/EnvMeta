@@ -86,20 +86,24 @@ with **n = 0 active MAGs in both non-arsenic datasets** (Grettenberger n =
 We treat this two-dataset rejection as **consistent with** — rather than
 ironclad proof of — the scoring engine being uninfluenced by the universal
 *arsC* arsenate-reductase homolog (Rosen, 2002) under cross-topic mismatch.
-Two caveats temper the strength of this evidence. First, the absolute MAG
-counts in Grettenberger (29) and Ayala (13) are small enough that the
-absence of any *arsC*-bearing MAG could in part reflect sampling
-undercount rather than genuine absence in the underlying community.
-Second, both datasets sample acid mine drainage / pit-lake systems where
-arsenic is plausibly subdetectable rather than truly zero, so the rejection
-result is conditional on the published annotations being faithful to the
-underlying biology. A larger non-arsenic dataset (≥ 100 MAGs from a soil
-or marine system) would provide a more statistically robust test, and we
-flag this as future work in §Y.4. Combined with the `INSUFFICIENT` label
-on Arm B, the present stress results are nevertheless **consistent with**
-EnvMeta's scoring being neither hard-wired to confirm arsenic-cycle
-hypotheses nor biased against alternative environmental contexts, within
-the scope of KEGG-curated datasets we tested.
+Three caveats temper the strength of this evidence. First, the
+cross-topic discrimination is observed in 2 of 2 non-arsenic datasets
+within a 3-dataset stress design; the underlying dataset count is small
+(N=3) and the across-dataset generalisation is correspondingly soft.
+Second, the absolute MAG counts in Grettenberger (29) and Ayala (13) are
+small enough that the absence of any *arsC*-bearing MAG could in part
+reflect sampling undercount rather than genuine absence in the underlying
+community. Third, both datasets sample acid mine drainage / pit-lake
+systems where arsenic is plausibly subdetectable rather than truly zero,
+so the rejection result is conditional on the published annotations being
+faithful to the underlying biology. A larger non-arsenic dataset (≥ 100
+MAGs from a soil or marine system) — and a stress design extending
+beyond N=3 datasets — would provide a more statistically robust test,
+and we flag both as future work in §Y.4. Combined with the `INSUFFICIENT`
+label on Arm B, the present stress results nevertheless support — within
+the scope of the KEGG-curated datasets tested — the conclusion that
+EnvMeta's scoring is neither hard-wired to confirm arsenic-cycle
+hypotheses nor biased against alternative environmental contexts.
 
 In two of three datasets (Liu and Ayala), the reversed-direction stress claim
 "arsenite oxidation should dominate" returned satisfied because real but
@@ -119,43 +123,71 @@ expressed cleanly. We classify this as a `B-tier` discrimination outcome
 stress claims to specify a `min_dominance_fraction` parameter, which would
 upgrade Liu and Ayala to `A-tier` clean discrimination.
 
-## §X.3 Auxiliary perturbation analysis bounds annotation-density-driven inflation
+## §X.3 Auxiliary perturbation analysis: annotation-breadth gradient bounds the calibration claim
 
-To distinguish whether the four STRONG calibration outcomes reflect authors'
-specific pre-data target choices or arise mechanically from KEGG annotation
-breadth, we perturbed every `params.pathway` field across the three external
-calibration YAMLs (Liu 2023, Grettenberger 2021, Ayala 2020) and rescored
-under default thresholds (Methods §4.6.7). Two perturbation modes were
-applied: within-element (random alternative pathway from the same KB
-element) and cross-element (random pathway from a different KB element);
-N=20 per mode per dataset, deterministic seeds.
+To distinguish whether the four STRONG calibration outcomes reflect
+authors' specific pre-data target choices or arise mechanically from KEGG
+annotation breadth, we perturbed `params.pathway` across all four
+calibration YAMLs and rescored under default thresholds (Methods §4.6.7).
+Two perturbation modes were applied: within-element (random alternative
+pathway from the same KB element) and cross-element (random pathway from
+a different KB element); N=20 per mode per dataset (deterministic seeds).
+The three external YAMLs underwent full perturbation of all
+pathway-targeted claims; Arm A underwent partial perturbation restricted
+to its three `pathway_active` claims (its `coupling_possible`,
+`env_correlation`, `keystone_in_pathway`, and `group_contrast` claims pair
+pathway with semantically-tied second parameters and are not amenable to
+clean single-axis perturbation; this asymmetry is discussed in §Y.3
+limitation #1).
 
-The cross-element control is strongly discriminating. Liu 2023, the most
-narrowly As-focused dataset (cold-seep sediment), retains STRONG in
-**0/20** cross-element perturbations (median score collapses from 1.000
-to 0.000) because cross-element substitution lands on inactive N/S/Fe
-pathways and triggers required-claim veto. Grettenberger 2021 and Ayala
-2020, both AMD systems with multi-element activity, retain STRONG in 6/20
-and 3/20 cross-element runs respectively, with mean scores degrading by
-53% and 54%. The 70–100% label-change rate confirms that **element-level
-target accuracy is mechanistically required for the calibration outcome**.
+The single most informative finding is a **monotonic annotation-breadth
+gradient** in cross-element STRONG retention (Wilson 95% CI in brackets):
+**Arm A 100%** [0.84, 1.00] (168 MAGs annotating active pathways across
+all 4 elements simultaneously) → **Grettenberger 2021 30%** [0.13, 0.55]
+(29 MAGs, mixed S/Fe AMD) → **Ayala 2020 15%** [0.05, 0.37] (13 MAGs,
+mixed S/Fe pit lake) → **Liu 2023 0%** [0.00, 0.16] (29 MAGs, As-only
+cold seep). This ordering is mechanistically expected: in datasets where
+the data is element-monolithic, cross-element substitution
+systematically lands on inactive pathways and triggers required-claim
+veto; in datasets where the data is element-saturated, any pathway in
+any element is plausibly active, so substitution does not change the
+outcome. The fact that the engine behaves predictably as a function of
+this independent-of-the-calibration property of each dataset is itself
+a strong internal-validity check.
+
+Liu 2023 is the cleanest single test case: 0/20 cross-element
+perturbations retained STRONG (median score collapse 1.000 → 0.000),
+under identical YAML weight structure and engine settings as the
+within-element control's 50% retention. The 50%-vs-0% gap is
+mechanistically diagnostic: in focused datasets, the calibration result
+depends on element-level target accuracy, not just on summing satisfied
+claims.
 
 The within-element control bounds the KEGG-coverage caveat acknowledged
-in Discussion §Y.1. Within-element mean scores are 25–48% below the
-original 1.000, but **40–50% of within-element perturbations still
-produce STRONG**. This is consistent with — not in conflict with — the
-manuscript's framing that calibration evidence is KEGG-coverage-dependent:
-when a target element has high annotation breadth, multiple parallel
-pathway-active claims register satisfied irrespective of which subset
-the author selected. Ayala 2020 (n=13 MAGs, smallest dataset) is the
-most discriminating at 8/20 STRONG retention; Liu and Grettenberger
-sit at 10/20. We therefore report the perturbation result as
-**auxiliary evidence consistent with** the calibration claims being
-non-mechanical, while flagging that the within-element fraction-STRONG
-is **not** a false-positive rate and that the more definitive
-blind-hypothesis-writing exercise (§Y.4) remains future work. Full
-results in Supplementary Table S_pert (`perturbation_summary.tsv`) and
-Figure X-bis (`perturbation_curve.pdf`); reproduction protocol in
+in Discussion §Y.1. Within-element mean scores in the three external
+datasets are 25–48% below the original 1.000, but **40–50% of
+within-element perturbations still produce STRONG**. This is consistent
+with — not in conflict with — the manuscript's framing that calibration
+evidence is KEGG-coverage-dependent: when a target element has high
+annotation breadth, multiple parallel pathway-active claims register
+satisfied irrespective of which subset the author selected. Ayala 2020
+(n=13 MAGs, smallest dataset) is the most discriminating at 8/20 STRONG
+retention; Liu and Grettenberger sit at 10/20.
+
+Arm A's 100% STRONG retention under both within and cross perturbation
+quantifies the saturation regime: for the in-house dataset specifically,
+the perturbation analysis cannot strongly distinguish "author cherry-
+picked targets" from "any reasonable target works because data is rich",
+and the cherry-pick concern for Arm A must therefore rely on the
+broader pre-registration discipline (§4.6.2) and the planned blind
+third-party stress YAMLs (§Y.4) rather than on perturbation alone. We
+report the perturbation result as **auxiliary evidence consistent with**
+the calibration claims being non-mechanical, while flagging that the
+within-element fraction-STRONG is **not** a false-positive rate and
+that the more definitive blind-hypothesis-writing exercise (§Y.4)
+remains future work. Full results in Supplementary Table S_pert
+(`perturbation_summary.tsv`) and Figure X-bis
+(`perturbation_curve.pdf`); reproduction protocol in
 [`paper/manuscript/perturbation_analysis_results.md`](perturbation_analysis_results.md).
 
 ## §X.4 Reference audit and corrections

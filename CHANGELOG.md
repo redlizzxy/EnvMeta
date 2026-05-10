@@ -91,6 +91,20 @@
   集成 Methods §4.6.7 + Results §X.3 + Discussion §Y.3 limitation #1；
   figure: `paper/benchmarks/external/perturbation/perturbation_curve.{pdf,png,svg}`。
   pytest 301/301 仍全绿（无 API 变更）。
+- **Mock review v0.9.3 Major + Minor 全部修订**（2026-05-10 session）：
+  - **v0.9.3 Major #1 (Arm A asymmetry) → Closed**：扩展 perturbation runner 支持 Arm A partial
+    perturbation（仅 3 个 pathway_active claim，sample_data 数据加载）。Arm A 100% STRONG
+    retention 揭示 saturation regime；跨数据集形成 monotonic gradient
+    (Arm A 100% → Grettenberger 30% → Ayala 15% → Liu 0%)，Wilson 95% CI 标注
+  - **v0.9.2 Major #2 (3-dataset stress caveat) → Closed**：§X.2 加 "2-of-2 within
+    3-dataset stress design" caveat
+  - **3 个 v0.9.3 新 Minor → Closed**：§4.6.7 加 N=20 rationale + Wilson CI + run_null=False 辩护
+  - **5 个 v0.9.2 carried Minor → Closed**：calibration evidence disambiguation (§4.6.4) /
+    Newman 1997→1998 reconcile (§5.7.1 #24 改 Newman 1997 *AEM* 63:2022) /
+    DRAM-KEGG 区别 (§4.6.3) / dense annotation (§5.2.8) 加 "dense relative to KB target pathways"
+    clarification / consistent with 重复软化 (§X.2 末段)
+  - **§5.7.1 numbering**：22-entry flat list（mock review v0.9.2 Minor #3）
+  - 测试 **301/301 全绿**；预期 mock review v0.9.4 全部 Major Resolved → bioRxiv ready
 
 ---
 
