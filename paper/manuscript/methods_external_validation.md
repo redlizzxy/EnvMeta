@@ -80,8 +80,10 @@ EnvMeta runs and diffed against observed outcomes afterwards.
 
 We are explicit about what time-pre-registration **can** and **cannot**
 control. It establishes verifiable temporal ordering between
-hypothesis-authoring and data-running, and it locks the scoring entities
-against post-hoc adjustment. It does **not** control for the cognitive
+hypothesis-authoring and data-running *within the bounds of our
+repository's commit history*, and it locks the scoring entities against
+post-hoc adjustment that would be visible to anyone re-cloning the
+repository at any later date. It does **not** control for the cognitive
 selection bias that arises when the authors had already read the target
 papers before authoring claims. We acknowledge this residual bias as the
 single largest methodological limitation of the present calibration
@@ -89,11 +91,30 @@ experiment: the four `STRONG` calibration outcomes therefore conflate
 two effects that cannot be cleanly separated by git timestamps alone — the
 scoring engine's behaviour under default thresholds, and the authors'
 skill at choosing claims plausibly satisfiable by KEGG-curated datasets in
-the topics we surveyed. We discuss this limitation and the planned
-mitigation (blind hypothesis writing by collaborators unfamiliar with the
-target paper's findings, and the planned domain-paper publication of the
-arsenic-slag case study by an independent reviewer track) further in §Y.3
-and §Y.4.
+the topics we surveyed.
+
+We further acknowledge that the pre-registration claim itself is
+**institutional-trust-based** rather than cryptographically guaranteed.
+The repository is author-controlled, and we have not employed
+third-party witnessing services such as OpenTimestamps blockchain
+anchoring or OSF preregistration. A reviewer who is unwilling to extend
+that institutional trust cannot in principle rule out post-hoc
+commit-history rewriting or selective publication of predictions that
+turned out to be correct. We address this in three ways: (i) all
+hypothesis YAML commits, including any historical revisions, are
+publicly visible at `https://github.com/redlizzxy/EnvMeta/commits/master`
+under their original timestamps; (ii) the four pre-registration anchor
+commits (`42168da`, `44d7f5f`, `76a4f77`, `50c4687`) precede the first
+EnvMeta-on-external-data commits by margins traceable through the public
+log; and (iii) the auxiliary perturbation analysis (§4.6.7) provides a
+pre-registration-independent test of target-pathway sensitivity that does
+not require trust in the original YAML commits. We discuss the cognitive
+selection-bias limitation and the planned mitigation (blind hypothesis
+writing by collaborators unfamiliar with the target paper's findings,
+and the planned domain-paper publication of the arsenic-slag case study
+by an independent reviewer track) further in §Y.3 and §Y.4. Future
+calibration runs will adopt OpenTimestamps cryptographic anchoring at
+YAML-commit time.
 
 ### 4.6.3 Four-Arm calibration experiment
 
@@ -272,10 +293,10 @@ pre-registered versions remain accessible in git history at commits
 To address the concern that the four STRONG calibration outcomes might
 arise mechanically from KEGG annotation breadth rather than from
 authors' specific pre-data target choices, we performed an auxiliary
-target-pathway perturbation analysis (originally suggested as Mock
-Review v0.9.2 Major #1 auxiliary alternative; complementary to but not
-a substitute for the deferred blind-hypothesis-writing exercise of
-§Y.4). For each calibration YAML, claims with a `params.pathway` field
+target-pathway perturbation analysis. This analysis is complementary to
+but not a substitute for the blind-hypothesis-writing exercise we
+identify as future work in §Y.4. For each calibration YAML, claims with
+a `params.pathway` field
 had that field replaced by a randomly drawn alternative pathway in two
 modes: **(a) within-element**, drawn from the same KB element (e.g.,
 `Arsenate reduction` → `As methylation`); and **(b) cross-element**,
@@ -323,7 +344,38 @@ distribution figure:
 detailed results document:
 [`paper/manuscript/perturbation_analysis_results.md`](perturbation_analysis_results.md).
 
-### 4.6.8 Data and code availability
+### 4.6.8 Threshold sensitivity
+
+The default labelling thresholds (`strong=0.75`, `suggestive=0.40`) were
+selected to mirror the typical interpretive bands of weight-of-evidence
+frameworks in environmental risk assessment (Suter & Cormier, 2011), but
+their exact numerical values are conventional rather than derived. To
+verify that the four-arm calibration outcomes do not depend critically
+on this specific choice, we swept `strong_threshold` over
+{0.65, 0.70, 0.75, 0.80, 0.85} (with `suggestive_threshold` tracked at
+`strong_threshold − 0.35` to preserve the default band gap) and
+re-labeled each calibration arm and stress YAML at every threshold.
+
+Across this entire range, the four KEGG-curated calibration arms (Arms
+A, C1, C2-A, C2-B) retained the `STRONG` label uniformly (5/5
+thresholds × 4 arms = 20/20 stable STRONG outcomes), and Arm B (Wei
+2024 ROCker) remained `INSUFFICIENT` throughout (the
+required-claim veto activates regardless of threshold). The three v1
+stress runs remained at `suggestive` or `weak` throughout 0.65–0.80,
+with a single boundary transition at Ayala v1 (overall_score = 0.455)
+crossing from `suggestive` to `weak` at `strong_threshold = 0.85` —
+expected behaviour at a threshold beyond the conventional band. Full
+results in
+[`paper/benchmarks/external/threshold_sensitivity/threshold_sweep.tsv`](../benchmarks/external/threshold_sensitivity/threshold_sweep.tsv);
+the associated stability matrix is in
+[`threshold_stability_matrix.tsv`](../benchmarks/external/threshold_sensitivity/).
+Runner script:
+[`tools/external_benchmarks/threshold_sensitivity.py`](../../tools/external_benchmarks/threshold_sensitivity.py).
+We conclude that the calibration evidence presented in §4.6.4 and the
+discrimination evidence in §4.6.5 are not artifacts of the specific
+default-threshold choice within the conventional 0.65–0.80 range.
+
+### 4.6.9 Data and code availability
 
 Reshape and runner scripts are open-sourced under MIT license at
 `tools/external_benchmarks/{liu2023,grettenberger2021,ayala2020,wei2024}_*.py`

@@ -15,24 +15,44 @@
 
 To establish that EnvMeta's hypothesis scoring engine produces stable,
 defensible labels under default thresholds, we ran a four-arm controlled
-experiment over four metagenomic datasets spanning a gradient of annotation
-breadth: our in-house steel-slag arsenic-remediation dataset (Arm A; 168 MAGs ×
-10 samples; full KofamScan KEGG annotation, 57 KOs across 4 elements), Wei
-et al. (Arm B; 2024 *Microbiome*, 36 paddy-soil samples × 179 MAGs annotated
-with 14 functional genes via custom ROCker models¹), Liu et al. (Arm C1; 2023
-*npj Biofilms Microbiomes*, deep-sea cold-seep, 87 samples × 1084 MAGs with
-DRAM KEGG annotation), Grettenberger & Hamilton (Arm C2-A; 2021 *Appl Environ
-Microbiol*, AMD stream, 29 MAGs with METABOLIC step-level KEGG annotation),
-and Ayala-Muñoz et al. (Arm C2-B; 2020 *Microorganisms*, Iberian Pyrite Belt
-acidic pit lake deep layer, 13 MAGs re-annotated end-to-end with Pyrodigal
-plus GhostKOALA²). All hypothesis YAMLs were pre-registered (committed to git
+experiment over five metagenomic datasets spanning a gradient of annotation
+breadth. The experiment combines **one in-house positive control** (Arm A,
+authors' own data and authors' own a-priori hypothesis YAML) and **four
+external blind-test calibrations** (Arms B, C1, C2-A, C2-B; published
+datasets, hypothesis YAMLs authored before reading the corresponding
+papers' specific findings — see §4.6.2). The two categories carry
+different evidentiary weight: Arm A demonstrates engine self-consistency
+on a dataset where the `STRONG` label is the *expected* outcome by
+experimental design, while the four external arms test whether the
+engine produces reasonable labels on independent data and hypotheses.
+We therefore report Arm A as a positive control (engine-doesn't-misfire
+sanity check) and the four external arms as the primary calibration
+evidence.
+
+The five datasets are: our in-house steel-slag arsenic-remediation dataset
+(Arm A *positive control*; 168 MAGs × 10 samples; full KofamScan KEGG
+annotation, 57 KOs across 4 elements), Wei et al. (Arm B *external*;
+2024 *Microbiome*, 36 paddy-soil samples × 179 MAGs annotated with 14
+functional genes via custom ROCker models¹), Liu et al. (Arm C1
+*external*; 2023 *npj Biofilms Microbiomes*, deep-sea cold-seep, 87
+samples × 1084 MAGs with DRAM KEGG annotation), Grettenberger & Hamilton
+(Arm C2-A *external*; 2021 *Appl Environ Microbiol*, AMD stream, 29
+MAGs with METABOLIC step-level KEGG annotation), and Ayala-Muñoz et al.
+(Arm C2-B *external*; 2020 *Microorganisms*, Iberian Pyrite Belt acidic
+pit lake deep layer, 13 MAGs re-annotated end-to-end with Pyrodigal plus
+GhostKOALA²). All hypothesis YAMLs were pre-registered (committed to git
 at hashes `42168da`, `44d7f5f`, `76a4f77` before EnvMeta was run), used
 EnvMeta's default thresholds (`min_completeness=30`, `strong=0.75`,
-`suggestive=0.40`), and cited only review literature published five or more
-years before the target paper.
+`suggestive=0.40`), and cited only review literature published five or
+more years before the target paper.
 
-All four KEGG-curated arms returned **`STRONG` labels with overall_score = 1.000
-and 4/4 claims satisfied** (Table 1; Arms A, C1, C2-A, C2-B). The single
+The Arm A in-house positive control returned **`STRONG` with
+overall_score = 1.000 (9/9 claims satisfied)**, confirming the engine
+yields the expected label on data and hypothesis built by the authors —
+this is a self-consistency check, not independent calibration evidence.
+The three KEGG-curated **external** arms (C1, C2-A, C2-B) returned
+**`STRONG` with overall_score = 1.000 (4/4 claims satisfied each)**
+(Table 1) — the principal calibration result. The single
 ROCker-only arm (Arm B, Wei 2024) returned overall_score = 0.63 with label
 `INSUFFICIENT` despite 3/5 claims satisfied; the required-veto activated
 because Wei's published 14-gene set provides only 2 of the 6 canonical KOs
@@ -41,14 +61,20 @@ napB/narB`) and the As(III)↔NO₃⁻ chemistry coupling was scored *partial*
 because one of its termini was unsatisfied. Permutation null-p = 0.90
 (n = 999) and weight robustness under ±20% one-at-a-time (OAT) perturbation
 = True confirmed the conservative diagnosis is not a weight-tuning artifact.
-The contrast among the four arms — same scoring engine, identical default
-thresholds — establishes that the `INSUFFICIENT` label on Arm B faithfully
-reflects annotation-coverage diagnostics rather than engine malfunction or
-threshold mismatch. Notably, the `STRONG` label on Arm C2-B (Ayala) was
-obtained with a single GhostKOALA re-annotation pipeline applied to publicly
-available MAG genomes (BioProject PRJNA646106), demonstrating that
-KEGG-curated EnvMeta scoring is reproducible end-to-end from raw genome
-assemblies. We emphasize that this is **calibration evidence**: all
+A separate threshold-sensitivity sweep (Methods §4.6.8) over
+`strong_threshold ∈ {0.65, 0.70, 0.75, 0.80, 0.85}` confirms that all four
+KEGG-curated arms retain `STRONG` and Arm B retains `INSUFFICIENT` across the
+entire range, ruling out the possibility that the calibration outcome is an
+artifact of the specific 0.75 default.
+The contrast among the external arms — same scoring engine, identical
+default thresholds — establishes that the `INSUFFICIENT` label on Arm B
+faithfully reflects annotation-coverage diagnostics rather than engine
+malfunction or threshold mismatch. Notably, the `STRONG` label on Arm
+C2-B (Ayala) was obtained with a single GhostKOALA re-annotation
+pipeline applied to publicly available MAG genomes (BioProject
+PRJNA646106), demonstrating that KEGG-curated EnvMeta scoring is
+reproducible end-to-end from raw genome assemblies on data that the
+authors had no role in generating. We emphasize that this is **calibration evidence**: all
 KEGG-curated `STRONG` results were obtained with claims targeting backbone
 biogeochemical pathways near-universally expected in their respective
 environments (e.g. arsenate reduction in anoxic high-As cold-seep, sulfide

@@ -271,6 +271,13 @@ Microbiology）。开发时持续积累：
   - **v0.9.3 新 Major**：Arm A perturbation asymmetry — 作者数据排除于 perturbation 控制，可补 partial Arm A perturbation（≈30 min compute）封口
   - 余 1 Major (3-dataset stress caveat 仍未修) + 8 Minor（5 carried + 3 new）= 2-4 天到 acceptance-ready
   - 详见 [`paper/manuscript/mock_review_v0.9.3_post_perturbation.md`](paper/manuscript/mock_review_v0.9.3_post_perturbation.md)（不 push）
+- ✅ **Mock review v0.9.4 (independent first-time reviewer) 5 Major 修订**（2026-05-10 second session）：
+  - **Major #1 mock-review metadata 泄漏**：删除 manuscript 4 个文件全部 "Mock Review v0.9.x" 标签（§4.6.7 + perturbation_analysis_results §1/§4 + outline §5.7.1 reference annotations + outline §5.3 author notes）
+  - **Major #2 Arm A baseline 数值不一致**（Table 1 = 1.000 vs perturbation = 0.919）：扩展 perturbation runner 支持 keystone_df，sample_data + keystone 跑出 1.000 STRONG 9/9 satisfied；perturbation 文件 + README 同步；Results §X.1 "4/4" 改为 "Arm A 9/9, C1/C2-A/C2-B 4/4"
+  - **Major #3 pre-registration 第三方 witness 缺**：§4.6.2 加一段 "institutional-trust-based" 局限性诚实承认 + 3 条 mitigation（GitHub 公开 commit log / anchor commit margin / perturbation 独立性）+ 未来 OpenTimestamps 承诺
+  - **Major #4 默认阈值 0.75/0.40 缺 justification**：新增 [`tools/external_benchmarks/threshold_sensitivity.py`](tools/external_benchmarks/threshold_sensitivity.py) 跑 5 阈值 × 8 dataset；新增 Methods §4.6.8 Threshold sensitivity 段；4 KEGG-curated arm 全 STRONG 跨 0.65-0.85 全稳；Arm B 全 INSUFFICIENT；stress 跨范围全 weak/suggestive；Results §X.1 加引用句
+  - **Major #5 Arm A 循环论证 reframe**：Results §X.1 完全重写——明确把 Arm A 标为 "in-house positive control (engine self-consistency check)"，3 个 external arm 标为 "primary calibration evidence"；Discussion §Y.3 limitation #1 同步 reframe（Arm A 最 susceptible，3 external 较少 susceptible 但仍非 bias-free）
+  - 测试 **301/301 全绿**；预期 mock review v0.9.5 全部 Major Resolved
 - ✅ **Mock review v0.9.3 全部 Major + Minor 修订**（2026-05-10 session）：
   - **v0.9.3 Major #1 (Arm A asymmetry) → Closed**：补 Arm A partial perturbation（仅 3 个 pathway_active claim）
     - **Arm A 100% STRONG retention**（within + cross 都 20/20）→ 揭示 saturation regime；168 MAG 4-element 丰标注让任何通路替换都仍命中 active；honest framing 为该数据集 cherry-pick 防御依然依赖 §4.6.2 pre-registration + §Y.4 blind future work
@@ -294,15 +301,14 @@ Microbiology）。开发时持续积累：
 | **Verify Korehi 2014 / Mendez-Garcia 2015 真正 AMD diazotrophy 引用** | 10 min | 已 Verified Dai 2014 + Méndez-García 2015 → §5.7.1 #4 + #12（见 [`hypothesis_references_audit.md`](paper/manuscript/hypothesis_references_audit.md)）|
 | **User study 数据回收分析**（条件性）| 1 周 | 问卷已发 2026-04-19；如投稿前 n ≥ 8 回收成功则加进 §5.6 Acknowledgments；否则 Acknowledgments 已 tempering 处理 |
 
-### 🟧 推荐做（mock review v0.9.4 验证 → bioRxiv-ready）
+### 🟧 推荐做（mock review v0.9.5 验证 → bioRxiv-ready）
 
 | 任务 | 工时 | 理由 |
 |---|---|---|
-| ~~1-day perturbation analysis~~ | ✅ 完成 | v0.9.2 Major #1 → Resolved；mock review v0.9.3 Recommendation = Minor Revision (acceptance-track) |
-| ~~Arm A partial perturbation~~ | ✅ 完成 (2026-05-10) | v0.9.3 Major #1 → Closed；100% STRONG retention 揭示 saturation regime；跨数据集 monotonic gradient 100→0% |
-| ~~Stress §X.2 3-dataset caveat~~ | ✅ 完成 | v0.9.2 Major #2 → Closed |
-| ~~v0.9.2/v0.9.3 全部 8 Minor~~ | ✅ 完成 | 5 carried + 3 new 全部修；§5.7.1 平铺 22 entries；Newman 1997 AEM reconciled |
-| **Rerun mock review v0.9.4** | 5 min | 验证全部 Major Resolved → bioRxiv 投稿 ready |
+| ~~v0.9.3 全部 Major + Minor~~ | ✅ 完成 | Arm A partial / 3-dataset caveat / 8 Minor 全清 |
+| ~~v0.9.4 独立审稿人 5 Major~~ | ✅ 完成 (2026-05-10) | mock review metadata 泄漏 / Arm A 0.919↔1.000 / pre-reg 局限 / threshold sensitivity / Arm A in-house positive control reframe |
+| **Rerun mock review v0.9.5** | 5 min | 验证 5 Major 全 Closed + 检查是否冒出新问题 → bioRxiv 投稿 ready |
+| **10 个 v0.9.4 Minor**（可选）| 1-2h | "monotonic" 改 "observed ordering" / required=false control / null_p histogram / KB scope / ImageGP 2 quantitative / 真实 dense 性能 case / 引用 audit methodology / sample_data 关系 / English README | 
 
 ### 🟡 加分项（投稿后 / 课题论文阶段做）
 
@@ -328,13 +334,14 @@ Microbiology）。开发时持续积累：
 
 ## 下次 session 建议起点
 
-按优先级（v0.9.3 全部 Major+Minor 修订完成；待 v0.9.4 验证 → bioRxiv）：
+按优先级（v0.9.4 独立审稿人 5 Major 修完，待 v0.9.5 验证 → bioRxiv）：
 
-1. **Rerun mock review v0.9.4** —— 5 min；验证全部 Major Resolved → 投稿 ready
+1. **Rerun mock review v0.9.5** —— 5 min；验证 5 Major Closed + 检查新冒出问题
 2. **6 张 placeholder figures** —— 投稿 mandatory；用户配截图 + 我可辅助排版（F1 架构 / F3 算法流程 / F5 HTML 截图 / F6 Bundle / F7 砷渣案例 / F10 vs Tools）
-3. **bioRxiv 投稿** —— 6 月初前完成；3 天审核拿 DOI
-4. **EnvMeta 投 iMeta** —— bioRxiv DOI 上线后立即投
-5. **课题论文起草并行** —— As 形态重测启动（用户主导）+ EnvMeta bioRxiv DOI 引用
+3. **10 个 v0.9.4 Minor**（可选，1-2h 纯文字）
+4. **bioRxiv 投稿** —— 6 月初前完成；3 天审核拿 DOI
+5. **EnvMeta 投 iMeta** —— bioRxiv DOI 上线后立即投
+6. **课题论文起草并行** —— As 形态重测启动（用户主导）+ EnvMeta bioRxiv DOI 引用
 
 ---
 

@@ -98,15 +98,22 @@ We list four interlinked limitations of the present validation experiment in
 descending order of methodological importance.
 
 **(1) Residual author selection bias.** This is the single largest
-limitation of the four-arm calibration experiment. Despite explicit
-time-pre-registration discipline (§4.6.2), the authors had read all four
-target papers before writing the hypothesis YAMLs. Time-pre-registration
-locks the claim entities against post-hoc adjustment but does not control
-for the cognitive selection bias of choosing claims plausibly satisfiable
-by KEGG-curated datasets in the topics surveyed. The four `STRONG`
-calibration outcomes therefore conflate two effects that cannot be cleanly
-separated within the present design: the scoring engine's behaviour under
-default thresholds, and the authors' skill in claim selection. As partial
+limitation of the calibration experiment. The in-house Arm A is most
+susceptible — the authors authored the hypothesis YAML for their own
+dataset and chose claims plausibly satisfiable by their own a-priori
+research design — and we therefore frame Arm A as a positive control
+(engine self-consistency check) rather than as independent calibration
+evidence (Results §X.1). The three external arms (C1, C2-A, C2-B) are
+less susceptible because the authors authored each YAML before reading
+the corresponding paper's specific findings, but they are not bias-free:
+even with explicit time-pre-registration discipline (§4.6.2), the
+authors had selected the four target papers before writing the YAMLs and
+will have unconsciously favored claims plausibly satisfiable in
+KEGG-curated datasets within the topics surveyed. The three external
+`STRONG` calibration outcomes therefore conflate two effects that cannot
+be cleanly separated within the present design: the scoring engine's
+behaviour under default thresholds, and the authors' skill in claim
+selection. As partial
 auxiliary evidence on this point, we performed a target-pathway
 perturbation analysis (Methods §4.6.7; Results §X.3) randomly replacing
 `params.pathway` across all four calibration YAMLs in two modes

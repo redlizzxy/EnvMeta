@@ -123,7 +123,10 @@ def load_inputs(data_dir: Path):
 
 
 def load_inputs_sample_data():
-    """tests/sample_data 加载器 — 文件名 .txt 而非 .tsv（Arm A 作者数据精简版）。"""
+    """tests/sample_data 加载器 — 文件名 .txt 而非 .tsv（Arm A 作者数据精简版）。
+
+    返回 7 元组（多一个 keystone_df），与 load_inputs 区分。
+    """
     dd = ROOT / "tests" / "sample_data"
     metadata = pd.read_csv(dd / "metadata.txt", sep="\t")
     env = pd.read_csv(dd / "env_factors.txt", sep="\t")
@@ -134,7 +137,8 @@ def load_inputs_sample_data():
         dd / "mag_taxonomy_labels.tsv",
         sep="\t", header=None, names=["MAG", "classification"],
     )
-    return metadata, env, abund, ko_long, qual, tax
+    keystone = pd.read_csv(dd / "keystone_species.txt", sep="\t")
+    return metadata, env, abund, ko_long, qual, tax, keystone
 
 
 def perturb_yaml(
@@ -221,8 +225,10 @@ def run_dataset(dataset_cfg: dict, n_perturb: int, seed_base: int = 0) -> list[d
         print(f"  [SKIP] missing yaml: {yaml_path}")
         return []
 
+    keystone = None
     if dataset_cfg.get("data_loader") == "sample_data":
-        metadata, env, abund, ko_long, qual, tax = load_inputs_sample_data()
+        metadata, env, abund, ko_long, qual, tax, keystone = load_inputs_sample_data()
+        print(f"  [+keystone] {len(keystone)} entries loaded for keystone_in_pathway claim")
     else:
         data_dir = EXTERNAL / key / "input_data_local"
         if not data_dir.exists():
@@ -237,6 +243,7 @@ def run_dataset(dataset_cfg: dict, n_perturb: int, seed_base: int = 0) -> list[d
     cycle_result = cycle_diagram.analyze(
         ko_annotation_df=ko_long, taxonomy_df=tax,
         abundance_df=abund, env_df=env, metadata_df=metadata,
+        keystone_df=keystone,
     )
     print(f"      cycle runtime: {time.time() - t0:.2f} s")
 
@@ -247,6 +254,7 @@ def run_dataset(dataset_cfg: dict, n_perturb: int, seed_base: int = 0) -> list[d
         compare_df = cycle_compare.compare_groups(
             ko_annotation_df=ko_long, taxonomy_df=tax,
             abundance_df=abund, env_df=env, metadata_df=metadata,
+            keystone_df=keystone,
             groups=compare_groups_arg,
         )
 

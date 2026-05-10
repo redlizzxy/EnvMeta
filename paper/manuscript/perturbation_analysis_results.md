@@ -1,10 +1,10 @@
 # Perturbation Analysis — Auxiliary Evidence for Calibration Specificity
 
-> **Purpose**: Address Mock Review v0.9.2 Major Issue #1 — provide auxiliary
-> evidence that the four STRONG calibration outcomes are not mechanical
-> artifacts of KEGG annotation density / pre-data target choice. Run as the
-> "1-day perturbation analysis" alternative to the deferred blind-hypothesis-
-> writing exercise (Discussion §Y.4 future-work item).
+> **Purpose**: Provide auxiliary evidence that the four STRONG calibration
+> outcomes are not mechanical artifacts of KEGG annotation density / pre-data
+> target choice. Run as the "1-day perturbation analysis" alternative to the
+> deferred blind-hypothesis-writing exercise (Discussion §Y.4 future-work
+> item).
 >
 > **Date**: 2026-05-09
 > **Engine commit**: (current `master`)
@@ -83,8 +83,8 @@ thresholds (strong=0.75, suggestive=0.40) and default
 
 | Dataset | Annotation regime | Mode | Median | Mean | Strong fraction (Wilson 95% CI) | Label changed |
 |---|---|---|---|---|---|---|
-| **Arm A in-house** (168 MAG, 4-element rich) | saturated | within_element | 0.919 | 0.902 | **20/20 (100%)** [0.84, 1.00] | 0% |
-| Arm A in-house | saturated | **cross_element** | 0.919 | 0.919 | 20/20 (100%) [0.84, 1.00] | 0% |
+| **Arm A in-house** (168 MAG, 4-element rich) | saturated | within_element | 1.000 | 0.983 | **20/20 (100%)** [0.84, 1.00] | 0% |
+| Arm A in-house | saturated | **cross_element** | 1.000 | 1.000 | 20/20 (100%) [0.84, 1.00] | 0% |
 | Liu 2023 (29 MAG, As cold seep) | focused (As-only) | within_element | 0.770 | 0.787 | 10/20 (50%) [0.30, 0.70] | 50% |
 | Liu 2023 | focused | **cross_element** | **0.000** | **0.000** | **0/20 (0%)** [0.00, 0.16] | **100%** ⭐ |
 | Grettenberger 2021 (29 MAG, AMD) | mixed (S+Fe) | within_element | 0.772 | 0.753 | 10/20 (50%) [0.30, 0.70] | 50% |
@@ -92,8 +92,10 @@ thresholds (strong=0.75, suggestive=0.40) and default
 | Ayala 2020 (13 MAG, AMD pit lake) | mixed (S+Fe) | within_element | 0.500 | 0.521 | 8/20 (40%) [0.21, 0.63] | 60% |
 | Ayala 2020 | mixed | cross_element | 0.500 | 0.464 | 3/20 (15%) [0.05, 0.37] | 85% |
 
-(Original calibration scores: Arm A 0.919 STRONG; Liu / Grettenberger /
-Ayala all 1.000 STRONG.)
+(Original calibration scores: all four arms 1.000 STRONG. Arm A is run with
+`keystone_df` loaded from `tests/sample_data/keystone_species.txt` so
+its 9-claim YAML — including `keystone_on_iron` — is fully evaluated;
+this matches Table 1 §X.1.)
 
 ### Four findings
 
@@ -245,8 +247,8 @@ density alone:
   dependence), not author-*selection*-bias for the STRONG outcome. The
   blind-hypothesis-writing exercise (§Y.4) remains the gold standard
   for the latter and is preserved as future work. The perturbation
-  analysis is offered as the auxiliary evidence that Mock Review v0.9.2
-  (Major #1) suggested, not as a substitute.
+  analysis is offered as auxiliary evidence on the target-choice axis,
+  not as a substitute for blind authoring.
 
 ### Suggested location in manuscript
 
@@ -283,4 +285,4 @@ Deterministic — same `--seed` returns identical results.
 | Date | Event |
 |---|---|
 | 2026-05-09 | Initial run on 3 external datasets; both modes; N=20. Cross-element Liu 0/20 STRONG = headline result. |
-| 2026-05-10 | Added Arm A partial perturbation (3 pathway_active claims only) per Mock Review v0.9.3 Major #1. Arm A 100% STRONG retention reframes story as annotation-breadth gradient: Arm A (saturated) → Grettenberger / Ayala (mixed) → Liu (focused). Within-element CIs (Wilson 95%) added. N=20 rationale + run_null=False rationale added. |
+| 2026-05-10 | Added Arm A partial perturbation (3 pathway_active claims only). Arm A 100% STRONG retention reframes story as annotation-breadth gradient: Arm A (saturated) → Grettenberger / Ayala (mixed) → Liu (focused). Within-element CIs (Wilson 95%) added. N=20 rationale + run_null=False rationale added. |

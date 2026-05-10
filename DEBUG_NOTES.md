@@ -17,6 +17,76 @@
 
 > 每次 session 结束前更新此区块。新对话开始时 Claude Code 自动读取，了解当前进度。
 
+### 2026-05-10 second session（**Mock review v0.9.4 (independent reviewer) 5 Major 修订 — threshold sensitivity + Arm A reframe + pre-reg honest disclosure ⭐**）
+
+**背景**：Mock review v0.9.3 完成后跑了第二次模拟（用户要求"换一个审稿人 第一次看"）。
+独立审稿人 (untracked `mock_review_v0.9.4_independent_reviewer.md`) 给 **Major
+Revision**（vs 迭代 v0.9.3 的 Minor），暴露了 5 个迭代 reviewer drift 没 catch 的真问题。
+
+**核心工作**：
+
+1. **Major #1 Mock-review metadata 泄漏**（最严重，1 小时硬伤）：
+   - Methods §4.6.7 删 "(originally suggested as Mock Review v0.9.2 Major #1...)"
+   - perturbation_analysis_results.md 删 §1 + §4 两处 Mock Review 引用
+   - outline §5.7.1 reference 4 处 (per Mock Review v0.9.x Minor #X) 标签删
+   - outline §5.3 author notes 2 处 "(post mock-review v0.9.1...)" 删
+   - 验证：grep "mock review" manuscript text files 返回 0 行
+
+2. **Major #2 Arm A baseline 数值不一致**（Table 1 = 1.000 vs perturbation = 0.919 的 9 点差距）：
+   - 根因：perturbation 跑时未传 keystone_df，keystone_on_iron claim unsatisfied
+   - 修复：扩展 [`tools/external_benchmarks/perturbation_analysis.py`](tools/external_benchmarks/perturbation_analysis.py)
+     `load_inputs_sample_data` 返回 7-tuple（含 keystone），cycle_diagram + compare_groups 都传 keystone_df
+   - 重跑 perturbation：Arm A baseline 现 = **1.000 STRONG, 9/9 satisfied**（与 Table 1 一致）
+   - within-element 100% / cross-element 100% retention 不变（saturation regime 故事完整保留）
+   - Results §X.1 措辞"4/4 claims satisfied"改为"Arm A 9/9, C1/C2-A/C2-B each 4/4"
+
+3. **Major #3 pre-registration institutional-trust-based**：
+   - Methods §4.6.2 加一段诚实承认 author-controlled repo 无第三方 witness
+   - 给出 3 条 mitigation：(a) 全公开 GitHub commit log；(b) 4 anchor commit 与 EnvMeta-on-data
+     commit 之间的 timestamp margin 可 trace；(c) perturbation analysis 提供独立检验
+   - 未来承诺：将采用 OpenTimestamps 区块链锚点
+
+4. **Major #4 默认阈值 0.75/0.40 缺 sensitivity**：
+   - 新建 [`tools/external_benchmarks/threshold_sensitivity.py`](tools/external_benchmarks/threshold_sensitivity.py)
+     扫 strong_threshold ∈ {0.65, 0.70, 0.75, 0.80, 0.85}（suggestive 跟着 −0.35 保持 band gap）
+   - 8 dataset 跑出（4 calibration + 3 stress + Arm B INSUFFICIENT）：
+     - 4 KEGG-curated calibration arm 全 STRONG 跨 0.65-0.85 全稳（20/20 stable）
+     - Arm B 全 INSUFFICIENT 跨范围全稳（required-veto 不依赖阈值）
+     - 3 stress run 跨 0.65-0.80 全 weak/suggestive，仅 Ayala v1 (0.455) 在 0.85 边界从
+       suggestive → weak（边界 transition，预期行为）
+   - Methods §4.6.8 新段（subsection numbering: §4.6.7 perturbation / §4.6.8 threshold / §4.6.9 data&code）
+   - Results §X.1 加引用句：calibration 不是 0.75 default 的 artifact
+
+5. **Major #5 Arm A 循环论证**：
+   - Results §X.1 完全重写第 1-3 段：明确把 Arm A 标为 "in-house positive control
+     (engine self-consistency check, not independent calibration evidence)"
+   - 3 external arm (C1, C2-A, C2-B) 标为 "external blind-test calibrations" / "primary
+     calibration evidence"
+   - 第 4 段强调 "contrast among the **external** arms"（不是 four arms）
+   - Discussion §Y.3 limitation #1 同步 reframe：Arm A 最 susceptible 到 selection bias，
+     3 external 较少 susceptible 但 author 选择 4 篇 paper 的过程仍非 bias-free
+
+**测试**：pytest **301/301 全绿**（无 API 变更）
+
+**v0.9.4 → 预期 v0.9.5 状态变化**：
+
+| Issue | v0.9.4 status | v0.9.5 预期 status |
+|---|---|---|
+| Major #1 mock-review metadata 泄漏 | New | **Closed** (grep 0 行) |
+| Major #2 Arm A 0.919 vs 1.000 | New | **Closed** (1.000 一致) |
+| Major #3 pre-reg 第三方 witness | New | **Honestly acknowledged** + 3 mitigations + future commit |
+| Major #4 default thresholds 无 justification | New | **Closed** (sensitivity sweep 8 dataset × 5 threshold) |
+| Major #5 Arm A 循环 | New | **Closed** (positive control reframe) |
+| 10 个 Minor | New | 主要还 carry（Minor 没改）|
+
+**下一步建议**：
+1. **Rerun mock review v0.9.5** —— 5 min；验证 5 Major 全 Closed
+2. **6 张 placeholder figures**（投稿 mandatory）
+3. **10 个 v0.9.4 Minor 修订**（可选，1-2h）
+4. **bioRxiv 投稿** —— 6 月初前完成；3 天审核拿 DOI
+
+---
+
 ### 2026-05-10 session（**Mock review v0.9.3 全部 Major + Minor 修订 — Arm A partial perturbation 揭示 saturation regime ⭐**）
 
 **背景**：mock review v0.9.3 (untracked，2026-05-09 跑) 给出 1 个新 Major (Arm A

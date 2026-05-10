@@ -581,8 +581,7 @@ scoring + Bundle + offline HTML"。
 
 4. **Calibration vs Discrimination framing**（NEW —— 1 段过渡 / ~150 words / 接 §Y.1-Y.2）
 
-> Drop-in English text — source: [`discussion_calibration_discrimination.md`](discussion_calibration_discrimination.md) §Y.1 + §Y.2 abridged
-> (post mock-review v0.9.1 reframe: KEGG-coverage-dependent, not domain-neutral)
+> Drop-in English text — source: [`discussion_calibration_discrimination.md`](discussion_calibration_discrimination.md) §Y.1 + §Y.2 abridged.
 
 > The four-arm controlled experiment (§5.2.4) provides what we term
 > **KEGG-coverage-dependent calibration evidence**: under fixed default
@@ -608,8 +607,7 @@ scoring + Bundle + offline HTML"。
 5. **局限性**（~340 words / merged §Y.3 + performance §5.3）
 
 > Drop-in English text — source: [`discussion_calibration_discrimination.md`](discussion_calibration_discrimination.md) §Y.3
-> + [`performance_paragraph_snippets.md`](performance_paragraph_snippets.md) §5.3
-> (post mock-review v0.9.1: lead with author selection bias as #1 limitation)
+> + [`performance_paragraph_snippets.md`](performance_paragraph_snippets.md) §5.3.
 
 > **(1) Residual author selection bias** — the single largest limitation of
 > the four-arm calibration experiment. Despite explicit time-pre-registration
@@ -762,8 +760,9 @@ expected to transfer. Full benchmark report at
 > - **§4.6.4** Calibration results — 4 KEGG-curated arms STRONG (overall=1.000); Arm B INSUFFICIENT due to required-veto on incomplete denitrification annotation
 > - **§4.6.5** Stress test — 3-Arm × 3-class (reversed/cross-topic/`pathway_inactive`); cross-topic rejection in 2/2 non-arsenic datasets (n=0 active MAGs); v0.9.x `dominance_score` extension upgrades B-tier → A-tier
 > - **§4.6.6** Reference audit and post-hoc corrections — 4 errors corrected transparently in YAML metadata (commits `ddd3098`, `cae2de7`); claim entities frozen; full audit at [`hypothesis_references_audit.md`](hypothesis_references_audit.md)
-> - **§4.6.7** Auxiliary perturbation analysis — random pathway-target substitution in 2 modes (within-element / cross-element); N=20 each per 3 external datasets; cross-element collapses Liu 2023 to 0/20 STRONG → element-level target accuracy is mechanistically required
-> - **§4.6.8** Data and code availability — reshape scripts at `tools/external_benchmarks/`; perturbation runner at `tools/external_benchmarks/perturbation_analysis.py`; YAMLs at `paper/benchmarks/external/{dataset}/`; results at `envmeta_outputs/` and `paper/benchmarks/external/perturbation/`
+> - **§4.6.7** Auxiliary perturbation analysis — random pathway-target substitution in 2 modes (within-element / cross-element); N=20 each per 4 datasets (Arm A partial, 3 external full); cross-element collapses Liu 2023 to 0/20 STRONG → element-level target accuracy is mechanistically required
+> - **§4.6.8** Threshold sensitivity — sweep `strong_threshold` ∈ {0.65, 0.70, 0.75, 0.80, 0.85}; all 4 KEGG-curated calibration arms remain STRONG and all stress runs remain weak/suggestive across the conventional range
+> - **§4.6.9** Data and code availability — reshape scripts at `tools/external_benchmarks/`; perturbation + threshold sensitivity runners at `tools/external_benchmarks/`; YAMLs at `paper/benchmarks/external/{dataset}/`; results at `envmeta_outputs/`, `paper/benchmarks/external/perturbation/`, `paper/benchmarks/external/threshold_sensitivity/`
 >
 > 19 条 Vancouver 引用（含 DOI） — 见 §5.7 References。投稿时整段插入。
 
@@ -881,11 +880,9 @@ Funding: [supervisor's grant ID] / China University of Geosciences
 17. Suter GW II, Cormier SM. Why and how to combine evidence in environmental assessments. *Sci Total Environ*. 2011;409(8):1406-1417. DOI: 10.1016/j.scitotenv.2010.12.029
 18. Wei X, Long C, Liu Z, Yang J, Lai Y, Liu Y, et al. Genomic insights into arsenic biogeochemistry in paddy soils. *Microbiome*. 2024;12:236. DOI: 10.1186/s40168-024-01952-4
 19. Yin XX, Chen J, Qin J, Sun GX, Rosen BP, Zhu YG. Biotransformation and volatilization of arsenic by three photosynthetic cyanobacteria. *Plant Physiol*. 2011;156(3):1631-1638. DOI: 10.1104/pp.111.178947
-20. Anderson, Marti J. 2001. "A New Method for Non-Parametric Multivariate Analysis of Variance." *Austral Ecology* 26: 32-46. https://doi.org/10.1111/j.1442-9993.2001.01070.pp.x  *(used to justify n=999 permutation count, §5.4.8.1; mock review v0.9.2 Minor #5)*
+20. Anderson, Marti J. 2001. "A New Method for Non-Parametric Multivariate Analysis of Variance." *Austral Ecology* 26: 32-46. https://doi.org/10.1111/j.1442-9993.2001.01070.pp.x  *(used to justify n=999 permutation count, §5.4.8.1)*
 21. Segata, Nicola, Jacques Izard, Levi Waldron, Dirk Gevers, Larisa Miropolsky, Wendy S. Garrett, and Curtis Huttenhower. 2011. "Metagenomic Biomarker Discovery and Explanation." *Genome Biology* 12: R60. https://doi.org/10.1186/gb-2011-12-6-r60  *(used to justify per-group n ≥ 4 recommendation, §5.4.6)*
-22. Stolz, John F., Partha Basu, Joanne M. Santini, and Ronald S. Oremland. 2006. "Arsenic and Selenium in Microbial Metabolism." *Annual Review of Microbiology* 60: 107-130. https://doi.org/10.1146/annurev.micro.60.080805.142053  *(used in §Y.2 to ground sporadic-oxidizer literature, §5.2.4 stress test discussion; mock review v0.9.2 Minor #6)*
-
-> **List flattening note (mock review v0.9.2 Minor #3 + v0.9.3 Minor #4 carryover)**: §5.7.1 is now a **single flat 22-entry list**. Items 1–19 are the original `methods_external_validation.md` references; items 20–22 are supplementary additions for §5.2.4 stress narrative, §5.4.6 perf benchmark, and §Y.2 stress test discussion respectively. There is no separate "supplementary additions" subsection — the entire 22-entry numbering is contiguous.
+22. Stolz, John F., Partha Basu, Joanne M. Santini, and Ronald S. Oremland. 2006. "Arsenic and Selenium in Microbial Metabolism." *Annual Review of Microbiology* 60: 107-130. https://doi.org/10.1146/annurev.micro.60.080805.142053  *(used in §Y.2 to ground sporadic-oxidizer literature, §5.2.4 stress test discussion)*
 
 #### 5.7.2 iMeta sister-tools 引用清单（§5.1 ecosystem 段落引用，强烈推荐保留）
 
@@ -930,7 +927,7 @@ Funding: [supervisor's grant ID] / China University of Geosciences
 
 #### 5.7.4 Cross-element coupling chemistry (§5.4.3 / §5.2.3)
 
-24. Newman, Dianne K., Terry J. Beveridge, and François M. M. Morel. 1997. "Precipitation of Arsenic Trisulfide by *Desulfotomaculum auripigmentum*." *Applied and Environmental Microbiology* 63 (5): 2022-2028. https://doi.org/10.1128/aem.63.5.2022-2028.1997  *(primary As₂S₃ chemistry coupling reference cited in §5.2.3; reconciled from earlier Newman 1998 *Geomicrobiology Journal* review citation per Mock Review v0.9.2 Minor #4)*
+24. Newman, Dianne K., Terry J. Beveridge, and François M. M. Morel. 1997. "Precipitation of Arsenic Trisulfide by *Desulfotomaculum auripigmentum*." *Applied and Environmental Microbiology* 63 (5): 2022-2028. https://doi.org/10.1128/aem.63.5.2022-2028.1997  *(primary As₂S₃ chemistry coupling reference cited in §5.2.3)*
 25. Rodriguez-Freire, Lucia, Reyes Sierra-Alvarez, Robert Root, Jon Chorover, and James A. Field. 2014. "Biomineralization of Arsenate to Arsenic Sulfides Is Greatly Enhanced at Mildly Acidic Conditions." *Water Research* 66: 242-253. https://doi.org/10.1016/j.watres.2014.08.016
 26. Hollibaugh, James T., Carrie Carini, Heath Gürleyük, Roumiana Jellison, Steven B. Joye, Greg Lecleir, et al. 2005. "Arsenic Speciation in Mono Lake, California: Response to Seasonal Stratification and Anoxia." *Geochimica et Cosmochimica Acta* 69: 1925-1937. https://doi.org/10.1016/j.gca.2004.10.011
 

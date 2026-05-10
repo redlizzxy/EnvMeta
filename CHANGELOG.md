@@ -91,6 +91,25 @@
   集成 Methods §4.6.7 + Results §X.3 + Discussion §Y.3 limitation #1；
   figure: `paper/benchmarks/external/perturbation/perturbation_curve.{pdf,png,svg}`。
   pytest 301/301 仍全绿（无 API 变更）。
+- **Mock review v0.9.4 (independent reviewer) 5 Major 修订**（2026-05-10 second session）：
+  - **Major #1 mock-review metadata 泄漏**：删 manuscript 4 文件（methods §4.6.7 +
+    perturbation_analysis_results §1/§4 + outline §5.7.1 ref annotations + §5.3 author notes）
+    全部 "Mock Review v0.9.x" 标签
+  - **Major #2 Arm A baseline 0.919 vs Table 1 = 1.000 数值不一致**：
+    扩展 perturbation runner 支持 keystone_df，sample_data 跑出 1.000 STRONG 9/9
+    与 Table 1 一致；Results §X.1 "4/4 satisfied" 改为 "Arm A 9/9, externals 4/4"
+  - **Major #3 pre-registration institutional-trust-based**：Methods §4.6.2 加段
+    诚实承认 author-controlled repo + 3 mitigations + future OpenTimestamps commit
+  - **Major #4 默认阈值 0.75/0.40 缺 sensitivity**：新增
+    [`tools/external_benchmarks/threshold_sensitivity.py`](tools/external_benchmarks/threshold_sensitivity.py)
+    扫 5 阈值 × 8 dataset；新增 Methods §4.6.8 段；4 KEGG-curated arm 全 STRONG
+    跨 0.65-0.85 全稳；Arm B 全 INSUFFICIENT 全稳；3 stress 全 weak/suggestive；
+    输出 [`paper/benchmarks/external/threshold_sensitivity/`](paper/benchmarks/external/threshold_sensitivity/)
+  - **Major #5 Arm A 循环论证 reframe**：Results §X.1 完全重写——明确把 Arm A 标为
+    "in-house positive control (engine self-consistency check, not independent
+    calibration evidence)"，3 external arm 标为 "primary calibration evidence"；
+    Discussion §Y.3 limitation #1 同步 reframe
+  - 测试 **301/301 全绿**；预期 mock review v0.9.5 全部 Major Closed
 - **Mock review v0.9.3 Major + Minor 全部修订**（2026-05-10 session）：
   - **v0.9.3 Major #1 (Arm A asymmetry) → Closed**：扩展 perturbation runner 支持 Arm A partial
     perturbation（仅 3 个 pathway_active claim，sample_data 数据加载）。Arm A 100% STRONG

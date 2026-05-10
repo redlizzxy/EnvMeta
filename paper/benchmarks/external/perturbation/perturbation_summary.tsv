@@ -1,6 +1,6 @@
 dataset	mode	original_score	original_label	perturbed_n	perturbed_score_min	perturbed_score_median	perturbed_score_max	perturbed_score_mean	perturbed_n_strong	perturbed_n_suggestive	perturbed_n_weak	perturbed_n_insufficient	fraction_label_strong	fraction_label_changed
-Arm A (in-house)	cross_element	0.919	strong	20	0.919	0.919	0.919	0.9190000000000002	20	0	0	0	1.0	0.0
-Arm A (in-house)	within_element	0.919	strong	20	0.818	0.919	0.919	0.9018	20	0	0	0	1.0	0.0
+Arm A (in-house)	cross_element	1.0	strong	20	1.0	1.0	1.0	1.0	20	0	0	0	1.0	0.0
+Arm A (in-house)	within_element	1.0	strong	20	0.899	1.0	1.0	0.9828000000000001	20	0	0	0	1.0	0.0
 Ayala 2020	cross_element	1.0	strong	20	0.091	0.5	0.909	0.4636	3	6	0	11	0.15	0.85
 Ayala 2020	within_element	1.0	strong	20	0.0	0.5	0.909	0.5213999999999999	8	4	0	8	0.4	0.6
 Grettenberger 2021	cross_element	1.0	strong	20	0.0	0.455	1.0	0.47135	6	5	0	9	0.3	0.7
