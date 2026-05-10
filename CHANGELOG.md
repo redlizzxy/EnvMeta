@@ -91,6 +91,22 @@
   集成 Methods §4.6.7 + Results §X.3 + Discussion §Y.3 limitation #1；
   figure: `paper/benchmarks/external/perturbation/perturbation_curve.{pdf,png,svg}`。
   pytest 301/301 仍全绿（无 API 变更）。
+- **Mock review v0.9.5 (handling editor) 4 cheap Major 修订**（2026-05-10 third session）：
+  - **OpenTimestamps 区块链锚点已落地**（v0.9.5 Major #3）：新增
+    [`paper/manuscript/timestamps/`](paper/manuscript/timestamps/) 目录含
+    `stamp_via_https.py` runner + 4 commit hash files + 12 .ots-response.bin
+    proof files (alice + bob + finney calendars × 4 commits) + `ANCHOR_SUMMARY.md`；
+    §4.6.2 现引用 OpenTimestamps anchoring 而非 "future commit"
+  - **null_p 重 frame**（v0.9.5 Major #1）：§4.6.1 明确标为 "shuffle-consistency
+    diagnostic, explicitly NOT a frequentist p-value"；解释 4-9 claim 离散 satisfaction
+    null distribution 必然粗糙；加 WoE 软件 relationship 段
+  - **Arm A "saturation" → "partial-perturbation robustness check"** （v0.9.5 Major #4）：
+    Results §X.3 + perturbation_results 4 处全部 reframe；明确 6 unperturbed claims
+    占总权重 ≈72%，arithmetic 锚定 score
+  - **Distance-to-boundary**（v0.9.5 Minor #4）：Results §X.2 + Table 2 描述加
+    stress score 到最近 label boundary 的距离（Grett −0.150 / Liu −0.125+0.225 /
+    Ayala +0.055 near-boundary 与 §4.6.8 阈值 transition 一致）
+  - 测试 **301/301 全绿**
 - **Mock review v0.9.4 (independent reviewer) 5 Major 修订**（2026-05-10 second session）：
   - **Major #1 mock-review metadata 泄漏**：删 manuscript 4 文件（methods §4.6.7 +
     perturbation_analysis_results §1/§4 + outline §5.7.1 ref annotations + §5.3 author notes）

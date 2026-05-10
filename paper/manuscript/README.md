@@ -52,20 +52,20 @@
 
 ---
 
-## 当前状态（2026-05-10，v0.9.5 paper-side — independent-reviewer 5 Major 修完，待 mock review v0.9.5 验证）
+## 当前状态（2026-05-10，v0.9.6 paper-side — handling-editor 4 cheap Major 修完，stop mock review，待 figures + bioRxiv）
 
 **对照实验 + auxiliary evidence 完成度**：✅ **4 Arm calibration 全 STRONG + Stress test 3/3 全 A 级 + Perturbation analysis 双模式 N=20/each (4 datasets，Arm A partial)**
 
 | Arm | 数据集 | Calibration | Stress v2 | Discrimination | Perturbation (within / cross STRONG retention) |
 |---|---|---|---|---|---|
-| A | 作者 168 MAG (砷渣) | STRONG (1.000, 9/9) | — | (positive control) | 100% / **100%** ⭐ saturation regime |
+| A | 作者 168 MAG (砷渣) | STRONG (1.000, 9/9) | — | (positive control) | 100% / **100%** ⭐ partial-perturbation robustness (3 of 9 claims) |
 | B | Wei 2024 (砷+N) | INSUFFICIENT | — | — | — |
 | C1 | Liu 2023 (冷泉砷) | STRONG (1.000) | weak (0.250) ⭐ | A 级 | 50% / **0%** ⭐ headline |
 | C2-A | Grettenberger 2021 (AMD) | STRONG (1.000) | A 级 ⭐ | A 级 | 50% / 30% |
 | C2-B | Ayala 2020 (pit lake) | STRONG (1.000) | weak (0.182) ⭐ | A 级 | 40% / 15% |
 
 **Annotation-breadth gradient**（mock review v0.9.4 头号证据）：
-Arm A (saturated) 100% → Grettenberger (mixed) 30% → Ayala (mixed, smaller) 15% → Liu (focused) 0% — monotonic ordering 是 internal validity check（行为可预测随 dataset annotation breadth 变化）。
+Arm A (partial perturbation, 3/9 claims) 100% → Grettenberger (mixed) 30% → Ayala (mixed, smaller) 15% → Liu (focused) 0% — 3 个 external 数据集的 ordering 是 load-bearing pattern（Arm A 100% 反映 partial perturbation 设计 + 6 unperturbed 锚点，不是数据 saturation）。
 
 **两条 headline 证据**：
 1. cross-topic arsenate_reduction 在 Grettenberger (n=29) + Ayala (n=13) 双双 n=0 active MAGs（**consistent with** cross-topic mismatch 下 domain-neutral，softened 表述）
@@ -82,13 +82,16 @@ Arm A (saturated) 100% → Grettenberger (mixed) 30% → Ayala (mixed, smaller) 
 - ✅ ImageGP 2 ecosystem-extension reframing
 - ✅ Mock review v0.9.1 → v0.9.2 → v0.9.3：Major Rev → Minor Rev → **Minor Rev (acceptance-track)**
 
-**剩余工作**（v0.9.4 独立审稿人 5 Major 修完，待 v0.9.5 验证 → bioRxiv）：
-1. **rerun mock review v0.9.5** — 5 min；预期 5 Major Closed + 检查新 issue
-2. **6 张 placeholder figures**（F1/F3/F5/F6/F7/F10）— 投稿前 mandatory，2-3 天
-3. **10 个 v0.9.4 Minor**（可选 1-2h）— "monotonic"→"observed ordering" / required=false control / null_p histogram / KB scope / ImageGP 2 quantitative / 真实 dense 性能 case / 引用 audit methodology / sample_data subset disclose / English README
-4. **bioRxiv 投稿** — 6 月初目标，3 天审核拿 DOI
-5. **EnvMeta 投 iMeta** — bioRxiv 上线后立即投
-6. **课题论文起草**（用户主导）— As 形态重测启动 + 用 EnvMeta bioRxiv DOI 引用
+**剩余工作**（已 stop mock review；v0.9.5 4 cheap Major 修完）：
+1. **6 张 placeholder figures**（F1/F3/F5/F6/F7/F10）— 投稿前 mandatory，2-3 天
+2. **bioRxiv 投稿** — 6 月初目标，3 天审核拿 DOI
+3. **EnvMeta 投 iMeta** — bioRxiv 上线后立即投
+4. **课题论文起草**（用户主导）— As 形态重测启动 + 用 EnvMeta bioRxiv DOI 引用
+
+**carry 到 revision 阶段处理（不影响投稿）**：
+- 2-D band gap threshold sweep（v0.9.5 Major #2）— 1-2h
+- 引用列表扩到 ≥40（v0.9.5 Major #5）— 1-2h
+- 9 个 v0.9.5 Minor + 10 个 v0.9.4 Minor — 投稿后 reviewer 反馈再迭代
 
 **已暂缓**：
 - 盲法 stress test（Discussion §Y.4 仍作为 future work；perturbation analysis 已作为 auxiliary evidence 替代 acknowledgment-only state）

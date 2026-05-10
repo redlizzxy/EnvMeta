@@ -271,6 +271,12 @@ Microbiology）。开发时持续积累：
   - **v0.9.3 新 Major**：Arm A perturbation asymmetry — 作者数据排除于 perturbation 控制，可补 partial Arm A perturbation（≈30 min compute）封口
   - 余 1 Major (3-dataset stress caveat 仍未修) + 8 Minor（5 carried + 3 new）= 2-4 天到 acceptance-ready
   - 详见 [`paper/manuscript/mock_review_v0.9.3_post_perturbation.md`](paper/manuscript/mock_review_v0.9.3_post_perturbation.md)（不 push）
+- ✅ **Mock review v0.9.5 (handling editor) 4 cheap Major 修订**（2026-05-10 third session）：
+  - **Major #3 OpenTimestamps 区块链锚点已落地**：4 anchor commits (`42168da`, `44d7f5f`, `76a4f77`, `50c4687`) × 3 公共 calendar (alice / bob / finney) = 12 anchor 响应 archived 在 [`paper/manuscript/timestamps/`](paper/manuscript/timestamps/)；§4.6.2 现引用 OpenTimestamps anchoring 而非"future commit"——pre-registration 担忧从 institutional-trust-based 升级为 cryptographically witnessed
+  - **Major #1 null_p 重 frame**：§4.6.1 明确把 null_p 标为 "shuffle-consistency diagnostic"，**explicitly NOT a frequentist p-value**；解释 4-9 claim YAML + 离散 satisfaction 让 null distribution 必然粗糙；加 weight-of-evidence 软件 relationship 段（MCDA / Bradford-Hill / Suter & Cormier / Linkov / Rhomberg refs）
+  - **Major #4 Arm A reframe**："saturation regime" → "**partial-perturbation robustness check on the three pathway_active claims**"；明确说明 6 unperturbed claims 占总权重 ≈72%，arithmetic 锚定 score 在 0.75 以上；不再 over-claim 是 dataset saturation
+  - **Minor #4 distance-to-boundary**：Results §X.2 加 stress score 到最近 label boundary 距离的明确数字（Grett −0.150；Liu −0.125 / +0.225；Ayala +0.055 near-boundary 与 §4.6.8 阈值 sensitivity transition 一致）；Table 2 列描述更新
+  - 测试 **301/301 全绿**；预期 mock review v0.9.6 全部 6 Major 中 4 个 Closed (剩 #2 2-D band gap sweep 和 #5 引用扩 + #6 figures)
 - ✅ **Mock review v0.9.4 (independent first-time reviewer) 5 Major 修订**（2026-05-10 second session）：
   - **Major #1 mock-review metadata 泄漏**：删除 manuscript 4 个文件全部 "Mock Review v0.9.x" 标签（§4.6.7 + perturbation_analysis_results §1/§4 + outline §5.7.1 reference annotations + outline §5.3 author notes）
   - **Major #2 Arm A baseline 数值不一致**（Table 1 = 1.000 vs perturbation = 0.919）：扩展 perturbation runner 支持 keystone_df，sample_data + keystone 跑出 1.000 STRONG 9/9 satisfied；perturbation 文件 + README 同步；Results §X.1 "4/4" 改为 "Arm A 9/9, C1/C2-A/C2-B 4/4"

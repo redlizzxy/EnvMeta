@@ -119,7 +119,7 @@ perturbation analysis (Methods §4.6.7; Results §X.3) randomly replacing
 `params.pathway` across all four calibration YAMLs in two modes
 (within-element and cross-element). The headline finding is a
 **monotonic annotation-breadth gradient** in cross-element STRONG
-retention: Arm A 100% (saturated, 4-element rich) → Grettenberger 30%
+retention: Arm A 100% (partial perturbation, 3 of 9 claims) → Grettenberger 30%
 → Ayala 15% → Liu 0% (focused, As-only). This monotonic ordering
 behaves predictably with each dataset's annotation breadth — a property
 independent of the calibration outcome itself — and is therefore
@@ -141,7 +141,7 @@ third-party stress YAMLs (§Y.4) rather than on this perturbation
 analysis. We treat the perturbation analysis as auxiliary evidence
 consistent with — not ironclad proof of — non-mechanical calibration in
 focused-data regimes; the cleanest remaining mitigation in the
-saturated-data regime is **blind hypothesis writing** by collaborators
+partial-perturbation regime is **blind hypothesis writing** by collaborators
 unfamiliar with the dataset's findings, which we discuss in §Y.4 and
 identify as the most direct path forward.
 

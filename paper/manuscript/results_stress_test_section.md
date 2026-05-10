@@ -104,10 +104,17 @@ calibration STRONG (1.000) labels (Table 2; Figure X). Grettenberger 2021
 returned label `weak` (0.250, 1/3 satisfied) — the cleanest single-Arm
 discrimination result. Liu 2023 and Ayala 2020 returned `suggestive` (0.625
 and 0.455 respectively, with skipped claims contributing to the partial
-scores). The most informative single discriminator was the cross-topic
-claim "arsenate_reduction should dominate", which was correctly rejected
-with **n = 0 active MAGs in both non-arsenic datasets** (Grettenberger n =
-29 MAGs and Ayala n = 13 MAGs).
+scores). To make label robustness explicit, Table 2 reports each stress
+score's **distance to the nearest label boundary** (default thresholds
+strong=0.75, suggestive=0.40): Grettenberger 0.250 sits 0.150 below the
+suggestive boundary (clean weak); Liu 0.625 sits 0.125 below the strong
+boundary and 0.225 above the suggestive boundary (clean suggestive); Ayala
+0.455 sits 0.055 above the suggestive boundary (a near-boundary case
+flagged in §4.6.8 as the only label-transition under the threshold-
+sensitivity sweep). The most informative single discriminator was the
+cross-topic claim "arsenate_reduction should dominate", which was
+correctly rejected with **n = 0 active MAGs in both non-arsenic datasets**
+(Grettenberger n = 29 MAGs and Ayala n = 13 MAGs).
 
 We treat this two-dataset rejection as **consistent with** — rather than
 ironclad proof of — the scoring engine being uninfluenced by the universal
@@ -175,9 +182,11 @@ mixed S/Fe pit lake) → **Liu 2023 0%** [0.00, 0.16] (29 MAGs, As-only
 cold seep). This ordering is mechanistically expected: in datasets where
 the data is element-monolithic, cross-element substitution
 systematically lands on inactive pathways and triggers required-claim
-veto; in datasets where the data is element-saturated, any pathway in
-any element is plausibly active, so substitution does not change the
-outcome. The fact that the engine behaves predictably as a function of
+veto; in mixed-element datasets, substitution may or may not hit an
+active pathway (intermediate retention); and for Arm A the 100%
+retention reflects the partial-perturbation design (only 3 of 9 claims
+perturbed; see below) rather than a substantive saturation property
+of the data. The fact that the engine behaves predictably as a function of
 this independent-of-the-calibration property of each dataset is itself
 a strong internal-validity check.
 
@@ -201,12 +210,26 @@ satisfied irrespective of which subset the author selected. Ayala 2020
 retention; Liu and Grettenberger sit at 10/20.
 
 Arm A's 100% STRONG retention under both within and cross perturbation
-quantifies the saturation regime: for the in-house dataset specifically,
-the perturbation analysis cannot strongly distinguish "author cherry-
-picked targets" from "any reasonable target works because data is rich",
-and the cherry-pick concern for Arm A must therefore rely on the
-broader pre-registration discipline (§4.6.2) and the planned blind
-third-party stress YAMLs (§Y.4) rather than on perturbation alone. We
+must be read with a structural caveat: the Arm A YAML has 9 claims in
+total, but only its 3 `pathway_active` claims were perturbed (the
+6 unperturbed claims — 2 `coupling_possible`, 2 `env_correlation`,
+1 `keystone_in_pathway`, 1 `group_contrast` — pair pathway with
+semantically-tied second parameters that resist clean single-axis
+perturbation; see Methods §4.6.7). The 6 unperturbed claims together
+carry roughly 72% of the total score weight (sum 7.1 / 9.9 in the
+default YAML), so their satisfied state arithmetically anchors the
+overall_score above 0.75 regardless of how the 3 perturbed claims are
+substituted. The 100% STRONG retention is therefore a
+**partial-perturbation robustness check on the three pathway_active
+claims**, *not* a "saturation regime" finding in the substantive
+sense; it bounds Arm A's pathway_active-target sensitivity but cannot
+itself rule out cherry-picking of the 6 unperturbed claims. The
+cherry-pick concern for Arm A specifically therefore relies on the
+broader pre-registration discipline (§4.6.2, including OpenTimestamps
+anchoring) and the planned blind third-party stress YAMLs (§Y.4)
+rather than on the perturbation alone. The annotation-breadth gradient
+observed across the three external datasets (Liu 0% → Ayala 15% →
+Grettenberger 30%) is the load-bearing pattern. We
 report the perturbation result as **auxiliary evidence consistent with**
 the calibration claims being non-mechanical, while flagging that the
 within-element fraction-STRONG is **not** a false-positive rate and
@@ -246,9 +269,13 @@ C2-A Grettenberger 2021, C2-B Ayala 2020). Source data:
 
 **Table 2.** *Three-arm stress-test results.* Columns: Arm, calibration label
 (from Table 1), stress overall_score, stress label, stress claims satisfied
-(per claim class A/B/C), discrimination grade (A/B), cross-topic rejection
-(yes/no), commit hash anchor. Three rows (C1 Liu 2023, C2-A Grettenberger
-2021, C2-B Ayala 2020). Source data:
+(per claim class A/B/C), **distance to nearest label boundary** (signed; +
+above, − below), discrimination grade (A/B), cross-topic rejection (yes/no),
+commit hash anchor. Three rows (C1 Liu 2023, C2-A Grettenberger 2021, C2-B
+Ayala 2020). Distance-to-boundary values: Grettenberger 0.250 → −0.150 to
+suggestive (clean weak); Liu 0.625 → −0.125 to strong / +0.225 to suggestive
+(clean suggestive); Ayala 0.455 → +0.055 to suggestive (near-boundary, flagged
+under §4.6.8 threshold sensitivity). Source data:
 `paper/manuscript/stress_test_results.md` §0 + §3 + §4.
 
 **Figure X.** *Calibration → stress score gap, three KEGG-curated datasets.*

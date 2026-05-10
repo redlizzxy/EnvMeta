@@ -17,6 +17,72 @@
 
 > 每次 session 结束前更新此区块。新对话开始时 Claude Code 自动读取，了解当前进度。
 
+### 2026-05-10 third session（**Mock review v0.9.5 (handling editor) 4 cheap Major 修订 — OpenTimestamps + null_p reframe + Arm A "partial robustness check" + distance-to-boundary ⭐**）
+
+**背景**：v0.9.4 修订完后用户问"反复自审会不会无限循环？"我答有边际收益递减
+现象 + 实战停止标准；用户决定做最便宜的 4 修订然后 stop。
+
+**核心工作**：
+
+1. **Major #3 OpenTimestamps 区块链锚点已落地**（5 min 操作的免费第三方 witness）：
+   - 尝试 ots-cli 失败（Windows OpenSSL load 错）→ 改写 [`paper/manuscript/timestamps/stamp_via_https.py`](paper/manuscript/timestamps/stamp_via_https.py)
+     直接 HTTPS POST 到 3 公共 calendar 服务器 (alice / bob / finney)
+   - 4 anchor commits × 3 calendars = **12 .ots-response.bin proof 文件** archived
+   - SHA-256 digest 表 + 验证指引 in `ANCHOR_SUMMARY.md`
+   - §4.6.2 现引用 cryptographic anchoring 而非 "future commit"——pre-reg 担忧从
+     institutional-trust-based 升级为 third-party-witnessed
+
+2. **Major #1 null_p 重 frame**：
+   - §4.6.1 把 null_p 明确标为 "shuffle-consistency diagnostic, explicitly **NOT**
+     a frequentist p-value"
+   - 解释 4-9 claim YAML + 离散 satisfaction ∈ {0, 0.5, 1.0} 让 null distribution
+     必然粗糙；null_p 应读作 "weight-satisfaction alignment 不太可能由随机 shuffle
+     产生" 而非"统计显著性"
+   - 加 WoE 软件 relationship 段（MCDA Belton & Stewart / Bradford-Hill /
+     Suter & Cormier / Linkov / Rhomberg），明确 EnvMeta 的差异化是把 weight /
+     threshold / required 全 externalize 到 user YAML
+   - "三独立 confidence indicators" 改名为"三独立 diagnostic indicators"
+
+3. **Major #4 Arm A "saturation regime" → "partial-perturbation robustness check"**：
+   - Results §X.3 + perturbation_results.md 第 4 finding + Limitations + Interpretation
+     四处全部 reframe
+   - 明确说明 Arm A YAML 9 claims 中只 perturb 3 个 pathway_active；其他 6 (2 coupling
+     + 2 env_correlation + 1 keystone + 1 group_contrast) 占总权重 7.1/9.9 ≈ 72%
+     arithmetically anchor overall_score 在 0.75 以上
+   - 100% retention = robust to **single-axis target perturbation conditional on**
+     6 unperturbed claims being satisfied，**不是** "any random target works because
+     data is rich" 的 saturation 论断
+   - Discussion §Y.3 limitation #1 同步；README + perturbation_results 表头都更新
+
+4. **Minor #4 distance-to-boundary 列**：
+   - Results §X.2 加 stress score 到最近 label boundary 的距离 inline number：
+     Grettenberger 0.250 → −0.150 (clean weak)；Liu 0.625 → −0.125 / +0.225 (clean
+     suggestive)；Ayala 0.455 → +0.055 (near-boundary, 与 §4.6.8 阈值 sensitivity
+     唯一 transition 数据 self-consistent)
+   - Table 2 描述加 "distance to nearest label boundary" 列
+
+**测试**：pytest **301/301 全绿**（无 API 变更，仅文档修订 + 时间戳 archival）
+
+**v0.9.5 → 预期 v0.9.6 状态变化**（如果用户跑）：
+
+| Issue | v0.9.5 status | v0.9.6 预期 |
+|---|---|---|
+| Major #1 null_p 内部张力 | New | **Closed** |
+| Major #3 pre-reg witness | New | **Closed** (cryptographic anchor) |
+| Major #4 Arm A saturation 过 claim | New | **Closed** (reframed) |
+| Minor #4 boundary distance | New | **Closed** |
+| Major #2 2-D threshold sweep | New | Carry (deferred) |
+| Major #5 引用扩到 ≥40 | New | Carry (1-2h)|
+| Major #6 6 figures | Carried | Carry（投稿 mandatory）|
+| 其他 9 Minor | New | Carry |
+
+**用户给出 stop 信号 — 决定不再跑 mock review v0.9.6**。下一步：
+1. 6 张 placeholder figures（投稿 mandatory）
+2. bioRxiv 投稿（6 月初）
+3. EnvMeta 投 iMeta
+
+---
+
 ### 2026-05-10 second session（**Mock review v0.9.4 (independent reviewer) 5 Major 修订 — threshold sensitivity + Arm A reframe + pre-reg honest disclosure ⭐**）
 
 **背景**：Mock review v0.9.3 完成后跑了第二次模拟（用户要求"换一个审稿人 第一次看"）。

@@ -46,19 +46,44 @@ The engine accepts six claim types (v0.9.0):
 6. `group_contrast` — pathway-level total contribution in a treatment group
    exceeds that in a control group by a user-specified ratio.
 
-For non-skipped claims, the overall score is the weight-normalized aggregate
-`Σ(w_i × score_i) / Σ(w_i)` with score ∈ {1.0 satisfied, 0.5 partial, 0.0
-unsatisfied}. Three independent confidence indicators accompany the overall
-score: a Fisher permutation null-p (Fisher, 1935; randomly redistributing
-satisfaction across claims to estimate the chance of the observed score under
-the null of no claim-weight correspondence; we use n = 999 permutations
-following the precedent established by Anderson (2001) for PERMANOVA, where
-999 permutations resolve p-values to the third decimal place at α = 0.05
-and provide a stable balance between resolution and runtime), a
-one-at-a-time (OAT) ±20% weight-robustness flag (whether label survives
-any single-weight perturbation), and Bradford-Hill required-veto reasons
-(claims marked `required: true` whose failure forces the overall label
-down to `insufficient` regardless of overall score). The full schema is documented at `paper/hypotheses/README.md` and
+For non-skipped claims, the overall score is the weight-normalized
+aggregate `Σ(w_i × score_i) / Σ(w_i)` with score ∈ {1.0 satisfied,
+0.5 partial, 0.0 unsatisfied}. Three independent **diagnostic
+indicators** — explicitly *not* hypothesis-test p-values — accompany
+the overall score:
+
+1. A **shuffle-consistency diagnostic** (`null_p`), computed via Fisher
+   permutation (Fisher, 1935): we randomly redistribute the observed
+   per-claim satisfaction states across claim slots 999 times and
+   record the fraction of shuffles whose weight-aggregated score
+   equals or exceeds the observed score. We use 999 permutations
+   following the precedent established by Anderson (2001) for
+   PERMANOVA. **`null_p` is not a frequentist p-value for the
+   hypothesis being true.** It is a coarse diagnostic of whether the
+   observed alignment between high-weight claims and satisfied states
+   could plausibly arise from a random shuffle; with typical YAMLs
+   carrying 4–9 claims and discrete satisfaction states ∈ {0, 0.5,
+   1.0}, the null distribution is necessarily coarse, and `null_p`
+   should be read as "the observed weight-satisfaction alignment is
+   unlikely under random reshuffling" rather than as conventional
+   statistical significance. We do not apply multiple-testing
+   correction across claims because the indicator is descriptive.
+2. A **weight-robustness flag** (one-at-a-time ±20% perturbation of
+   each weight, asking whether the label survives any single-weight
+   perturbation).
+3. **Required-veto reasons** (claims marked `required: true` whose
+   failure forces the overall label down to `insufficient` regardless
+   of overall score; this implements the Bradford-Hill
+   biological-plausibility constraint).
+
+The engine's relationship to established weight-of-evidence
+implementations: it follows the structural conventions of MCDA
+(Belton & Stewart, 2002), Bradford-Hill (Hill, 1965), and the
+weight-of-evidence frameworks reviewed by Suter & Cormier (2011),
+Linkov et al. (2009), and Rhomberg et al. (2013), but differs in
+that all weights, thresholds, and `required` flags are externalized
+to user-supplied YAML rather than embedded in the scoring tool. The
+full schema is documented at `paper/hypotheses/README.md` and
 `docs/hypothesis_writing_guide.md`.
 
 ### 4.6.2 Pre-registration discipline (and its limits)
@@ -93,28 +118,40 @@ scoring engine's behaviour under default thresholds, and the authors'
 skill at choosing claims plausibly satisfiable by KEGG-curated datasets in
 the topics we surveyed.
 
-We further acknowledge that the pre-registration claim itself is
-**institutional-trust-based** rather than cryptographically guaranteed.
-The repository is author-controlled, and we have not employed
-third-party witnessing services such as OpenTimestamps blockchain
-anchoring or OSF preregistration. A reviewer who is unwilling to extend
-that institutional trust cannot in principle rule out post-hoc
-commit-history rewriting or selective publication of predictions that
-turned out to be correct. We address this in three ways: (i) all
-hypothesis YAML commits, including any historical revisions, are
-publicly visible at `https://github.com/redlizzxy/EnvMeta/commits/master`
-under their original timestamps; (ii) the four pre-registration anchor
-commits (`42168da`, `44d7f5f`, `76a4f77`, `50c4687`) precede the first
-EnvMeta-on-external-data commits by margins traceable through the public
-log; and (iii) the auxiliary perturbation analysis (§4.6.7) provides a
-pre-registration-independent test of target-pathway sensitivity that does
-not require trust in the original YAML commits. We discuss the cognitive
-selection-bias limitation and the planned mitigation (blind hypothesis
-writing by collaborators unfamiliar with the target paper's findings,
-and the planned domain-paper publication of the arsenic-slag case study
-by an independent reviewer track) further in §Y.3 and §Y.4. Future
-calibration runs will adopt OpenTimestamps cryptographic anchoring at
-YAML-commit time.
+We further acknowledge that the git-timestamp pre-registration alone
+would be **institutional-trust-based** without external witnessing —
+the repository is author-controlled, and a determined adversary
+could in principle rewrite commit history. To remove this concern we
+have applied **OpenTimestamps cryptographic anchoring** to the four
+pre-registration anchor commits, posting the SHA-256 digest of each
+full commit hash (`42168da153f9c64a51966d1c93a9f596a80c834c`,
+`44d7f5f14769b7693650111305fe7d30ccfe2c27`,
+`76a4f775b74bd5134e628c0e3ec6077c04cc40ae`,
+`50c4687031277cff9fa8957b0429e8d85d1a8149`) to three independent
+public OpenTimestamps calendar servers (alice.btc, bob.btc, and
+finney/EternityWall). Once each digest is included in a Bitcoin block
+(typically within 1–6 hours of submission), the resulting proof file
+binds the commit hash to a specific block height and therefore to the
+block's median time, providing a third-party-verifiable upper bound on
+when the commit could have first existed. Pending and upgraded proof
+files are archived under
+[`paper/manuscript/timestamps/`](timestamps/), with a complete summary
+including SHA-256 digests and verification instructions in
+[`timestamps/ANCHOR_SUMMARY.md`](timestamps/ANCHOR_SUMMARY.md). Any
+reviewer can independently verify these proofs via the OpenTimestamps
+JavaScript verifier at <https://opentimestamps.org/> or the `ots verify`
+CLI. We also note as supporting evidence that all four anchor commits
+precede the corresponding first EnvMeta-on-external-data commits by
+margins traceable through the public GitHub log
+(`https://github.com/redlizzxy/EnvMeta/commits/master`), and that the
+auxiliary perturbation analysis (§4.6.7) provides a
+pre-registration-independent test of target-pathway sensitivity that
+does not require trust in any commit timestamps. We discuss the
+cognitive selection-bias limitation and the planned mitigation (blind
+hypothesis writing by collaborators unfamiliar with the target
+paper's findings, and the planned domain-paper publication of the
+arsenic-slag case study by an independent reviewer track) further in
+§Y.3 and §Y.4.
 
 ### 4.6.3 Four-Arm calibration experiment
 

@@ -83,8 +83,8 @@ thresholds (strong=0.75, suggestive=0.40) and default
 
 | Dataset | Annotation regime | Mode | Median | Mean | Strong fraction (Wilson 95% CI) | Label changed |
 |---|---|---|---|---|---|---|
-| **Arm A in-house** (168 MAG, 4-element rich) | saturated | within_element | 1.000 | 0.983 | **20/20 (100%)** [0.84, 1.00] | 0% |
-| Arm A in-house | saturated | **cross_element** | 1.000 | 1.000 | 20/20 (100%) [0.84, 1.00] | 0% |
+| **Arm A in-house** (168 MAG, 4-element rich; **partial perturbation**, 3 of 9 claims) | partial-perturbation | within_element | 1.000 | 0.983 | **20/20 (100%)** [0.84, 1.00] | 0% |
+| Arm A in-house (partial) | partial-perturbation | **cross_element** | 1.000 | 1.000 | 20/20 (100%) [0.84, 1.00] | 0% |
 | Liu 2023 (29 MAG, As cold seep) | focused (As-only) | within_element | 0.770 | 0.787 | 10/20 (50%) [0.30, 0.70] | 50% |
 | Liu 2023 | focused | **cross_element** | **0.000** | **0.000** | **0/20 (0%)** [0.00, 0.16] | **100%** ⭐ |
 | Grettenberger 2021 (29 MAG, AMD) | mixed (S+Fe) | within_element | 0.772 | 0.753 | 10/20 (50%) [0.30, 0.70] | 50% |
@@ -108,8 +108,10 @@ this matches Table 1 §X.1.)
    the perturbation analysis behaves predictably as a function of dataset
    annotation regime, supporting both that (a) the engine is
    discriminating in focused datasets, and (b) the engine is
-   appropriately *insensitive* to target perturbation in saturated
-   datasets where any element-level pathway is plausibly active.
+   appropriately *insensitive* to target perturbation in datasets
+   whose hypothesis YAMLs combine pathway claims with non-pathway
+   anchors (Arm A's 6 unperturbed coupling/env_correlation/group_contrast
+   claims).
 
 2. **Cross-element perturbation is strongly discriminating in focused
    datasets.** Liu 2023 is the cleanest test case: **0/20 cross-element
@@ -134,19 +136,25 @@ this matches Table 1 §X.1.)
    subset the author selected. This bounds the calibration claim — it
    does not invalidate it.
 
-4. **Arm A 100% STRONG retention quantifies the saturation regime.**
-   The author-data calibration is robust to both within-element and
-   cross-element pathway perturbation (20/20 STRONG retained in both
-   modes) because the 168-MAG dataset annotates active pathways across
-   all 4 elements simultaneously. Substituting any pathway in any
-   element still hits an active community function. This is honest
-   auxiliary evidence that for Arm A specifically, the perturbation
-   analysis cannot strongly distinguish "author cherry-picked targets"
-   from "any reasonable target works because data is rich"; the
-   cherry-pick concern for Arm A must therefore rely on the broader
-   pre-registration discipline (§4.6.2) and the planned blind
-   third-party stress YAMLs (§Y.4) rather than on this perturbation
-   alone.
+4. **Arm A 100% STRONG retention is a partial-perturbation
+   robustness check, not a saturation finding.** The Arm A YAML has
+   9 claims, but only the 3 `pathway_active` claims are perturbed
+   here (the 6 remaining claims — 2 `coupling_possible`, 2
+   `env_correlation`, 1 `keystone_in_pathway`, 1 `group_contrast` —
+   pair pathway with a semantically-tied second parameter and resist
+   clean single-axis perturbation). The 6 unperturbed claims together
+   carry ≈72% of the total score weight (sum w = 7.1 / 9.9), so
+   their satisfied state arithmetically anchors the overall_score
+   above 0.75 regardless of how the 3 perturbed claims are
+   substituted. The 100% STRONG retention therefore demonstrates that
+   the three pathway_active claims are robust to within- and
+   cross-element substitution conditional on the other 6 claims being
+   satisfied, but it does *not* by itself demonstrate "saturation"
+   in the substantive sense of "any random target works because data
+   is rich". For Arm A, the cherry-pick concern relies on the broader
+   pre-registration discipline (§4.6.2, including OpenTimestamps
+   anchoring) and the planned blind third-party stress YAMLs (§Y.4)
+   rather than on this partial perturbation.
 
 ### Figure
 
@@ -160,12 +168,13 @@ threshold reference lines.
 
 ## 3. Limitations
 
-1. **Within-element saturation effect**: when a dataset has rich KEGG
-   coverage across an entire element, within-element perturbation
-   under-discriminates because most candidate pathways are also active.
-   This is a *feature* (it correctly reflects KEGG-coverage dependence),
-   not a bug. But it means "fraction of within-element perturbations
-   retaining STRONG" should not be interpreted as a false-positive rate.
+1. **Within-element coverage effect (formerly: "saturation")**: when a
+   dataset has rich KEGG coverage across an entire element,
+   within-element perturbation under-discriminates because most
+   candidate pathways are also active. This is a *feature* (it
+   correctly reflects KEGG-coverage dependence), not a bug. But it
+   means "fraction of within-element perturbations retaining STRONG"
+   should not be interpreted as a false-positive rate.
 
 2. **Arm A perturbation is partial, not full.** Only the three
    `pathway_active` claims in `arsenic_steel_slag.yaml` were perturbed;
@@ -233,14 +242,16 @@ density alone:
   STRONG; we report it as a soft upper bound on annotation-density-driven
   inflation.
 
-- **Arm A 100% STRONG retention**: the author-data Arm A is in the
-  saturation regime — its 168 MAGs annotate active pathways across all
-  4 KB elements simultaneously, so perturbation cannot strongly
-  distinguish "author cherry-picked targets" from "any reasonable
-  target works because data is rich". The cherry-pick concern for
-  Arm A specifically therefore relies on the broader pre-registration
-  discipline (§4.6.2) and the planned blind third-party stress YAMLs
-  (§Y.4) rather than on this perturbation analysis.
+- **Arm A 100% STRONG retention**: a partial-perturbation robustness
+  check (only 3 of 9 claims perturbed; the other 6 anchor ≈72% of total
+  weight). The 100% retention shows the three pathway_active claims
+  are robust to substitution given the rest of the YAML is fixed —
+  a meaningful but bounded result. It does not by itself demonstrate
+  data-driven saturation. The cherry-pick concern for Arm A
+  specifically therefore relies on the broader pre-registration
+  discipline (§4.6.2, OpenTimestamps-anchored) and the planned blind
+  third-party stress YAMLs (§Y.4) rather than on this perturbation
+  analysis.
 
 - **Limitation of this analysis**: the perturbation tests author-target-
   *choice* sensitivity (and bounds the engine's KEGG-coverage
