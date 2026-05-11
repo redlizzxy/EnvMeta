@@ -57,6 +57,53 @@
 
 - pytest **301/297 全绿**（+4 dominance_score 测试，无回归）
 
+### 🚀 Deployment hardening + 在线 demo 轻量化（2026-05-11 session）
+
+> 本节记录 v0.9.1 后续的部署 + 文档加固（无核心 API 变更）。
+
+- **Streamlit Cloud 崩溃修复**（commit [`56d296a`](https://github.com/redlizzxy/EnvMeta/commit/56d296a)）：
+  Cloud 默认 Python 升到 3.13 → numpy 2.x / pandas 3.x / scikit-bio 0.7 / scipy 1.17
+  wheel 不可用导致 'Oh no. Error running app'；新增 `runtime.txt` 内容 `python-3.11`
+  强制 Cloud 用 Python 3.11；`/healthz` 验证恢复 `{"status":"ok"}`。
+- **30 MAG 轻量化测试样例**（commit [`8851910`](https://github.com/redlizzxy/EnvMeta/commit/8851910)）：
+  - 新建 [`tests/sample_data_demo/`](tests/sample_data_demo/)（19 文件 + 抽样脚本
+    `_build_demo_subset.py`）
+  - 抽样规则：14 keystone 全留 + 4 元素每个 ≥ 5 个活跃 MAG + 按总丰度补足 30
+  - 实测：abundance 168→30 / ko_long 5008→937 / 内存约 1/5 → Streamlit Cloud
+    并发承载 4-5 倍提升
+  - [`tests/sample_data/`](tests/sample_data/)（168 MAG）原样保留供 pytest + 论文
+    Arm A positive-control + perturbation 用
+- **app.py 自动选择**：`_load_sample_data()` 优先 `sample_data_demo/`，找不到回退
+  `sample_data/`；首页 expander 显示 "30 MAG 轻量化测试样例" caption
+- **新增 [docs/FAQ.md](docs/FAQ.md)** — 12 条常见问题（cold start 等候 / 'Oh no'
+  自检 / 本地装链 / **并发限制 1-3 OK / 8+ OOM** / demo vs full 样例区别 /
+  session 刷新数据丢 / 本地装 3 个坑 / 数据识别 / 循环图慢 / INSUFFICIENT 解读）
+- **README + README_CN 更新**：顶部 nav 加 `FAQ / 常见问题` 链接；'Online demo' 段
+  加 30 MAG 说明 + 并发限制 + Oh-no 处理引导；'Sample data' 章节展开为 full vs demo
+  两层介绍
+
+### 🧪 Mock review v0.9.4 (independent reviewer) + v0.9.5 (handling editor) 修订（2026-05-10）
+
+> Paper 3 投稿前 5 轮自审完成（最后两轮换 reviewer 视角）。decision: **stop iteration**
+> 进入 figures + bioRxiv 阶段。
+
+详细 commit 列表（已 push）：
+- [`5a21e5f`](https://github.com/redlizzxy/EnvMeta/commit/5a21e5f) 1-day perturbation analysis
+- [`aae06ba`](https://github.com/redlizzxy/EnvMeta/commit/aae06ba) v0.9.3 mock review archive
+- [`279a3f8`](https://github.com/redlizzxy/EnvMeta/commit/279a3f8) v0.9.3 Major + Minor 修订
+- [`a18d41d`](https://github.com/redlizzxy/EnvMeta/commit/a18d41d) v0.9.4 independent reviewer 5 Major
+- [`d8b7c1d`](https://github.com/redlizzxy/EnvMeta/commit/d8b7c1d) v0.9.5 handling editor 4 cheap Major + OpenTimestamps anchoring
+
+主要修订成果：
+- **OpenTimestamps 区块链锚点**：4 anchor commits × 3 calendars = 12 .ots-response.bin
+  archived 在 [`paper/manuscript/timestamps/`](paper/manuscript/timestamps/)
+- **threshold sensitivity** 5×8 dataset 扫描：4 calibration 跨 0.65-0.85 全 STRONG
+- **perturbation analysis** 4 dataset × 2 mode × N=20：Liu cross-element 0/20 STRONG
+  headline；annotation-breadth gradient
+- **null_p 重 frame**：明确不是 frequentist p-value
+- **Arm A 重新定位**：in-house positive control + partial-perturbation robustness check
+- **5 Major leakage fix**：删除 manuscript 全部 "Mock Review v0.9.x" 内部标签
+
 ### 📝 paper-side maintenance (2026-05-09 后续 session)
 
 > 本节记录 v0.9.1 后续的 paper-side 修订（无代码 API 变更，仅 metadata + 文档）。

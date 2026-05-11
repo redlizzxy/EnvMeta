@@ -17,6 +17,100 @@
 
 > 每次 session 结束前更新此区块。新对话开始时 Claude Code 自动读取，了解当前进度。
 
+### 2026-05-11 session（**Streamlit Cloud 崩溃修复 + 30 MAG 在线 demo 轻量化 + FAQ 文档 + 导师版大纲 docx ⭐**）
+
+**背景**：上次 session push v0.9.5 修订后 Streamlit Cloud 自动 redeploy 失败，
+用户报告"网页崩溃"。同时讨论了多人并发风险 + 给导师审稿用的中文大纲 docx 输出。
+
+**核心工作**：
+
+1. **Streamlit Cloud 崩溃诊断 + 修复**：
+   - 用户截图：'😟 Oh no. Error running app'（页面直接 200 OK 返回错误，
+     不需要 auth）
+   - 诊断：本地 `streamlit run app.py` 正常；近期 commits 没动 app.py /
+     requirements.txt / envmeta/ 模块 → 排除代码退化
+   - 根因：Streamlit Cloud 默认 Python 升到 3.13，numpy 2.x / pandas 3.x /
+     scikit-bio 0.7 / scipy 1.17 在 3.13 下 wheel 可用性不稳
+   - 修复：新增 `runtime.txt` 内容 `python-3.11`，强制 Cloud 用 Python 3.11
+   - 验证：`/healthz` 返回 `{"status":"ok"}` → 站点恢复 (commit `56d296a`)
+   - GitHub push 中遇到 1 次 HTTP 500 + 1 次 TLS EOF 抖动，重试都成功
+
+2. **多人并发风险讨论**（用户主动问"同时在线多人是不是也会崩溃？先讨论不修改"）：
+   - 估算：1 GB Cloud 限额下，每用户 ~30-50 MB session + 15-30 MB 每图 +
+     30 MB HTML export 瞬时
+   - 阈值：1-3 人顺畅 / 5 人紧 / 8+ 人大概率 OOM 崩溃
+   - matplotlib 全局 pyplot 非线程安全，多用户同时生成图可能竞争（出怪图）
+   - cycle_diagram 串行化（GIL + numpy）→ 10 人同点循环图最后一个等 20-30s
+
+3. **30 MAG 轻量化测试样例**（用户决定"缩小 MAG 数据量，轻量化在线测试"）：
+   - 新建 [`tests/sample_data_demo/`](tests/sample_data_demo/)
+   - 抽样脚本 [`tests/sample_data_demo/_build_demo_subset.py`](tests/sample_data_demo/_build_demo_subset.py)：
+     14 keystone 全留 + 每元素（As/N/S/Fe）≥5 个活跃 MAG + 按总丰度补足到 30
+   - 实测数据缩减：
+     - abundance: 168 → **30** 行
+     - ko_long: 5008 → **937** 行（~80% 减）
+     - gephi 网络节点: 130 → **25** / 边: 311 → **32**
+     - 内存占用约降到 1/5 → 并发承载 4-5 倍提升
+   - 元素覆盖：arsenic 28 / sulfur 29 / iron 29 / nitrogen 29 MAGs（均 ≥28）
+   - `tests/sample_data/`（168 MAG）原样保留，pytest + 论文 Arm A
+     positive-control + perturbation 都用完整版
+
+4. **app.py 切换 + UI 提示**：
+   - `_load_sample_data()` 优先 `sample_data_demo/`，回退 `sample_data/`
+   - 首页 expander 检测 demo 存在时 caption 提示 "30 MAG 轻量化测试样例，
+     仅供熟悉功能 UI"
+
+5. **新增 [docs/FAQ.md](docs/FAQ.md)**（用户问"原来 readme 是有 Q&A 链接到 md 的？
+   重新加上，添加关于等候时间和在线网页崩溃的问题"）：
+   - 12 条常见问题：
+     - 🌐 Q1 cold start 等候时间 30-90s
+     - 🌐 Q2 'Oh no' 怎么办（healthz 自检 + 本地装兜底）
+     - 🌐 Q3 本地装链 install_for_beginners.md
+     - 🌐 **Q4 并发限制**（1-3 OK / 8+ OOM；30 MAG demo subset 缓解）
+     - 🌐 Q5 在线版 demo 30 MAG vs 论文 168 MAG full 区别
+     - 🌐 Q6 session 刷新数据丢（Streamlit 框架设计）
+     - 💻 Q7-9 本地装依赖 / Mac 坑 / matplotlib 中文字体
+     - 📊 Q10-12 数据识别 / 循环图慢 / INSUFFICIENT 解读
+
+6. **README + README_CN 更新**：
+   - 顶部 nav 加 `· [FAQ / 常见问题](docs/FAQ.md) ·`
+   - 'Online demo' 段加 30 MAG 说明 + 并发限制 + Oh-no 处理引导
+   - 'Sample data' 章节展开为 full vs demo 两层介绍
+
+7. **导师版大纲 docx**（用户要求"把大纲做成 doc，供我给导师审阅"）：
+   - 新建 [`software/planning/build_paper3_outline_docx.py`](software/planning/build_paper3_outline_docx.py)
+     构建脚本（python-docx 实现）
+   - 输出 [`software/planning/Paper3_Outline_for_Supervisor.docx`](software/planning/Paper3_Outline_for_Supervisor.docx)（45.8 KB）
+   - 字体：英文 Times New Roman + 中文宋体混合（rFonts ascii/eastAsia 元素）
+   - **第一版含太多内部工作流注释**（"待画/截图就绪/Mock Review v0.9.x/
+     推荐 B/saturated regime/Reviewer 关切回应"等）→ 用户指出"不适合给老师看"
+   - 重写第二版去掉全部内部 meta 注释，13 章导师审稿专用大纲
+   - software/ 在 .gitignore，docx 本地存档不入库
+
+**关键讨论 — "反复自审会不会无限循环？"**（用户提出 5 轮 mock review 后疑问）：
+- 答：是会的，每个新审稿人都从不同专业角度找出新 Major Issue（mock review #1-#3
+  渐近 Minor → #4 独立 → Major + 6 new / #5 编辑视角 → Minor conditional + 6 new）
+- 实战停止标准：(a) Major 性质从"实质方法缺陷"降级为"编辑性精修建议"；
+  (b) 多审稿人 overlap 高的优先；(c) 真实期刊有 reviewer 流程；
+  (d) 硬性截止；(e) bioRxiv 作为缓冲带
+- 用户给出 **stop signal**：不再跑 mock review v0.9.6，专注于
+  Major #1 + Major #3-#5 cheap fix（已在前一 session 完成）+ figures + bioRxiv
+
+**测试**：pytest **301/301 全绿**
+
+**Git 状态**：3 commits 已 push 到 master
+- `56d296a` fix(deploy): pin Python 3.11 via runtime.txt
+- `8851910` feat(deploy): 30 MAG demo subset + FAQ.md
+- 待 commit：CLAUDE / DEBUG_NOTES / CHANGELOG 存档
+
+**下一步建议**：
+1. 等导师审阅 Paper3_Outline_for_Supervisor.docx 反馈
+2. 6 张 placeholder figures（投稿前 mandatory）
+3. bioRxiv 投稿
+4. EnvMeta 投 iMeta
+
+---
+
 ### 2026-05-10 third session（**Mock review v0.9.5 (handling editor) 4 cheap Major 修订 — OpenTimestamps + null_p reframe + Arm A "partial robustness check" + distance-to-boundary ⭐**）
 
 **背景**：v0.9.4 修订完后用户问"反复自审会不会无限循环？"我答有边际收益递减

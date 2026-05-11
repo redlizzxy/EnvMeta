@@ -213,7 +213,7 @@ Microbiology）。开发时持续积累：
 4. **开发日志量化**：每次日志加一行量化数据（代码行数、验证结果、耗时对比），
    写入 [DEBUG_NOTES.md](DEBUG_NOTES.md)
 
-## 当前进度（2026-05-09，v0.9.1）
+## 当前进度（2026-05-11，v0.9.1 + deployment hardening）
 
 **v0.9.1 — Paper 3 投稿核心证据 + 写作素材全部就位**：
 - Phase 0-3 全部完成 + Paper 3 Methods/Results/Discussion 三段全套草稿 ready
@@ -271,6 +271,14 @@ Microbiology）。开发时持续积累：
   - **v0.9.3 新 Major**：Arm A perturbation asymmetry — 作者数据排除于 perturbation 控制，可补 partial Arm A perturbation（≈30 min compute）封口
   - 余 1 Major (3-dataset stress caveat 仍未修) + 8 Minor（5 carried + 3 new）= 2-4 天到 acceptance-ready
   - 详见 [`paper/manuscript/mock_review_v0.9.3_post_perturbation.md`](paper/manuscript/mock_review_v0.9.3_post_perturbation.md)（不 push）
+- ✅ **Deployment hardening + 在线 demo 轻量化 + FAQ 文档**（2026-05-11 session）：
+  - **Streamlit Cloud 崩溃修复**：用户 push v0.9.5 后 Cloud 触发 redeploy，'Oh no. Error running app'；根因 Cloud 默认 Python 升到 3.13 导致 numpy 2.x / pandas 3.x / scikit-bio 0.7 / scipy 1.17 wheel 不可用 → 新增 `runtime.txt` pin Python 3.11；验证 `/healthz` 返回 `{"status":"ok"}` 恢复 (commit `56d296a`)
+  - **30 MAG 轻量化测试样例**：新建 [`tests/sample_data_demo/`](tests/sample_data_demo/)（含 [_build_demo_subset.py](tests/sample_data_demo/_build_demo_subset.py) 重建脚本）；抽样规则 = 14 keystone 全留 + 4 元素每个 ≥5 MAG + 按总丰度补足；abundance 168→30 行 / ko_long 5008→937 行 / 内存约 1/5，Streamlit Cloud 并发承载 4-5 倍提升
+  - **app.py 切换 + UI 提示**：[app.py:317](app.py#L317) `_load_sample_data()` 优先 demo / 回退 full；[app.py:654](app.py#L654) expander 显示 "30 MAG 子集 测试样例" caption（本地装零影响）
+  - **新增 [docs/FAQ.md](docs/FAQ.md)**：12 条常见问题 — Q1 等候时间 / Q2 'Oh no' 怎么办 / Q3 本地装链 / **Q4 并发限制（1-3 OK / 8+ OOM）** / Q5 demo 样例 vs full 区别 / Q6 session 刷新数据丢 / Q7-9 本地装坑 / Q10-12 数据识别 / 循环图慢 / INSUFFICIENT 解读
+  - **README + README_CN**：顶部 nav 加 FAQ 链接；'Online demo' 段加 30 MAG 说明 + 并发限制 + Oh-no 处理引导；'Sample data' 章节展开为 full vs demo 两层介绍
+  - **导师版大纲 docx**：[software/planning/Paper3_Outline_for_Supervisor.docx](software/planning/Paper3_Outline_for_Supervisor.docx)（45.8 KB / 中文宋体 + 英文 TNR 混合字体 / 13 章 / 含 5 个待决问题）+ 构建脚本 [build_paper3_outline_docx.py](software/planning/build_paper3_outline_docx.py)；software/ 在 .gitignore，本地存档
+  - 测试 **301/301 全绿**；2 commit push: `56d296a` (runtime.txt) + `8851910` (demo subset + FAQ)
 - ✅ **Mock review v0.9.5 (handling editor) 4 cheap Major 修订**（2026-05-10 third session）：
   - **Major #3 OpenTimestamps 区块链锚点已落地**：4 anchor commits (`42168da`, `44d7f5f`, `76a4f77`, `50c4687`) × 3 公共 calendar (alice / bob / finney) = 12 anchor 响应 archived 在 [`paper/manuscript/timestamps/`](paper/manuscript/timestamps/)；§4.6.2 现引用 OpenTimestamps anchoring 而非"future commit"——pre-registration 担忧从 institutional-trust-based 升级为 cryptographically witnessed
   - **Major #1 null_p 重 frame**：§4.6.1 明确把 null_p 标为 "shuffle-consistency diagnostic"，**explicitly NOT a frequentist p-value**；解释 4-9 claim YAML + 离散 satisfaction 让 null distribution 必然粗糙；加 weight-of-evidence 软件 relationship 段（MCDA / Bradford-Hill / Suter & Cormier / Linkov / Rhomberg refs）
@@ -307,14 +315,18 @@ Microbiology）。开发时持续积累：
 | **Verify Korehi 2014 / Mendez-Garcia 2015 真正 AMD diazotrophy 引用** | 10 min | 已 Verified Dai 2014 + Méndez-García 2015 → §5.7.1 #4 + #12（见 [`hypothesis_references_audit.md`](paper/manuscript/hypothesis_references_audit.md)）|
 | **User study 数据回收分析**（条件性）| 1 周 | 问卷已发 2026-04-19；如投稿前 n ≥ 8 回收成功则加进 §5.6 Acknowledgments；否则 Acknowledgments 已 tempering 处理 |
 
-### 🟧 推荐做（mock review v0.9.5 验证 → bioRxiv-ready）
+### 🟧 推荐做（stop mock review → 6 figures → bioRxiv）
 
 | 任务 | 工时 | 理由 |
 |---|---|---|
 | ~~v0.9.3 全部 Major + Minor~~ | ✅ 完成 | Arm A partial / 3-dataset caveat / 8 Minor 全清 |
-| ~~v0.9.4 独立审稿人 5 Major~~ | ✅ 完成 (2026-05-10) | mock review metadata 泄漏 / Arm A 0.919↔1.000 / pre-reg 局限 / threshold sensitivity / Arm A in-house positive control reframe |
-| **Rerun mock review v0.9.5** | 5 min | 验证 5 Major 全 Closed + 检查是否冒出新问题 → bioRxiv 投稿 ready |
-| **10 个 v0.9.4 Minor**（可选）| 1-2h | "monotonic" 改 "observed ordering" / required=false control / null_p histogram / KB scope / ImageGP 2 quantitative / 真实 dense 性能 case / 引用 audit methodology / sample_data 关系 / English README | 
+| ~~v0.9.4 独立审稿人 5 Major~~ | ✅ 完成 | mock metadata 泄漏 / Arm A 0.919↔1.000 / pre-reg / threshold sensitivity / Arm A reframe |
+| ~~v0.9.5 handling editor 4 cheap Major~~ | ✅ 完成 | OpenTimestamps / null_p reframe / Arm A partial 重新框架 / distance-to-boundary |
+| ~~Streamlit Cloud 崩溃修复~~ | ✅ 完成 (2026-05-11) | runtime.txt pin Python 3.11；30 MAG demo subset + FAQ.md 双管齐下防并发崩 |
+| **导师审阅大纲 docx** | ⏳ 用户操作 | [Paper3_Outline_for_Supervisor.docx](software/planning/Paper3_Outline_for_Supervisor.docx) 已生成；用户发给导师；等反馈 |
+| **2-D band gap threshold sweep**（v0.9.5 Major #2，carry 到 revision）| 1-2h | 在 revision 阶段处理；不影响投稿 |
+| **引用列表扩到 ≥40**（v0.9.5 Major #5，carry 到 revision）| 1-2h | iMeta 方法学论文典型密度；revision 时补 |
+| **19 个 Minor**（v0.9.4 / v0.9.5）| ~2h | 投稿后 reviewer 反馈一并回应 |
 
 ### 🟡 加分项（投稿后 / 课题论文阶段做）
 
@@ -340,14 +352,14 @@ Microbiology）。开发时持续积累：
 
 ## 下次 session 建议起点
 
-按优先级（v0.9.4 独立审稿人 5 Major 修完，待 v0.9.5 验证 → bioRxiv）：
+按优先级（5 轮 mock review iteration stop；Streamlit Cloud 修复 + demo 轻量化已落地）：
 
-1. **Rerun mock review v0.9.5** —— 5 min；验证 5 Major Closed + 检查新冒出问题
-2. **6 张 placeholder figures** —— 投稿 mandatory；用户配截图 + 我可辅助排版（F1 架构 / F3 算法流程 / F5 HTML 截图 / F6 Bundle / F7 砷渣案例 / F10 vs Tools）
-3. **10 个 v0.9.4 Minor**（可选，1-2h 纯文字）
-4. **bioRxiv 投稿** —— 6 月初前完成；3 天审核拿 DOI
-5. **EnvMeta 投 iMeta** —— bioRxiv DOI 上线后立即投
-6. **课题论文起草并行** —— As 形态重测启动（用户主导）+ EnvMeta bioRxiv DOI 引用
+1. **等导师反馈** —— 用户已生成 [Paper3_Outline_for_Supervisor.docx](software/planning/Paper3_Outline_for_Supervisor.docx)，含 5 个待决问题
+2. **6 张 placeholder figures**（F1/F3/F5/F6/F7/F10）—— 投稿 mandatory；用户配截图 + 我辅助排版；2-3 天
+3. **bioRxiv 投稿** —— 6 月初前完成；3 天审核拿 DOI
+4. **EnvMeta 投 iMeta** —— bioRxiv DOI 上线后立即投
+5. **课题论文起草并行** —— As 形态重测启动（用户主导）+ EnvMeta bioRxiv DOI 引用
+6. （可选 carry 到 revision 阶段）2-D band gap sweep / 引用扩到 ≥40 / 19 个 Minor
 
 ---
 
