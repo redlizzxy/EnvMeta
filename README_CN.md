@@ -2,7 +2,7 @@
 
 **环境微生物宏基因组可视化分析平台**
 
-[English README](README.md) · [在线体验](https://envmeta-3xjhcu7lv2gkj4pjtk8gsb.streamlit.app/) · [License](LICENSE)
+[English README](README.md) · [在线体验](https://envmeta-3xjhcu7lv2gkj4pjtk8gsb.streamlit.app/) · [常见问题 FAQ](docs/FAQ.md) · [License](LICENSE)
 
 EnvMeta 解决环境微生物博士生的核心痛点：**测序公司给了一堆表格，不知道哪个文件能做什么分析**。文件一键识别 + 14 种发表级图表 + 元素循环图自动推断 + 假说评分器 + 独立交互 HTML 导出。**全部开源免费、离线可用。**
 
@@ -90,7 +90,13 @@ EnvMeta 正在收集第二轮内测反馈用于方法学论文（目标：iMeta 
 
 <https://envmeta-3xjhcu7lv2gkj4pjtk8gsb.streamlit.app/>
 
-首次访问若显示「App is sleeping」，点「Wake up」等 30 秒。
+- 首次访问若显示「App is sleeping」，点「Wake up」等 **30-90 秒**。
+- 在线 demo 默认载入 **30 MAG 测试样例**（`tests/sample_data_demo/`），
+  非论文完整 168 MAG 数据集——够你点点看体验功能，但**不用于复现论文**。
+  严肃使用请本地装。
+- Streamlit Cloud 免费版只有 1 GB 内存：1-3 人并发 OK，8 人以上容易 OOM。
+  详见 [FAQ Q4](docs/FAQ.md#q4几个人能同时用在线版会被挤崩吗)。
+- 若网页显示「😟 Oh no. Error running app」→ 见 [FAQ Q2](docs/FAQ.md#q2网页显示-oh-no-error-running-app-怎么办)。
 
 ### 2. 本地安装（新手版）
 
@@ -205,7 +211,18 @@ git stash pop          # 如果想恢复本地改动
 
 ## 样例数据
 
-`tests/sample_data/` 提供砷渣-钢渣微生物修复研究（CK/A/B 三组，168 MAG × 10 样本 × 57 目标 KO）的精简数据。首页按钮一键加载即可跑通全部 14 分析。
+两层样例：
+
+- **`tests/sample_data/`** — 砷渣-钢渣微生物修复研究精简数据，**168 MAG ×
+  10 样本 × 57 目标 KO**，CK/A/B 三组。用于 pytest 单元测试、论文 Arm A
+  positive-control 校准、扰动分析 runner。
+- **`tests/sample_data_demo/`** — 上述的 **30 MAG 子集**，保留全部 14 个
+  keystone MAG + 每元素 ≥5 个活跃 MAG。在线版「📦 加载砷渣修复测试样例」按钮
+  加载这个子集，降低 Streamlit Cloud 并发崩溃风险。**仅用于功能演示，不反映
+  原研究的科学结论**。
+
+本地装默认优先用 demo 子集；若 demo 目录不存在则回退到完整版。
+重建 demo 子集：`python tests/sample_data_demo/_build_demo_subset.py`。
 
 ## 技术栈
 

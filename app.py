@@ -315,11 +315,18 @@ def _render_file_reverse_index(file_type: FileType, *, key_prefix: str) -> None:
 
 
 def _load_sample_data() -> tuple[int, int]:
-    """加载 tests/sample_data/ 里的全部文件到 session_state。
+    """加载样例数据到 session_state。
+
+    优先用 `tests/sample_data_demo/`（30 MAG 轻量化版，在线 demo 用，
+    显著降低 Streamlit Cloud 并发崩溃风险）。
+    若 demo 目录不存在，回退到 `tests/sample_data/`（完整 168 MAG）。
 
     返回 (成功加载数, 跳过/失败数)。复用现有 detect() 逻辑。
     """
-    sample_dir = Path(__file__).parent / "tests" / "sample_data"
+    base = Path(__file__).parent / "tests"
+    sample_dir = base / "sample_data_demo"
+    if not sample_dir.exists():
+        sample_dir = base / "sample_data"
     if not sample_dir.exists():
         st.error(f"样例数据目录不存在：{sample_dir}")
         return (0, 0)
@@ -327,6 +334,8 @@ def _load_sample_data() -> tuple[int, int]:
     skipped = 0
     for fpath in sorted(sample_dir.iterdir()):
         if fpath.suffix.lower() not in (".txt", ".tsv", ".csv", ".spf"):
+            continue
+        if fpath.name.startswith("_") or fpath.name.lower() == "readme.md":
             continue
         if fpath.name in st.session_state.files:
             skipped += 1
@@ -643,10 +652,22 @@ if page == "首页":
     c_home1, c_home2 = st.columns([1, 1])
     with c_home1:
         with st.expander("🚀 快速体验（一键加载示例数据）", expanded=True):
-            st.markdown(
-                "没有数据？点击下方按钮加载砷渣-钢渣修复示例数据"
-                "（168 MAG / 10 样本 / 3 组），即可跑通全部 14 个分析。"
-            )
+            # 检测当前会加载 demo 子集还是完整数据
+            _demo_path = Path(__file__).parent / "tests" / "sample_data_demo"
+            if _demo_path.exists():
+                st.markdown(
+                    "没有数据？点击下方按钮加载砷渣-钢渣修复**测试样例**"
+                    "（30 MAG 子集 / 10 样本 / 3 组），即可跑通全部 14 个分析。"
+                )
+                st.caption(
+                    "💡 在线版载入的是 30 MAG **轻量化测试样例**，仅供熟悉功能 UI；"
+                    "完整数据（168 MAG）见 [`tests/sample_data/`](https://github.com/redlizzxy/EnvMeta/tree/master/tests/sample_data) 或论文 Fork Bundle。"
+                )
+            else:
+                st.markdown(
+                    "没有数据？点击下方按钮加载砷渣-钢渣修复示例数据"
+                    "（168 MAG / 10 样本 / 3 组），即可跑通全部 14 个分析。"
+                )
             if st.button("📦 加载砷渣修复示例数据", key="home_load_sample"):
                 loaded, skipped = _load_sample_data()
                 if loaded:

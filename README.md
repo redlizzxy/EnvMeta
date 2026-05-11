@@ -2,7 +2,7 @@
 
 **An environmental microbiome metagenomic visualization platform**
 
-[中文版 README](README_CN.md) · [Online demo](https://envmeta-3xjhcu7lv2gkj4pjtk8gsb.streamlit.app/) · [License](LICENSE)
+[中文版 README](README_CN.md) · [Online demo](https://envmeta-3xjhcu7lv2gkj4pjtk8gsb.streamlit.app/) · [FAQ / 常见问题](docs/FAQ.md) · [License](LICENSE)
 
 EnvMeta solves the core pain point of environmental-microbiome PhD students: **the sequencing vendor hands you a pile of TSVs and you don't know which file lets you do which analysis**. One-click file recognition + 14 publication-grade plot types + automatic biogeochemical-cycle figure inference + a YAML hypothesis scorer + standalone interactive HTML export. **Fully open-source, free, offline-capable.**
 
@@ -62,7 +62,13 @@ EnvMeta solves the core pain point of environmental-microbiome PhD students: **t
 
 <https://envmeta-3xjhcu7lv2gkj4pjtk8gsb.streamlit.app/>
 
-If the page first shows "App is sleeping", click "Wake up" and wait ~30 s.
+- If the page first shows "App is sleeping", click "Wake up" and wait ~30-90 s.
+- The online demo loads a **30-MAG slim sample** (`tests/sample_data_demo/`),
+  not the full 168-MAG paper dataset — sufficient to try every feature,
+  but **not for reproducing the paper**. For serious use, install locally.
+- Concurrent users on Streamlit Cloud free tier (1 GB RAM): 1-3 OK, 8+ may OOM.
+  See [FAQ Q4](docs/FAQ.md#q4几个人能同时用在线版会被挤崩吗) for details.
+- If the page shows "😟 Oh no. Error running app", see [FAQ Q2](docs/FAQ.md#q2网页显示-oh-no-error-running-app-怎么办).
 
 ### 2. Local install (beginner-friendly)
 
@@ -189,7 +195,21 @@ Read [docs/data_preparation_zh.md](docs/data_preparation_zh.md) (also browsable 
 
 ## Sample data
 
-`tests/sample_data/` contains a slim version of the arsenic-slag / steel-slag microbial-remediation study (3 groups CK/A/B, 168 MAGs × 10 samples × 57 target KOs). One click on the home page runs all 14 analyses end-to-end.
+Two sample-data tiers:
+
+- **`tests/sample_data/`** — slim version of the arsenic-slag / steel-slag
+  microbial-remediation study, **168 MAGs × 10 samples × 57 target KOs**,
+  3 groups (CK/A/B). Used by the pytest suite, by the paper's Arm A
+  positive-control calibration, and by the perturbation-analysis runner.
+- **`tests/sample_data_demo/`** — a **30-MAG demo subset** of the above,
+  picked to preserve all 14 keystone MAGs and ≥5 active MAGs per element
+  (As/N/S/Fe). Used by the home-page "Load example data" button on the
+  online Streamlit Cloud demo to reduce concurrent-user memory pressure.
+  **For feature exploration only — does not reflect the original study's
+  scientific conclusions**.
+
+Local installs default to `sample_data_demo/` if present, else fall back to
+`sample_data/`. To rebuild the demo subset: `python tests/sample_data_demo/_build_demo_subset.py`.
 
 ## Tech stack
 

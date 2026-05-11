@@ -1,0 +1,938 @@
+MAG	Gene_ID	KEGG_ko	Description
+Mx_All_102	k141_6448813_53	ko:K07243	Iron permease FTR1
+Mx_All_102	k141_6448813_56	ko:K03741	Belongs to the low molecular weight phosphotyrosine protein phosphatase family
+Mx_All_102	k141_2635732_12	ko:K07755	Hypothetical methyltransferase
+Mx_All_102	k141_2635732_13	ko:K03892	helix_turn_helix, Arsenical Resistance Operon Repressor
+Mx_All_102	k141_2648684_1	ko:K03325	PFAM Bile acid sodium symporter
+Mx_All_102	k141_5520104_23	ko:K00368	quinone binding
+Mx_All_102	k141_5520104_30	ko:K07243	COG2010 Cytochrome c, mono- and diheme variants
+Mx_All_102	k141_5520104_36	ko:K00374	nitrate reductase, gamma subunit
+Mx_All_102	k141_5520104_38	ko:K00371,ko:K17051	Respiratory nitrate reductase beta C-terminal
+Mx_All_102	k141_5520104_39	ko:K00370,ko:K17050	Belongs to the prokaryotic molybdopterin-containing oxidoreductase family
+Mx_All_102	k141_1944980_25	ko:K07243	Iron permease, FTR1
+Mx_All_102	k141_1471416_7	ko:K02015	Belongs to the binding-protein-dependent transport system permease family. FecCD subfamily
+Mx_All_102	k141_1471416_8	ko:K02016	COG0614 ABC-type Fe3 -hydroxamate transport system, periplasmic component
+Mx_All_102	k141_1952233_2	ko:K02275,ko:K02826,ko:K15864	Heme copper-type cytochrome quinol oxidases, subunit 2
+Mx_All_102	k141_6489573_61	ko:K03531,ko:K03832	energy transducer activity
+Mx_All_102	k141_4359930_3	ko:K02012	iron ion homeostasis
+Mx_All_102	k141_4128813_1	ko:K01551	Anion-transporting ATPase
+Mx_All_102	k141_4128813_3	ko:K03892,ko:K21903	Transcriptional regulator
+Mx_All_102	k141_7478637_6	ko:K02013	Part of the ABC transporter complex HmuTUV involved in hemin import. Responsible for energy coupling to the transport system
+Mx_All_102	k141_85542_2	ko:K02275,ko:K02826,ko:K15864	Heme copper-type cytochrome quinol oxidases, subunit 2
+Mx_All_102	k141_7026360_1	ko:K01551	TIGRFAM arsenite-activated ATPase (arsA)
+Mx_All_102	k141_7026360_3	ko:K03741	Low molecular weight phosphatase family
+Mx_All_102	k141_7026360_4	ko:K03325	PFAM Bile acid sodium symporter
+Mx_All_102	k141_7026360_5	ko:K03741	Low molecular weight phosphatase family
+Mx_All_102	k141_4883145_1	ko:K03741	Low molecular weight phosphotyrosine protein phosphatase
+Mx_All_102	k141_4883145_3	ko:K01551	Anion-transporting ATPase
+Mx_All_102	k141_4883145_5	ko:K03892	PFAM regulatory protein, ArsR
+Mx_All_102	k141_1085154_65	ko:K00390	Belongs to the PAPS reductase family. CysH subfamily
+Mx_All_106	k141_4555361_2	ko:K02012	iron ion homeostasis
+Mx_All_106	k141_7430889_3	ko:K03832	TonB C terminal
+Mx_All_106	k141_5877777_5	ko:K01011	Rhodanese-related sulfurtransferase
+Mx_All_106	k141_3733675_4	ko:K02012	ABC-type Fe3 transport system, periplasmic component
+Mx_All_106	k141_174896_3	ko:K00374	PFAM Nitrate reductase gamma subunit
+Mx_All_106	k141_2821648_3	ko:K11181	TIGRFAM sulfite reductase, dissimilatory-type beta subunit
+Mx_All_106	k141_2821648_4	ko:K11180	PFAM nitrite and sulphite reductase 4Fe-4S
+Mx_All_110	k141_7164043_32	ko:K11180	sulfite reductase, dissimilatory-type alpha subunit
+Mx_All_110	k141_7164043_33	ko:K11181	nitrite sulfite reductase hemoprotein beta-component ferrodoxin domain protein
+Mx_All_110	k141_7164043_36	ko:K15864	Cytochrome D1 heme domain
+Mx_All_110	k141_486280_2	ko:K11751,ko:K17224	Belongs to the 5'-nucleotidase family
+Mx_All_110	k141_486280_3	ko:K17222	Thiosulfate-oxidizing multienzyme system protein SoxA
+Mx_All_110	k141_486280_4	ko:K17227	PFAM Sulphur oxidation protein SoxZ
+Mx_All_110	k141_486280_5	ko:K17226	Sulfur oxidation protein SoxY
+Mx_All_110	k141_486280_6	ko:K17223	Cytochrome C oxidase, cbb3-type, subunit III
+Mx_All_110	k141_725872_1	ko:K03741	PFAM Protein-tyrosine phosphatase, low molecular weight
+Mx_All_110	k141_725872_2	ko:K01011	Rhodanese Homology Domain
+Mx_All_110	k141_6451527_3	ko:K03832	Periplasmic protein TonB links inner and outer membranes
+Mx_All_110	k141_1700567_2	ko:K01011	Rhodanese Homology Domain
+Mx_All_110	k141_31779_5	ko:K01011	sulfurtransferase
+Mx_All_110	k141_31779_11	ko:K11180	reductase, dissimilatory-type alpha subunit
+Mx_All_110	k141_31779_12	ko:K11181	reductase, dissimilatory-type beta subunit
+Mx_All_110	k141_5996906_1	ko:K03741	low molecular weight
+Mx_All_110	k141_5996906_2	ko:K03325	Sodium Bile acid symporter family
+Mx_All_110	k141_2420768_10	ko:K03832	TonB domain protein
+Mx_All_110	k141_4337305_16	ko:K00537	arsenate reductase
+Mx_All_110	k141_6248145_8	ko:K03711	Belongs to the Fur family
+Mx_All_110	k141_1959921_1	ko:K00394	FAD binding domain
+Mx_All_110	k141_58024_21	ko:K01011	PFAM Rhodanese domain protein
+Mx_All_110	k141_7486236_8	ko:K02012	Bacterial extracellular solute-binding protein
+Mx_All_110	k141_7486236_14	ko:K07243	Iron permease FTR1 family
+Mx_All_110	k141_5115701_5	ko:K11751,ko:K17224	Belongs to the 5'-nucleotidase family
+Mx_All_110	k141_5117504_10	ko:K07755	Protein-L-isoaspartate(D-aspartate) O-methyltransferase (PCMT)
+Mx_All_110	k141_5120890_10	ko:K15864	Cytochrome D1 heme domain
+Mx_All_110	k141_7271142_1	ko:K03325	Sodium Bile acid symporter family
+Mx_All_110	k141_7271142_2	ko:K03741	low molecular weight
+Mx_All_110	k141_7271142_4	ko:K03892	PFAM Bacterial regulatory protein, arsR family
+Mx_All_110	k141_7520145_18	ko:K07243	Iron Permease
+Mx_All_110	k141_5403185_1	ko:K11181	reductase, dissimilatory-type beta subunit
+Mx_All_110	k141_6605221_9	ko:K07755	Methyltransferase type 11
+Mx_All_110	k141_6605221_11	ko:K03892	DNA-binding transcription factor activity
+Mx_All_110	k141_4713954_3	ko:K02015	Belongs to the binding-protein-dependent transport system permease family. FecCD subfamily
+Mx_All_110	k141_4713954_7	ko:K03832	Interacts with outer membrane receptor proteins that carry out high-affinity binding and energy dependent uptake into the periplasmic space of specific substrates. It could act to transduce energy from the cytoplasmic membrane to specific energy- requiring processes in the outer membrane, resulting in the release into the periplasm of ligands bound by these outer membrane proteins
+Mx_All_110	k141_4713954_14	ko:K02016	PFAM periplasmic binding protein
+Mx_All_110	k141_1615717_6	ko:K17218	PFAM FAD-dependent pyridine nucleotide-disulphide oxidoreductase
+Mx_All_110	k141_3051833_6	ko:K11751,ko:K17224	Belongs to the 5'-nucleotidase family
+Mx_All_110	k141_1639106_4	ko:K17227	PFAM Sulphur oxidation protein SoxZ
+Mx_All_110	k141_1639106_5	ko:K17226	Sulfur oxidation protein SoxY
+Mx_All_110	k141_951790_3	ko:K03892	Transcriptional
+Mx_All_110	k141_951790_12	ko:K07755	Methyltransferase
+Mx_All_112	k141_4826_2	ko:K00368	Multicopper oxidase
+Mx_All_112	k141_4826_11	ko:K01011	Rhodanese Homology Domain
+Mx_All_112	k141_4537852_5	ko:K03325,ko:K03741	Sodium Bile acid symporter family
+Mx_All_112	k141_2869129_1	ko:K02016	Periplasmic binding protein
+Mx_All_112	k141_2869129_2	ko:K02015	Belongs to the binding-protein-dependent transport system permease family. FecCD subfamily
+Mx_All_112	k141_2869129_3	ko:K02013	abc transporter
+Mx_All_112	k141_20998_3	ko:K03893	Putative citrate transport
+Mx_All_112	k141_2661945_4	ko:K01011	Rhodanese Homology Domain
+Mx_All_112	k141_7205668_7	ko:K02012	Bacterial extracellular solute-binding protein
+Mx_All_112	k141_544870_9	ko:K03711	Belongs to the Fur family
+Mx_All_112	k141_544870_12	ko:K00368	-
+Mx_All_112	k141_6522967_17	ko:K17218	Pyridine nucleotide-disulphide oxidoreductase
+Mx_All_112	k141_1052391_6	ko:K02016	PFAM periplasmic binding protein
+Mx_All_112	k141_7082518_3	ko:K02016	ABC-type Fe3 -hydroxamate transport system, periplasmic component
+Mx_All_112	k141_7568913_3	ko:K02012	Bacterial extracellular solute-binding protein
+Mx_All_112	k141_1165291_1	ko:K07755	Protein-L-isoaspartate(D-aspartate) O-methyltransferase (PCMT)
+Mx_All_116	k141_5501568_23	ko:K04561	Nitric oxide reductase large subunit
+Mx_All_116	k141_5501735_1	ko:K07243	High-affinity Fe2 Pb2 permease
+Mx_All_116	k141_5501735_2	ko:K07243	Iron permease FTR1 family
+Mx_All_116	k141_5501735_8	ko:K02016,ko:K06858	ABC-type Fe3 -hydroxamate transport system, periplasmic component
+Mx_All_116	k141_1209021_17	ko:K02014	TonB-dependent receptor
+Mx_All_116	k141_1720045_3	ko:K03832	Interacts with outer membrane receptor proteins that carry out high-affinity binding and energy dependent uptake into the periplasmic space of specific substrates. It could act to transduce energy from the cytoplasmic membrane to specific energy- requiring processes in the outer membrane, resulting in the release into the periplasm of ligands bound by these outer membrane proteins
+Mx_All_116	k141_3875246_2	ko:K03832	Interacts with outer membrane receptor proteins that carry out high-affinity binding and energy dependent uptake into the periplasmic space of specific substrates. It could act to transduce energy from the cytoplasmic membrane to specific energy- requiring processes in the outer membrane, resulting in the release into the periplasm of ligands bound by these outer membrane proteins
+Mx_All_116	k141_3875246_3	ko:K03832	energy transducer activity
+Mx_All_116	k141_544217_25	ko:K00381	Component of the sulfite reductase complex that catalyzes the 6-electron reduction of sulfite to sulfide. This is one of several activities required for the biosynthesis of L- cysteine from sulfate
+Mx_All_116	k141_3409169_33	ko:K02013	Part of the ABC transporter complex HmuTUV involved in hemin import. Responsible for energy coupling to the transport system
+Mx_All_116	k141_3409169_34	ko:K02015	Belongs to the binding-protein-dependent transport system permease family. FecCD subfamily
+Mx_All_116	k141_3896803_3	ko:K03741	Low molecular weight phosphotyrosine protein phosphatase
+Mx_All_116	k141_3896803_4	ko:K03892	regulatory protein, arsR
+Mx_All_116	k141_6295994_15	ko:K00390	Phosphoadenylylsulfate reductase
+Mx_All_116	k141_1287664_4	ko:K00368	Multicopper oxidase
+Mx_All_116	k141_6060349_1	ko:K02014	Outer membrane receptor
+Mx_All_116	k141_3937159_2	ko:K02014	receptor
+Mx_All_116	k141_5614217_24	ko:K03711	Belongs to the Fur family
+Mx_All_116	k141_4439616_9	ko:K07755	Methyltransferase type 11
+Mx_All_116	k141_1858061_1	ko:K02014	receptor
+Mx_All_116	k141_6864624_44	ko:K07243	High-affinity Fe2 Pb2 permease
+Mx_All_116	k141_6898368_34	ko:K03646,ko:K03832	energy transducer activity
+Mx_All_116	k141_4766930_1	ko:K02014	receptor
+Mx_All_127	k141_5011084_2	ko:K00368	Multicopper oxidase
+Mx_All_127	k141_1197373_3	ko:K17218	oxidoreductase
+Mx_All_127	k141_4299819_1	ko:K02016	Periplasmic binding protein
+Mx_All_127	k141_3831609_2	ko:K00380,ko:K02641,ko:K14338	Oxidoreductase NAD-binding domain
+Mx_All_127	k141_3831609_3	ko:K00366	PFAM nitrite and sulphite reductase 4Fe-4S
+Mx_All_127	k141_1928172_1	ko:K00371,ko:K17051	nitrate reductase beta subunit
+Mx_All_127	k141_1928172_3	ko:K00374	nitrate reductase, gamma subunit
+Mx_All_127	k141_21069_2	ko:K00537	Belongs to the ArsC family
+Mx_All_127	k141_1469868_3	ko:K02014	TonB dependent receptor
+Mx_All_127	k141_49910_2	ko:K03325	Sodium Bile acid symporter family
+Mx_All_127	k141_49981_4	ko:K07243	Iron permease FTR1 family
+Mx_All_127	k141_294002_1	ko:K00370	COG5013 Nitrate reductase alpha subunit
+Mx_All_127	k141_6020771_6	ko:K03711	Belongs to the Fur family
+Mx_All_127	k141_7231746_1	ko:K00395	reductase beta subunit
+Mx_All_127	k141_5091735_4	ko:K04561	nitric oxide reductase
+Mx_All_127	k141_1760502_1	ko:K02014	TonB-dependent Receptor Plug Domain
+Mx_All_127	k141_5348316_1	ko:K00370,ko:K17050	Belongs to the prokaryotic molybdopterin-containing oxidoreductase family
+Mx_All_127	k141_5348316_2	ko:K00371,ko:K17051	nitrate reductase beta subunit
+Mx_All_127	k141_3922698_3	ko:K17226	Sulfur oxidation protein SoxY
+Mx_All_127	k141_3922698_4	ko:K17227	Sulphur oxidation protein SoxZ
+Mx_All_127	k141_3922698_5	ko:K17222	Thiosulfate-oxidizing multienzyme system protein SoxA
+Mx_All_127	k141_1781260_6	ko:K00368	Multicopper oxidase
+Mx_All_127	k141_4886887_2	ko:K03832	Gram-negative bacterial TonB protein C-terminal
+Mx_All_127	k141_4413046_3	ko:K03832	Gram-negative bacterial TonB protein C-terminal
+Mx_All_127	k141_5135380_2	ko:K17218	Pyridine nucleotide-disulphide oxidoreductase
+Mx_All_127	k141_7282005_2	ko:K02012	Bacterial extracellular solute-binding protein
+Mx_All_127	k141_7055834_4	ko:K04561	Nitric oxide reductase large subunit
+Mx_All_127	k141_399101_5	ko:K02014	TonB dependent receptor
+Mx_All_127	k141_2088263_4	ko:K03832	Interacts with outer membrane receptor proteins that carry out high-affinity binding and energy dependent uptake into the periplasmic space of specific substrates. It could act to transduce energy from the cytoplasmic membrane to specific energy- requiring processes in the outer membrane, resulting in the release into the periplasm of ligands bound by these outer membrane proteins
+Mx_All_127	k141_4946501_2	ko:K02014,ko:K16089	TonB-dependent receptor
+Mx_All_127	k141_2377412_4	ko:K07755	Protein-L-isoaspartate(D-aspartate) O-methyltransferase (PCMT)
+Mx_All_127	k141_3815692_1	ko:K00381,ko:K00392	Component of the sulfite reductase complex that catalyzes the 6-electron reduction of sulfite to sulfide. This is one of several activities required for the biosynthesis of L- cysteine from sulfate
+Mx_All_128	k141_6465613_4	ko:K03325	PFAM Bile acid sodium symporter
+Mx_All_128	k141_2904168_1	ko:K02014	TonB dependent receptor
+Mx_All_128	k141_3402309_1	ko:K02013	ATPases associated with a variety of cellular activities
+Mx_All_128	k141_3402309_2	ko:K02015	Belongs to the binding-protein-dependent transport system permease family. FecCD subfamily
+Mx_All_128	k141_4601507_2	ko:K03832	TonB family
+Mx_All_128	k141_1995556_4	ko:K17226	sulfur oxidation protein SoxY
+Mx_All_128	k141_1995556_5	ko:K17227	oxidation protein
+Mx_All_128	k141_7266877_1	ko:K01011	sulfurtransferase
+Mx_All_128	k141_2505524_1	ko:K15864	Cytochrome D1 heme domain
+Mx_All_128	k141_3697052_3	ko:K03832	Interacts with outer membrane receptor proteins that carry out high-affinity binding and energy dependent uptake into the periplasmic space of specific substrates. It could act to transduce energy from the cytoplasmic membrane to specific energy- requiring processes in the outer membrane, resulting in the release into the periplasm of ligands bound by these outer membrane proteins
+Mx_All_128	k141_2750553_4	ko:K01011	PFAM Rhodanese domain protein
+Mx_All_128	k141_6564003_2	ko:K02014,ko:K16089	TonB-dependent receptor
+Mx_All_128	k141_2993709_3	ko:K03832	TonB C terminal
+Mx_All_128	k141_7287541_3	ko:K00368	nitrite reductase
+Mx_All_128	k141_2281636_3	ko:K03832	TonB family
+Mx_All_128	k141_375936_6	ko:K02012	Bacterial extracellular solute-binding protein
+Mx_All_128	k141_3961615_3	ko:K11751,ko:K17224	Belongs to the 5'-nucleotidase family
+Mx_All_128	k141_3961615_4	ko:K17223	Cytochrome c
+Mx_All_128	k141_3961615_5	ko:K17222,ko:K19713	Thiosulfate-oxidizing multienzyme system protein SoxA
+Mx_All_128	k141_3961615_6	ko:K17227	Sulphur oxidation protein SoxZ
+Mx_All_128	k141_3974634_7	ko:K00368	PFAM blue (type 1) copper domain protein
+Mx_All_128	k141_7572452_4	ko:K03711	Belongs to the Fur family
+Mx_All_128	k141_3056787_2	ko:K17227	Sulphur oxidation protein SoxZ
+Mx_All_128	k141_4967766_2	ko:K02016	Periplasmic binding protein
+Mx_All_141	k141_2362_10	ko:K00370	Respiratory nitrate reductase alpha N-terminal
+Mx_All_141	k141_2362_11	ko:K00371	Respiratory nitrate reductase beta C-terminal
+Mx_All_141	k141_2362_13	ko:K00374	TIGRFAM respiratory nitrate reductase, gamma subunit
+Mx_All_141	k141_2391559_2	ko:K02451,ko:K03832	membrane
+Mx_All_141	k141_2161356_2	ko:K02012	Bacterial extracellular solute-binding protein
+Mx_All_141	k141_4073029_11	ko:K17218	PFAM FAD-dependent pyridine nucleotide-disulphide oxidoreductase
+Mx_All_141	k141_5028494_8	ko:K03892	DNA-binding transcription factor activity
+Mx_All_141	k141_25917_2	ko:K17223	Cytochrome C oxidase, cbb3-type, subunit III
+Mx_All_141	k141_25917_3	ko:K17226	Sulfur oxidation protein SoxY
+Mx_All_141	k141_7184265_1	ko:K17218	PFAM FAD-dependent pyridine nucleotide-disulphide oxidoreductase
+Mx_All_141	k141_6951029_17	ko:K07755	Protein-L-isoaspartate(D-aspartate) O-methyltransferase (PCMT)
+Mx_All_141	k141_5760007_33	ko:K17218	Pyridine nucleotide-disulphide oxidoreductase
+Mx_All_141	k141_2187757_10	ko:K03741	Low molecular weight phosphatase family
+Mx_All_141	k141_2187757_11	ko:K03892	PFAM Bacterial regulatory protein, arsR family
+Mx_All_141	k141_3385017_2	ko:K03832	COG0810 Periplasmic protein TonB, links inner and outer membranes
+Mx_All_141	k141_3385017_4	ko:K02016,ko:K06858	Periplasmic binding protein
+Mx_All_141	k141_2673599_1	ko:K11180	reductase, dissimilatory-type alpha subunit
+Mx_All_141	k141_1007544_1	ko:K02014	PFAM TonB-dependent Receptor
+Mx_All_141	k141_1007544_2	ko:K03832	Interacts with outer membrane receptor proteins that carry out high-affinity binding and energy dependent uptake into the periplasmic space of specific substrates. It could act to transduce energy from the cytoplasmic membrane to specific energy- requiring processes in the outer membrane, resulting in the release into the periplasm of ligands bound by these outer membrane proteins
+Mx_All_141	k141_2441926_2	ko:K17226	Sulfur oxidation protein SoxY
+Mx_All_141	k141_5544043_3	ko:K00368,ko:K22349	Multicopper oxidase
+Mx_All_141	k141_777291_2	ko:K01011	sulfurtransferase
+Mx_All_141	k141_5071018_2	ko:K03832	TonB C terminal
+Mx_All_141	k141_1499643_1	ko:K02451,ko:K03832	membrane
+Mx_All_141	k141_6986269_2	ko:K07243	iron permease
+Mx_All_141	k141_6986904_3	ko:K02015	Belongs to the binding-protein-dependent transport system permease family. FecCD subfamily
+Mx_All_141	k141_1026330_4	ko:K03711	Belongs to the Fur family
+Mx_All_141	k141_3426332_5	ko:K02015	Belongs to the binding-protein-dependent transport system permease family. FecCD subfamily
+Mx_All_141	k141_87666_1	ko:K07243	Iron permease FTR1 family
+Mx_All_141	k141_4626144_6	ko:K00394	succinate dehydrogenase fumarate reductase, flavoprotein subunit
+Mx_All_141	k141_4626144_7	ko:K00395	reductase beta subunit
+Mx_All_141	k141_4626144_14	ko:K07243	Iron permease FTR1 family
+Mx_All_141	k141_4626144_17	ko:K03832	Gram-negative bacterial TonB protein C-terminal
+Mx_All_141	k141_6057682_2	ko:K01011	PFAM Rhodanese domain protein
+Mx_All_141	k141_7021767_3	ko:K02014	TonB-dependent Receptor Plug Domain
+Mx_All_141	k141_7021767_4	ko:K03832	Interacts with outer membrane receptor proteins that carry out high-affinity binding and energy dependent uptake into the periplasmic space of specific substrates. It could act to transduce energy from the cytoplasmic membrane to specific energy- requiring processes in the outer membrane, resulting in the release into the periplasm of ligands bound by these outer membrane proteins
+Mx_All_141	k141_624582_1	ko:K17218	oxidoreductase
+Mx_All_141	k141_3244789_6	ko:K11180	sulfite reductase, dissimilatory-type alpha subunit
+Mx_All_141	k141_4207689_14	ko:K07755	Protein-L-isoaspartate(D-aspartate) O-methyltransferase (PCMT)
+Mx_All_141	k141_1349400_2	ko:K15864	Cytochrome D1 heme domain
+Mx_All_141	k141_3514735_1	ko:K03832	COG0810 Periplasmic protein TonB, links inner and outer membranes
+Mx_All_141	k141_6166577_3	ko:K11181	reductase, dissimilatory-type beta subunit
+Mx_All_141	k141_1165837_2	ko:K00537	arsenate reductase
+Mx_All_150	k141_5016680_2	ko:K03741	Belongs to the low molecular weight phosphotyrosine protein phosphatase family
+Mx_All_150	k141_7403868_5	ko:K03832	Interacts with outer membrane receptor proteins that carry out high-affinity binding and energy dependent uptake into the periplasmic space of specific substrates. It could act to transduce energy from the cytoplasmic membrane to specific energy- requiring processes in the outer membrane, resulting in the release into the periplasm of ligands bound by these outer membrane proteins
+Mx_All_150	k141_4790110_11	ko:K03832	TIGRFAM TonB
+Mx_All_150	k141_2651492_2	ko:K02014	COG1629 Outer membrane receptor proteins, mostly Fe transport
+Mx_All_150	k141_1703368_1	ko:K02015	Belongs to the binding-protein-dependent transport system permease family. FecCD subfamily
+Mx_All_150	k141_1703368_2	ko:K02013	ABC transporter
+Mx_All_150	k141_1703368_3	ko:K02014,ko:K16092	TonB-dependent Receptor Plug Domain
+Mx_All_150	k141_6714752_2	ko:K02014	TonB-dependent receptor
+Mx_All_150	k141_5767649_2	ko:K03892	PFAM regulatory protein ArsR
+Mx_All_150	k141_5767649_3	ko:K03325	Sodium Bile acid symporter family
+Mx_All_150	k141_760141_2	ko:K00366,ko:K00392	Nitrite and sulphite reductase 4Fe-4S domain
+Mx_All_150	k141_760141_4	ko:K00390	Belongs to the PAPS reductase family. CysH subfamily
+Mx_All_150	k141_6487054_24	ko:K01011	Rhodanese Homology Domain
+Mx_All_150	k141_5783778_14	ko:K02014	TonB-dependent receptor
+Mx_All_150	k141_3875984_1	ko:K02016	PFAM periplasmic binding protein
+Mx_All_150	k141_4831002_5	ko:K03832	Gram-negative bacterial TonB protein C-terminal
+Mx_All_150	k141_6026446_3	ko:K03832	TonB C terminal
+Mx_All_150	k141_1022078_2	ko:K03832	TIGRFAM TonB
+Mx_All_150	k141_7230750_3	ko:K03646,ko:K03832	energy transducer activity
+Mx_All_150	k141_2707573_1	ko:K02014	TonB-dependent receptor
+Mx_All_150	k141_5825895_8	ko:K03711	Belongs to the Fur family
+Mx_All_150	k141_5831249_5	ko:K07755	methyltransferase
+Mx_All_150	k141_1781454_3	ko:K00394	PFAM fumarate reductase succinate dehydrogenase flavoprotein domain protein
+Mx_All_150	k141_2741282_3	ko:K07755	Hypothetical methyltransferase
+Mx_All_150	k141_2741282_4	ko:K01551	Anion-transporting ATPase
+Mx_All_150	k141_2982657_5	ko:K03832	Interacts with outer membrane receptor proteins that carry out high-affinity binding and energy dependent uptake into the periplasmic space of specific substrates. It could act to transduce energy from the cytoplasmic membrane to specific energy- requiring processes in the outer membrane, resulting in the release into the periplasm of ligands bound by these outer membrane proteins
+Mx_All_150	k141_4894142_6	ko:K00394	succinate dehydrogenase
+Mx_All_150	k141_2991891_2	ko:K02451,ko:K03832	membrane
+Mx_All_150	k141_7295516_4	ko:K04561	Cytochrome C and Quinol oxidase polypeptide I
+Mx_All_150	k141_1578233_9	ko:K01011	sulfurtransferase
+Mx_All_150	k141_6827632_15	ko:K00394	PFAM fumarate reductase succinate dehydrogenase flavoprotein domain protein
+Mx_All_150	k141_4450392_3	ko:K02014	TonB-dependent receptor plug
+Mx_All_150	k141_5653563_1	ko:K01551	TIGRFAM arsenite-activated ATPase (arsA)
+Mx_All_150	k141_5653563_2	ko:K03892,ko:K21903	regulatory protein, arsR
+Mx_All_150	k141_7334559_3	ko:K02014	TonB-dependent receptor
+Mx_All_150	k141_3284867_3	ko:K03832	Gram-negative bacterial TonB protein C-terminal
+Mx_All_150	k141_3546463_4	ko:K02014	TonB-dependent receptor
+Mx_All_150	k141_2839272_9	ko:K02014	TonB-dependent receptor
+Mx_All_150	k141_5463272_8	ko:K02014	TonB-dependent receptor
+Mx_All_150	k141_7627641_1	ko:K00390	Belongs to the PAPS reductase family. CysH subfamily
+Mx_All_151	k141_3104615_3	ko:K02014	TonB dependent receptor
+Mx_All_151	k141_721911_6	ko:K02014,ko:K16088	Outer membrane receptor for ferric coprogen and ferric-rhodotorulic acid
+Mx_All_151	k141_6686671_3	ko:K02013	Part of the ABC transporter complex HmuTUV involved in hemin import. Responsible for energy coupling to the transport system
+Mx_All_151	k141_4783294_2	ko:K02014	TonB-dependent receptor
+Mx_All_151	k141_18122_8	ko:K00374	Nitrate reductase gamma subunit
+Mx_All_151	k141_18122_10	ko:K00371	nitrate reductase beta subunit
+Mx_All_151	k141_18122_11	ko:K00370	Belongs to the prokaryotic molybdopterin-containing oxidoreductase family
+Mx_All_151	k141_18779_1	ko:K00537,ko:K03741	arsenate reductase
+Mx_All_151	k141_4322273_3	ko:K02014	TonB dependent receptor
+Mx_All_151	k141_2175528_3	ko:K02014	TonB-dependent Receptor Plug Domain
+Mx_All_151	k141_4561486_1	ko:K02014	receptor
+Mx_All_151	k141_2902171_3	ko:K00390	Reduction of activated sulfate into sulfite
+Mx_All_151	k141_5051770_2	ko:K17218	Pyridine nucleotide-disulphide oxidoreductase
+Mx_All_151	k141_785865_3	ko:K00381	Nitrite and sulphite reductase 4Fe-4S domain
+Mx_All_151	k141_3658660_2	ko:K02014	receptor
+Mx_All_151	k141_1990948_4	ko:K17218	Pyridine nucleotide-disulphide oxidoreductase
+Mx_All_151	k141_337628_3	ko:K02014	COG1629 Outer membrane receptor proteins, mostly Fe transport
+Mx_All_151	k141_3918021_4	ko:K02014	TonB-dependent Receptor Plug
+Mx_All_151	k141_2487350_1	ko:K03832	Periplasmic protein TonB links inner and outer membranes
+Mx_All_151	k141_98255_7	ko:K00537	Belongs to the ArsC family
+Mx_All_151	k141_98255_8	ko:K00537	Belongs to the ArsC family
+Mx_All_151	k141_1063321_2	ko:K00537	arsenate reductase
+Mx_All_151	k141_5845064_3	ko:K03832	Interacts with outer membrane receptor proteins that carry out high-affinity binding and energy dependent uptake into the periplasmic space of specific substrates. It could act to transduce energy from the cytoplasmic membrane to specific energy- requiring processes in the outer membrane, resulting in the release into the periplasm of ligands bound by these outer membrane proteins
+Mx_All_151	k141_3951436_3	ko:K03832	Interacts with outer membrane receptor proteins that carry out high-affinity binding and energy dependent uptake into the periplasmic space of specific substrates. It could act to transduce energy from the cytoplasmic membrane to specific energy- requiring processes in the outer membrane, resulting in the release into the periplasm of ligands bound by these outer membrane proteins
+Mx_All_151	k141_870308_1	ko:K00370	Belongs to the prokaryotic molybdopterin-containing oxidoreductase family
+Mx_All_151	k141_3498836_3	ko:K02014	receptor
+Mx_All_151	k141_4938530_5	ko:K03711	Ferric uptake regulator family
+Mx_All_151	k141_5680502_1	ko:K02014	COG1629 Outer membrane receptor proteins, mostly Fe transport
+Mx_All_151	k141_1155573_3	ko:K03892	arsR family
+Mx_All_151	k141_1155573_4	ko:K03741	Low molecular weight phosphatase family
+Mx_All_151	k141_3793750_1	ko:K01011	Rhodanese Homology Domain
+Mx_All_151	k141_7139024_1	ko:K02014	receptor
+Mx_All_151	k141_943308_1	ko:K02014	TonB-dependent Receptor Plug
+Mx_All_151	k141_3805132_5	ko:K07243	Iron permease FTR1 family
+Mx_All_152	k141_7430078_10	ko:K00370	Respiratory nitrate reductase alpha N-terminal
+Mx_All_152	k141_275522_9	ko:K03832	Interacts with outer membrane receptor proteins that carry out high-affinity binding and energy dependent uptake into the periplasmic space of specific substrates. It could act to transduce energy from the cytoplasmic membrane to specific energy- requiring processes in the outer membrane, resulting in the release into the periplasm of ligands bound by these outer membrane proteins
+Mx_All_152	k141_5047141_12	ko:K07243	PFAM iron permease FTR1
+Mx_All_152	k141_5047141_14	ko:K03711	Belongs to the Fur family
+Mx_All_152	k141_5525231_4	ko:K03325	Sodium Bile acid symporter family
+Mx_All_152	k141_3650807_2	ko:K03741	SMART Protein-tyrosine phosphatase, low molecular weight
+Mx_All_152	k141_3650807_3	ko:K03892	helix_turn_helix, Arsenical Resistance Operon Repressor
+Mx_All_152	k141_5336342_8	ko:K00381,ko:K00392	nitrite sulfite reductase hemoprotein beta-component ferrodoxin domain protein
+Mx_All_152	k141_5336342_9	ko:K00390	Reduction of activated sulfate into sulfite
+Mx_All_152	k141_3908436_6	ko:K02591	This molybdenum-iron protein is part of the nitrogenase complex that catalyzes the key enzymatic reactions in nitrogen fixation
+Mx_All_152	k141_3908436_7	ko:K02586	Nitrogenase component 1 type Oxidoreductase
+Mx_All_152	k141_5575766_3	ko:K02014	TonB dependent receptor
+Mx_All_152	k141_7261755_28	ko:K01011	Rhodanese Homology Domain
+Mx_All_152	k141_1786173_1	ko:K00370	Respiratory nitrate reductase alpha N-terminal
+Mx_All_152	k141_1786173_2	ko:K00371,ko:K17051	nitrate reductase beta subunit
+Mx_All_152	k141_1786173_4	ko:K00374	nitrate reductase, gamma subunit
+Mx_All_152	k141_6569067_20	ko:K00394	Fumarate reductase flavoprotein C-term
+Mx_All_152	k141_6100834_11	ko:K03832	Interacts with outer membrane receptor proteins that carry out high-affinity binding and energy dependent uptake into the periplasmic space of specific substrates. It could act to transduce energy from the cytoplasmic membrane to specific energy- requiring processes in the outer membrane, resulting in the release into the periplasm of ligands bound by these outer membrane proteins
+Mx_All_152	k141_5871981_4	ko:K03325	Sodium Bile acid symporter family
+Mx_All_152	k141_1629186_20	ko:K03832	TonB C terminal
+Mx_All_152	k141_2590113_1	ko:K00370	Respiratory nitrate reductase alpha N-terminal
+Mx_All_152	k141_1163039_1	ko:K03325	TIGRFAM Arsenical-resistance protein
+Mx_All_152	k141_1163039_2	ko:K01551	Arsenite-activated ATPase (ArsA)
+Mx_All_152	k141_209784_28	ko:K02014	PFAM TonB-dependent receptor plug
+Mx_All_152	k141_6673068_1	ko:K03325	Arsenite efflux pump ACR3 and related permeases
+Mx_All_152	k141_6673068_2	ko:K01551	Arsenite-activated ATPase (ArsA)
+Mx_All_153	k141_4781109_2	ko:K03892	PFAM Bacterial regulatory protein, arsR family
+Mx_All_153	k141_7406411_22	ko:K02016	Periplasmic binding protein
+Mx_All_153	k141_7406411_23	ko:K02016	PFAM periplasmic binding protein
+Mx_All_153	k141_3836015_11	ko:K02016	Periplasmic binding protein
+Mx_All_153	k141_6715938_1	ko:K00370,ko:K10700,ko:K16964,ko:K17050	molybdopterin cofactor binding
+Mx_All_153	k141_6715938_3	ko:K00371,ko:K16965,ko:K17048,ko:K17051	Evidence 3 Function proposed based on presence of conserved amino acid motif, structural feature or limited homology
+Mx_All_153	k141_6715938_18	ko:K04561	Cytochrome C and Quinol oxidase polypeptide I
+Mx_All_153	k141_1472035_7	ko:K03711	Ferric uptake regulator family
+Mx_All_153	k141_4815007_4	ko:K01011	Rhodanese Homology Domain
+Mx_All_153	k141_6736880_2	ko:K00390	Reduction of activated sulfate into sulfite
+Mx_All_153	k141_1977489_5	ko:K02012	Bacterial extracellular solute-binding protein
+Mx_All_153	k141_3889922_25	ko:K00362,ko:K00366,ko:K00381,ko:K00392	Nitrite and sulphite reductase 4Fe-4S domain
+Mx_All_153	k141_590464_6	ko:K17218	PFAM Pyridine nucleotide-disulphide oxidoreductase
+Mx_All_153	k141_4426057_3	ko:K03892	DNA-binding transcription factor activity
+Mx_All_153	k141_4426057_4	ko:K07755	Protein-L-isoaspartate(D-aspartate) O-methyltransferase (PCMT)
+Mx_All_153	k141_7295300_2	ko:K04561	Cytochrome C and Quinol oxidase polypeptide I
+Mx_All_153	k141_5870528_19	ko:K02014	TonB-dependent Receptor Plug
+Mx_All_153	k141_1344049_4	ko:K03892	helix_turn_helix, Arsenical Resistance Operon Repressor
+Mx_All_153	k141_1344049_6	ko:K03741	Belongs to the low molecular weight phosphotyrosine protein phosphatase family
+Mx_All_153	k141_5635735_5	ko:K11751,ko:K17224	Belongs to the 5'-nucleotidase family
+Mx_All_153	k141_1655857_5	ko:K00376,ko:K02275	Cytochrome C oxidase, subunit II
+Mx_All_153	k141_1655857_6	ko:K00376	Cupredoxin-like domain
+Mx_All_153	k141_2375326_4	ko:K17218	PFAM FAD-dependent pyridine nucleotide-disulphide oxidoreductase
+Mx_All_153	k141_4531065_2	ko:K17218	PFAM Pyridine nucleotide-disulphide oxidoreductase
+Mx_All_168	k141_4295426_1	ko:K10945	Monooxygenase subunit B protein
+Mx_All_168	k141_3342892_2	ko:K03741	Belongs to the low molecular weight phosphotyrosine protein phosphatase family
+Mx_All_168	k141_2391757_2	ko:K02012	extracellular solute-binding
+Mx_All_168	k141_7412451_1	ko:K10945	Monooxygenase subunit B protein
+Mx_All_168	k141_497261_2	ko:K00368,ko:K08100	Copper binding proteins, plastocyanin/azurin family
+Mx_All_168	k141_278806_1	ko:K00368	blue (type 1) copper
+Mx_All_168	k141_278806_6	ko:K00368,ko:K02638	PFAM blue (type 1) copper domain protein
+Mx_All_168	k141_6484911_1	ko:K02014	COG COG1629 Outer membrane receptor proteins, mostly Fe transport
+Mx_All_168	k141_3391633_1	ko:K02014	COGs COG1629 Outer membrane receptor protein mostly Fe transport
+Mx_All_168	k141_786586_1	ko:K03892,ko:K22043	helix_turn_helix, Arsenical Resistance Operon Repressor
+Mx_All_168	k141_3888588_1	ko:K03832	Interacts with outer membrane receptor proteins that carry out high-affinity binding and energy dependent uptake into the periplasmic space of specific substrates. It could act to transduce energy from the cytoplasmic membrane to specific energy- requiring processes in the outer membrane, resulting in the release into the periplasm of ligands bound by these outer membrane proteins
+Mx_All_168	k141_3888588_2	ko:K02014	TonB dependent receptor
+Mx_All_168	k141_1039466_6	ko:K03711	Belongs to the Fur family
+Mx_All_168	k141_1040340_8	ko:K00368	Multicopper oxidase
+Mx_All_168	k141_4858025_16	ko:K17218	Pyridine nucleotide-disulphide oxidoreductase
+Mx_All_168	k141_4396290_4	ko:K00368	PFAM blue (type 1) copper domain protein
+Mx_All_168	k141_5361913_2	ko:K00368	PFAM blue (type 1) copper domain protein
+Mx_All_168	k141_7035268_2	ko:K07243	PFAM blue (type 1) copper domain protein
+Mx_All_168	k141_842981_2	ko:K00368	Multicopper oxidase
+Mx_All_168	k141_373250_1	ko:K03832	TIGRFAM TonB family
+Mx_All_168	k141_3710000_1	ko:K00368	Multicopper oxidase
+Mx_All_168	k141_4196505_1	ko:K00368	PFAM blue (type 1) copper domain protein
+Mx_All_168	k141_5868794_1	ko:K17218	Pyridine nucleotide-disulphide oxidoreductase
+Mx_All_168	k141_5184442_4	ko:K00368	PFAM blue (type 1) copper domain protein
+Mx_All_168	k141_1608665_6	ko:K02012	extracellular solute-binding
+Mx_All_168	k141_5187775_2	ko:K03741	Belongs to the MIP aquaporin (TC 1.A.8) family
+Mx_All_168	k141_5187775_3	ko:K03741	Low molecular weight phosphotyrosine protein phosphatase
+Mx_All_168	k141_3515527_2	ko:K02014	COGs COG1629 Outer membrane receptor protein mostly Fe transport
+Mx_All_168	k141_2567812_10	ko:K00395	reductase, beta subunit
+Mx_All_168	k141_2567812_11	ko:K00394	adenylylsulfate reductase alpha subunit
+Mx_All_168	k141_667035_4	ko:K00368	Multicopper oxidase
+Mx_All_168	k141_1382285_7	ko:K00368	blue (type 1) copper
+Mx_All_168	k141_3526020_2	ko:K00376	COG4263 Nitrous oxide reductase
+Mx_All_168	k141_3769626_15	ko:K03741	Low molecular weight phosphatase family
+Mx_All_168	k141_2831474_1	ko:K00394	adenylylsulfate reductase alpha subunit
+Mx_All_168	k141_2590918_2	ko:K01011	sulfurtransferase
+Mx_All_168	k141_2590918_6	ko:K00537	Belongs to the ArsC family
+Mx_All_168	k141_1160550_1	ko:K00368	Multicopper oxidase
+Mx_All_168	k141_7124710_2	ko:K03892	transcriptional regulator, ArsR family
+Mx_All_168	k141_2839449_1	ko:K17218	Pyridine nucleotide-disulphide oxidoreductase
+Mx_All_168	k141_3315594_1	ko:K00376	Nitrous oxide reductase
+Mx_All_168	k141_6657258_3	ko:K03892	regulatory protein, arsR
+Mx_All_168	k141_4987768_3	ko:K03711	Ferric uptake regulator family
+Mx_All_168	k141_7385206_1	ko:K02014	siderophore transport
+Mx_All_168	k141_4999639_3	ko:K03892	Transcriptional
+Mx_All_173	k141_4534277_2	ko:K03832	TIGRFAM TonB family
+Mx_All_173	k141_7403476_1	ko:K02014,ko:K16092	TonB-dependent Receptor Plug Domain
+Mx_All_173	k141_6449652_2	ko:K00368	Multicopper oxidase
+Mx_All_173	k141_491403_2	ko:K03711	Ferric uptake regulator family
+Mx_All_173	k141_258913_2	ko:K03832	TonB C terminal
+Mx_All_173	k141_974034_2	ko:K00370	Belongs to the prokaryotic molybdopterin-containing oxidoreductase family
+Mx_All_173	k141_4796354_2	ko:K00390,ko:K00860,ko:K00958,ko:K13811	Belongs to the sulfate adenylyltransferase family
+Mx_All_173	k141_2901987_6	ko:K02519,ko:K03832,ko:K07126	energy transducer activity
+Mx_All_173	k141_1270180_2	ko:K03832	TIGRFAM TonB
+Mx_All_173	k141_3424565_1	ko:K00372,ko:K02567	Belongs to the prokaryotic molybdopterin-containing oxidoreductase family
+Mx_All_173	k141_2242760_1	ko:K00370,ko:K17050	Belongs to the prokaryotic molybdopterin-containing oxidoreductase family
+Mx_All_173	k141_5847587_1	ko:K00371	nitrate reductase beta subunit
+Mx_All_173	k141_5847587_3	ko:K00370,ko:K00374,ko:K02575	nitrate reductase activity
+Mx_All_173	k141_5134907_1	ko:K00370	Belongs to the prokaryotic molybdopterin-containing oxidoreductase family
+Mx_All_173	k141_6098101_4	ko:K03832	TIGRFAM TonB
+Mx_All_173	k141_145850_1	ko:K00372,ko:K02567	Belongs to the prokaryotic molybdopterin-containing oxidoreductase family
+Mx_All_173	k141_5425951_3	ko:K00395,ko:K02572,ko:K03616	4Fe-4S binding domain
+Mx_All_173	k141_5909932_1	ko:K03741	Low molecular weight phosphatase family
+Mx_All_173	k141_5909932_2	ko:K03325	Sodium Bile acid symporter family
+Mx_All_173	k141_430799_5	ko:K07755	Protein-L-isoaspartate(D-aspartate) O-methyltransferase (PCMT)
+Mx_All_173	k141_4737081_1	ko:K17226	sulfur oxidation protein SoxY
+Mx_All_173	k141_4737081_2	ko:K17227	Sulphur oxidation protein SoxZ
+Mx_All_173	k141_4737081_3	ko:K17222	Thiosulfate-oxidizing multienzyme system protein SoxA
+Mx_All_173	k141_4737081_4	ko:K17223	Cytochrome c
+Mx_All_173	k141_688049_2	ko:K00368	Copper binding proteins, plastocyanin/azurin family
+Mx_All_173	k141_1162819_2	ko:K02014,ko:K16092	TonB-dependent Receptor Plug Domain
+Mx_All_173	k141_6437741_6	ko:K03711	Belongs to the Fur family
+Mx_All_32	k141_1462908_3	ko:K03646,ko:K03832	energy transducer activity
+Mx_All_32	k141_3140148_4	ko:K00390	Phosphoadenosine phosphosulfate reductase family
+Mx_All_32	k141_758984_3	ko:K03646,ko:K03832	TonB C terminal
+Mx_All_32	k141_1032412_4	ko:K02014	cobalamin-transporting ATPase activity
+Mx_All_32	k141_569005_1	ko:K02014	cobalamin-transporting ATPase activity
+Mx_All_32	k141_7494840_1	ko:K03892	DNA-binding transcription factor activity
+Mx_All_32	k141_6558449_2	ko:K02014	TonB dependent receptor
+Mx_All_32	k141_5131884_7	ko:K02013	ABC transporter
+Mx_All_32	k141_1316028_2	ko:K03646,ko:K03832	energy transducer activity
+Mx_All_32	k141_6084829_5	ko:K03711,ko:K09825	Ferric uptake regulator family
+Mx_All_32	k141_6802272_1	ko:K02014	TonB dependent receptor
+Mx_All_32	k141_4183252_3	ko:K03832	TonB C terminal
+Mx_All_32	k141_376245_1	ko:K03646,ko:K03832	energy transducer activity
+Mx_All_32	k141_376245_2	ko:K02014	TonB dependent receptor
+Mx_All_32	k141_4441248_1	ko:K03325	Sodium Bile acid symporter family
+Mx_All_32	k141_4441248_2	ko:K03741	Low molecular weight phosphotyrosine protein phosphatase
+Mx_All_32	k141_4441248_4	ko:K03892	transcriptional regulators
+Mx_All_32	k141_7542598_8	ko:K03711	Belongs to the Fur family
+Mx_All_32	k141_5896980_3	ko:K01011	Rhodanese Homology Domain
+Mx_All_32	k141_7335293_1	ko:K02015	Belongs to the binding-protein-dependent transport system permease family. FecCD subfamily
+Mx_All_32	k141_7335293_2	ko:K02016	PFAM periplasmic binding protein
+Mx_All_32	k141_5199609_4	ko:K03646,ko:K03832	TonB C terminal
+Mx_All_32	k141_7345439_2	ko:K02591	This molybdenum-iron protein is part of the nitrogenase complex that catalyzes the key enzymatic reactions in nitrogen fixation
+Mx_All_32	k141_4023132_2	ko:K02015	iron ion homeostasis
+Mx_All_32	k141_4023132_3	ko:K02016	Periplasmic binding protein
+Mx_All_32	k141_4023132_4	ko:K03832	Interacts with outer membrane receptor proteins that carry out high-affinity binding and energy dependent uptake into the periplasmic space of specific substrates. It could act to transduce energy from the cytoplasmic membrane to specific energy- requiring processes in the outer membrane, resulting in the release into the periplasm of ligands bound by these outer membrane proteins
+Mx_All_32	k141_4023132_6	ko:K02014	TonB-dependent Receptor Plug Domain
+Mx_All_32	k141_2832096_1	ko:K02591	This molybdenum-iron protein is part of the nitrogenase complex that catalyzes the key enzymatic reactions in nitrogen fixation
+Mx_All_32	k141_5230724_6	ko:K07755	ubiE/COQ5 methyltransferase family
+Mx_All_32	k141_4999456_9	ko:K03646,ko:K03832	energy transducer activity
+Mx_All_34	k141_2626817_20	ko:K03892	helix_turn_helix, Arsenical Resistance Operon Repressor
+Mx_All_34	k141_6447753_1	ko:K02013	COG1120 ABC-type cobalamin Fe3 -siderophores transport systems, ATPase components
+Mx_All_34	k141_6447753_2	ko:K02015	Belongs to the binding-protein-dependent transport system permease family. FecCD subfamily
+Mx_All_34	k141_4547365_5	ko:K17224	5'-nucleotidase, C-terminal domain
+Mx_All_34	k141_4547365_6	ko:K17222	Thiosulfate-oxidizing multienzyme system protein SoxA
+Mx_All_34	k141_4547365_7	ko:K17227	Sulphur oxidation protein SoxZ
+Mx_All_34	k141_4547365_8	ko:K17226	sulfur oxidation protein SoxY
+Mx_All_34	k141_4547365_9	ko:K17223	Cytochrome C oxidase, cbb3-type, subunit III
+Mx_All_34	k141_5034569_28	ko:K03832	TIGRFAM TonB family protein
+Mx_All_34	k141_5034569_29	ko:K02014	Outer membrane receptor proteins mostly Fe transport
+Mx_All_34	k141_5034569_30	ko:K02014	TonB-dependent receptor
+Mx_All_34	k141_2649548_3	ko:K02014	TonB dependent receptor
+Mx_All_34	k141_5280137_1	ko:K15864	Cytochrome D1 heme domain
+Mx_All_34	k141_5042819_25	ko:K00394	Fumarate reductase flavoprotein C-term
+Mx_All_34	k141_4569417_7	ko:K02012	Bacterial extracellular solute-binding protein
+Mx_All_34	k141_4569417_35	ko:K03892	PFAM Bacterial regulatory protein, arsR family
+Mx_All_34	k141_4569417_36	ko:K03741	Low molecular weight phosphatase family
+Mx_All_34	k141_4569417_38	ko:K03325	COG0798 Arsenite efflux pump ACR3 and related permeases
+Mx_All_34	k141_4569417_42	ko:K08355	arsenite oxidase, small subunit
+Mx_All_34	k141_4569417_43	ko:K08356	Belongs to the prokaryotic molybdopterin-containing oxidoreductase family
+Mx_All_34	k141_4570328_9	ko:K03832	Gram-negative bacterial TonB protein C-terminal
+Mx_All_34	k141_4570328_36	ko:K01011	Rhodanese Homology Domain
+Mx_All_34	k141_5286863_2	ko:K17218	pyridine nucleotide-disulphide oxidoreductase
+Mx_All_34	k141_4813396_30	ko:K17218	Pyridine nucleotide-disulphide oxidoreductase
+Mx_All_34	k141_1715210_3	ko:K07755	Hypothetical methyltransferase
+Mx_All_34	k141_1954727_2	ko:K03711	Belongs to the Fur family
+Mx_All_34	k141_1486404_1	ko:K17218	pyridine nucleotide-disulphide oxidoreductase
+Mx_All_34	k141_7453567_3	ko:K04561	to the heme-copper respiratory oxidase family
+Mx_All_34	k141_7453567_17	ko:K01011	Rhodanese Homology Domain
+Mx_All_34	k141_7453567_21	ko:K11180	sulfite reductase, dissimilatory-type alpha subunit
+Mx_All_34	k141_7453567_22	ko:K11181	Nitrite and sulphite reductase 4Fe-4S domain
+Mx_All_34	k141_1031896_29	ko:K03832	Interacts with outer membrane receptor proteins that carry out high-affinity binding and energy dependent uptake into the periplasmic space of specific substrates. It could act to transduce energy from the cytoplasmic membrane to specific energy- requiring processes in the outer membrane, resulting in the release into the periplasm of ligands bound by these outer membrane proteins
+Mx_All_34	k141_1031896_30	ko:K03832	Gram-negative bacterial TonB protein C-terminal
+Mx_All_34	k141_1031896_37	ko:K02014	TonB dependent receptor
+Mx_All_34	k141_2472613_10	ko:K00376	Cytochrome c oxidase subunit
+Mx_All_34	k141_4155509_15	ko:K02013	COG1120 ABC-type cobalamin Fe3 -siderophores transport systems, ATPase components
+Mx_All_34	k141_822534_15	ko:K02014	TonB dependent receptor
+Mx_All_34	k141_1778715_7	ko:K00394	succinate dehydrogenase fumarate reductase, flavoprotein subunit
+Mx_All_34	k141_1553832_119	ko:K02016,ko:K06858	Periplasmic binding protein
+Mx_All_34	k141_861256_4	ko:K00395	Adenosine-5'-phosphosulfate reductase beta subunit
+Mx_All_34	k141_861256_5	ko:K00394	FAD binding domain
+Mx_All_34	k141_1839076_13	ko:K03893	Arsenical pump membrane protein
+Mx_All_34	k141_921877_4	ko:K00395	reductase beta subunit
+Mx_All_34	k141_921877_5	ko:K00394	succinate dehydrogenase fumarate reductase, flavoprotein subunit
+Mx_All_35	k141_6205360_2	ko:K01011	Rhodanese Homology Domain
+Mx_All_35	k141_2395146_4	ko:K00371,ko:K17051	Nitrate reductase, beta subunit
+Mx_All_35	k141_1681930_3	ko:K02014	TonB-dependent receptor
+Mx_All_35	k141_7410073_2	ko:K03325	PFAM Bile acid sodium symporter
+Mx_All_35	k141_1451845_1	ko:K03892	regulatory protein, arsR
+Mx_All_35	k141_1457588_1	ko:K03832	TonB C terminal
+Mx_All_35	k141_1947320_1	ko:K04561	Cytochrome C and Quinol oxidase polypeptide I
+Mx_All_35	k141_5777636_2	ko:K00390	Reduction of activated sulfate into sulfite
+Mx_All_35	k141_6498369_1	ko:K00366	Component of the sulfite reductase complex that catalyzes the 6-electron reduction of sulfite to sulfide. This is one of several activities required for the biosynthesis of L- cysteine from sulfate
+Mx_All_35	k141_1015098_1	ko:K03711	Belongs to the Fur family
+Mx_All_35	k141_5312950_2	ko:K07755	ubiE/COQ5 methyltransferase family
+Mx_All_35	k141_65213_5	ko:K01008,ko:K17218	NADH dehydrogenase
+Mx_All_35	k141_1265718_1	ko:K02014,ko:K16089	receptor
+Mx_All_35	k141_5562810_1	ko:K02016	PFAM periplasmic binding protein
+Mx_All_35	k141_4854583_1	ko:K03325	PFAM Bile acid sodium symporter
+Mx_All_35	k141_4854583_2	ko:K03741	Low molecular weight phosphotyrosine protein phosphatase
+Mx_All_35	k141_4854583_6	ko:K03892	regulatory protein, arsR
+Mx_All_35	k141_2715573_1	ko:K02015	Belongs to the binding-protein-dependent transport system permease family. FecCD subfamily
+Mx_All_35	k141_2715573_2	ko:K02013	PFAM ABC transporter
+Mx_All_35	k141_2715573_3	ko:K02016	PFAM periplasmic binding protein
+Mx_All_35	k141_6055827_1	ko:K02014	TonB dependent receptor
+Mx_All_35	k141_7022763_1	ko:K00394	PFAM fumarate reductase succinate dehydrogenase flavoprotein domain protein
+Mx_All_35	k141_2754155_2	ko:K01011	Rhodanese Homology Domain
+Mx_All_35	k141_5886224_7	ko:K03325	PFAM Bile acid sodium symporter
+Mx_All_35	k141_6392493_2	ko:K00390	Reduction of activated sulfate into sulfite
+Mx_All_35	k141_184994_3	ko:K03220,ko:K03832	histone H2A K63-linked ubiquitination
+Mx_All_35	k141_3057325_3	ko:K03832	TonB C terminal
+Mx_All_35	k141_7589424_3	ko:K04561	PFAM Cytochrome c oxidase, subunit I
+Mx_All_35	k141_2823962_1	ko:K03325	PFAM Bile acid sodium symporter
+Mx_All_35	k141_2823962_3	ko:K03741	PFAM low molecular weight phosphotyrosine protein phosphatase
+Mx_All_36	k141_4776741_19	ko:K00381,ko:K00392	Component of the sulfite reductase complex that catalyzes the 6-electron reduction of sulfite to sulfide. This is one of several activities required for the biosynthesis of L- cysteine from sulfate
+Mx_All_36	k141_1207479_1	ko:K03892	Regulatory protein ArsR
+Mx_All_36	k141_1447021_9	ko:K01011	sulfurtransferase
+Mx_All_36	k141_496284_1	ko:K00394	reductase, alpha subunit
+Mx_All_36	k141_496284_2	ko:K00395	Adenosine-5'-phosphosulfate reductase beta subunit
+Mx_All_36	k141_496284_6	ko:K17226	sulfur oxidation protein SoxY
+Mx_All_36	k141_496284_7	ko:K17227	Sulphur oxidation protein SoxZ
+Mx_All_36	k141_496284_8	ko:K17222	Thiosulfate-oxidizing multienzyme system protein SoxA
+Mx_All_36	k141_496284_9	ko:K17223	Cytochrome c
+Mx_All_36	k141_496284_10	ko:K11751,ko:K17224	Belongs to the 5'-nucleotidase family
+Mx_All_36	k141_7177186_1	ko:K15864	Cytochrome d1, heme
+Mx_All_36	k141_3846219_1	ko:K01011	PFAM Rhodanese domain protein
+Mx_All_36	k141_2178769_17	ko:K11181	Nitrite and sulphite reductase 4Fe-4S domain
+Mx_All_36	k141_2178769_18	ko:K11180	sulfite reductase, dissimilatory-type alpha subunit
+Mx_All_36	k141_2178769_40	ko:K00394	reductase, alpha subunit
+Mx_All_36	k141_6722917_7	ko:K00381,ko:K00392	Component of the sulfite reductase complex that catalyzes the 6-electron reduction of sulfite to sulfide. This is one of several activities required for the biosynthesis of L- cysteine from sulfate
+Mx_All_36	k141_5538812_10	ko:K02014	TonB-dependent receptor
+Mx_All_36	k141_294670_1	ko:K00381	Component of the sulfite reductase complex that catalyzes the 6-electron reduction of sulfite to sulfide. This is one of several activities required for the biosynthesis of L- cysteine from sulfate
+Mx_All_36	k141_294670_12	ko:K17218	PFAM FAD-dependent pyridine nucleotide-disulphide oxidoreductase
+Mx_All_36	k141_1974374_13	ko:K02016	ABC-type Fe3 -hydroxamate transport system, periplasmic component
+Mx_All_36	k141_1974374_14	ko:K02014	TonB dependent receptor
+Mx_All_36	k141_2708162_1	ko:K17218	PFAM FAD-dependent pyridine nucleotide-disulphide oxidoreductase
+Mx_All_36	k141_80126_1	ko:K17222	Thiosulfate-oxidizing multienzyme system protein SoxA
+Mx_All_36	k141_80126_2	ko:K17227	Sulphur oxidation protein SoxZ
+Mx_All_36	k141_80126_3	ko:K17226	sulfur oxidation protein SoxY
+Mx_All_36	k141_80126_7	ko:K00395	Adenosine-5'-phosphosulfate reductase beta subunit
+Mx_All_36	k141_80126_8	ko:K00394	reductase, alpha subunit
+Mx_All_36	k141_7262547_9	ko:K17218	Pyridine nucleotide-disulphide oxidoreductase
+Mx_All_36	k141_4401541_24	ko:K02014	TonB dependent receptor
+Mx_All_36	k141_4403327_3	ko:K07755	Hypothetical methyltransferase
+Mx_All_36	k141_5126799_10	ko:K01011	PFAM Rhodanese domain protein
+Mx_All_36	k141_7046597_12	ko:K01011	Rhodanese Homology Domain
+Mx_All_36	k141_5859169_4	ko:K02568	Electron transfer subunit of the periplasmic nitrate reductase complex NapAB
+Mx_All_36	k141_5859169_7	ko:K02567	nitrate reductase (NAP). Only expressed at high levels during aerobic growth. NapAB complex receives electrons from the membrane-anchored tetraheme protein NapC
+Mx_All_36	k141_4914332_1	ko:K02013	PFAM ABC transporter related
+Mx_All_36	k141_4914332_2	ko:K02015	Belongs to the binding-protein-dependent transport system permease family. FecCD subfamily
+Mx_All_36	k141_7301618_50	ko:K03832	TonB family
+Mx_All_36	k141_6825646_3	ko:K05301,ko:K17218	Flavocytochrome c sulphide dehydrogenase, flavin-binding
+Mx_All_36	k141_6589060_1	ko:K01011	PFAM Rhodanese domain protein
+Mx_All_36	k141_634277_13	ko:K15864	Cytochrome D1 heme domain
+Mx_All_36	k141_7102892_26	ko:K07243	PFAM iron permease FTR1
+Mx_All_36	k141_2583237_1	ko:K02014	COG1629 Outer membrane receptor proteins, mostly Fe transport
+Mx_All_36	k141_5445017_15	ko:K02012	Bacterial extracellular solute-binding protein
+Mx_All_36	k141_5445017_18	ko:K03832	Gram-negative bacterial TonB protein C-terminal
+Mx_All_36	k141_4018503_11	ko:K03832	Gram-negative bacterial TonB protein C-terminal
+Mx_All_36	k141_7361043_10	ko:K03832	Interacts with outer membrane receptor proteins that carry out high-affinity binding and energy dependent uptake into the periplasmic space of specific substrates. It could act to transduce energy from the cytoplasmic membrane to specific energy- requiring processes in the outer membrane, resulting in the release into the periplasm of ligands bound by these outer membrane proteins
+Mx_All_36	k141_7361043_18	ko:K07243	Iron permease FTR1 family
+Mx_All_36	k141_6411073_1	ko:K02012	Bacterial extracellular solute-binding protein
+Mx_All_36	k141_7130467_28	ko:K02014	TonB-dependent Receptor Plug Domain
+Mx_All_36	k141_3082596_1	ko:K00381	Component of the sulfite reductase complex that catalyzes the 6-electron reduction of sulfite to sulfide. This is one of several activities required for the biosynthesis of L- cysteine from sulfate
+Mx_All_36	k141_5704916_5	ko:K03741	Low molecular weight phosphotyrosine protein phosphatase
+Mx_All_36	k141_5704916_6	ko:K03325	Sodium Bile acid symporter family
+Mx_All_36	k141_7621769_8	ko:K02014	TonB-dependent receptor
+Mx_All_36	k141_5001157_10	ko:K17218	PFAM FAD-dependent pyridine nucleotide-disulphide oxidoreductase
+Mx_All_45	k141_1197165_2	ko:K03741	PFAM low molecular weight phosphotyrosine protein phosphatase
+Mx_All_45	k141_6207754_14	ko:K01011	sulfurtransferase
+Mx_All_45	k141_4777813_8	ko:K17218	Pyridine nucleotide-disulphide oxidoreductase
+Mx_All_45	k141_3824240_3	ko:K02016	ABC-type Fe3 -hydroxamate transport system, periplasmic component
+Mx_All_45	k141_3824240_4	ko:K02015	Belongs to the binding-protein-dependent transport system permease family. FecCD subfamily
+Mx_All_45	k141_3824240_5	ko:K02013	ABC transporter
+Mx_All_45	k141_1203678_26	ko:K07243	Iron permease FTR1 family
+Mx_All_45	k141_7175055_3	ko:K00368	Multicopper oxidase
+Mx_All_45	k141_7175055_4	ko:K00368	multicopper oxidase type 3
+Mx_All_45	k141_7175055_13	ko:K01011	Rhodanese Homology Domain
+Mx_All_45	k141_5275007_7	ko:K07243	Iron permease FTR1 family
+Mx_All_45	k141_3366567_1	ko:K03741	Low molecular weight phosphatase family
+Mx_All_45	k141_4800142_10	ko:K01551	Anion-transporting ATPase
+Mx_All_45	k141_5768879_6	ko:K02012	iron ion homeostasis
+Mx_All_45	k141_282308_3	ko:K01011	Rhodanese-related sulfurtransferase
+Mx_All_45	k141_1481282_49	ko:K03892	DNA-binding transcription factor activity
+Mx_All_45	k141_527647_10	ko:K03741	Low molecular weight phosphatase family
+Mx_All_45	k141_527647_19	ko:K03892,ko:K21903	DNA-binding transcription factor activity
+Mx_All_45	k141_527647_22	ko:K03892	PFAM regulatory protein, ArsR
+Mx_All_45	k141_527647_25	ko:K01551	Anion-transporting ATPase
+Mx_All_45	k141_527647_28	ko:K03892	Low molecular weight phosphotyrosine protein phosphatase
+Mx_All_45	k141_527647_32	ko:K03325	PFAM Bile acid sodium symporter
+Mx_All_45	k141_1970835_2	ko:K01011	Sulfurtransferase
+Mx_All_45	k141_4843082_2	ko:K03893	Arsenical pump membrane protein
+Mx_All_45	k141_2698798_8	ko:K03892	regulatory protein, arsR
+Mx_All_45	k141_335959_11	ko:K02016	PFAM periplasmic binding protein
+Mx_All_45	k141_5373584_10	ko:K01011	PFAM Rhodanese domain protein
+Mx_All_45	k141_130439_10	ko:K03741	Low molecular weight phosphatase family
+Mx_All_45	k141_130439_12	ko:K07755	Methyltransferase type 11
+Mx_All_45	k141_5958410_2	ko:K03892	helix_turn_helix, Arsenical Resistance Operon Repressor
+Mx_All_45	k141_5958410_3	ko:K03893	Arsenical pump membrane protein
+Mx_All_45	k141_3578485_7	ko:K02013	ATPases associated with a variety of cellular activities
+Mx_All_49	k141_4779469_2	ko:K02591	This molybdenum-iron protein is part of the nitrogenase complex that catalyzes the key enzymatic reactions in nitrogen fixation
+Mx_All_49	k141_4779469_3	ko:K02586	Nitrogenase component 1 type Oxidoreductase
+Mx_All_49	k141_749546_1	ko:K00371	Respiratory nitrate reductase beta C-terminal
+Mx_All_49	k141_749546_3	ko:K00374	Nitrate reductase gamma subunit
+Mx_All_49	k141_749546_9	ko:K04561	PFAM cytochrome c oxidase subunit I
+Mx_All_49	k141_749546_10	ko:K15864	Cytochrome d1, heme
+Mx_All_49	k141_1228957_12	ko:K03711	Ferric uptake regulator family
+Mx_All_49	k141_3864774_1	ko:K00395	reductase beta subunit
+Mx_All_49	k141_1240189_5	ko:K03832	TonB C terminal
+Mx_All_49	k141_6971743_8	ko:K02014	COG1629 Outer membrane receptor proteins, mostly Fe transport
+Mx_All_49	k141_542830_1	ko:K02012	Bacterial extracellular solute-binding protein
+Mx_All_49	k141_3419114_4	ko:K02012	Bacterial extracellular solute-binding protein
+Mx_All_49	k141_6049665_1	ko:K00394	succinate dehydrogenase fumarate reductase, flavoprotein subunit
+Mx_All_49	k141_1045589_11	ko:K03832	TonB C terminal
+Mx_All_49	k141_5361294_2	ko:K01011	Rhodanese Homology Domain
+Mx_All_49	k141_5361294_6	ko:K11180	Nitrite and sulphite reductase 4Fe-4S domain
+Mx_All_49	k141_5361294_7	ko:K11181	Nitrite and sulphite reductase 4Fe-4S domain
+Mx_All_49	k141_6081703_6	ko:K03325	Sodium Bile acid symporter family
+Mx_All_49	k141_6087218_1	ko:K01011	Rhodanese Homology Domain
+Mx_All_49	k141_7521701_5	ko:K07755	Methyltransferase
+Mx_All_49	k141_374406_1	ko:K17218	Pyridine nucleotide-disulphide oxidoreductase
+Mx_All_49	k141_5381565_8	ko:K17218	Pyridine nucleotide-disulphide oxidoreductase
+Mx_All_49	k141_4696481_5	ko:K08355	arsenite oxidase, small subunit
+Mx_All_49	k141_4696481_6	ko:K08356	Belongs to the prokaryotic molybdopterin-containing oxidoreductase family
+Mx_All_49	k141_2566166_2	ko:K17223	Cytochrome c
+Mx_All_49	k141_2566166_3	ko:K17226	Sulfur oxidation protein SoxY
+Mx_All_49	k141_2566166_4	ko:K17227	Sulphur oxidation protein SoxZ
+Mx_All_49	k141_2566166_5	ko:K17222	Thiosulfate-oxidizing multienzyme system protein SoxA
+Mx_All_49	k141_2566166_6	ko:K17224	5'-nucleotidase, C-terminal domain
+Mx_All_49	k141_5474148_9	ko:K03832	Gram-negative bacterial TonB protein C-terminal
+Mx_All_49	k141_5715749_15	ko:K02014	TonB-dependent receptor
+Mx_All_49	k141_1187712_18	ko:K02014	TonB-dependent Receptor Plug Domain
+Mx_All_49	k141_5485643_2	ko:K00370	Respiratory nitrate reductase alpha N-terminal
+Mx_All_53	k141_1443769_11	ko:K07243	Iron permease FTR1 family
+Mx_All_53	k141_4070301_18	ko:K17218	Pyridine nucleotide-disulphide oxidoreductase
+Mx_All_53	k141_6239778_3	ko:K03892	transcriptional regulator
+Mx_All_53	k141_6239778_5	ko:K03741	Low molecular weight phosphatase family
+Mx_All_53	k141_6721200_10	ko:K03893	Arsenical pump membrane protein
+Mx_All_53	k141_6721200_20	ko:K00368	Multicopper oxidase
+Mx_All_53	k141_6721200_21	ko:K00368	Multicopper oxidase
+Mx_All_53	k141_5322414_6	ko:K01011	sulfurtransferase
+Mx_All_53	k141_7470006_16	ko:K02016	Periplasmic binding protein
+Mx_All_53	k141_6764356_8	ko:K02015	Belongs to the binding-protein-dependent transport system permease family. FecCD subfamily
+Mx_All_53	k141_6764356_9	ko:K02013	P-loop containing region of AAA domain
+Mx_All_53	k141_4939896_2	ko:K01011	Rhodanese Homology Domain
+Mx_All_53	k141_5196426_10	ko:K03741	Low molecular weight phosphotyrosine protein phosphatase
+Mx_All_53	k141_5196426_11	ko:K03892	helix_turn_helix, Arsenical Resistance Operon Repressor
+Mx_All_53	k141_5196426_13	ko:K07755	Methyltransferase type 11
+Mx_All_53	k141_5461327_14	ko:K03711,ko:K09825	Ferric uptake regulator family
+Mx_All_66	k141_247978_1	ko:K02014	TonB dependent receptor
+Mx_All_66	k141_247978_3	ko:K02016	PFAM periplasmic binding protein
+Mx_All_66	k141_247978_4	ko:K02015	Belongs to the binding-protein-dependent transport system permease family. FecCD subfamily
+Mx_All_66	k141_6212041_10	ko:K02016	abc-type fe3 -hydroxamate transport system, periplasmic component
+Mx_All_66	k141_6689997_7	ko:K04561	PFAM Cytochrome c oxidase, subunit I
+Mx_All_66	k141_5976500_11	ko:K01551	Anion-transporting ATPase
+Mx_All_66	k141_4786481_2	ko:K03711	Ferric uptake regulator family
+Mx_All_66	k141_6218936_4	ko:K00366,ko:K00381,ko:K00392	Sulfite reductase
+Mx_All_66	k141_4549537_1	ko:K00371,ko:K17051	nitrate reductase beta subunit
+Mx_All_66	k141_4549537_2	ko:K00370,ko:K07306,ko:K17050	Belongs to the prokaryotic molybdopterin-containing oxidoreductase family
+Mx_All_66	k141_7174370_1	ko:K02014	TonB dependent receptor
+Mx_All_66	k141_7174370_2	ko:K03832	Interacts with outer membrane receptor proteins that carry out high-affinity binding and energy dependent uptake into the periplasmic space of specific substrates. It could act to transduce energy from the cytoplasmic membrane to specific energy- requiring processes in the outer membrane, resulting in the release into the periplasm of ligands bound by these outer membrane proteins
+Mx_All_66	k141_7181246_2	ko:K02591	This molybdenum-iron protein is part of the nitrogenase complex that catalyzes the key enzymatic reactions in nitrogen fixation
+Mx_All_66	k141_7181246_3	ko:K02586	Nitrogenase component 1 type Oxidoreductase
+Mx_All_66	k141_6943040_2	ko:K02012	ABC-type Fe3 transport system, periplasmic component
+Mx_All_66	k141_5764839_1	ko:K02586	Nitrogenase molybdenum-iron protein alpha chain
+Mx_All_66	k141_40316_2	ko:K02014	TonB dependent receptor
+Mx_All_66	k141_4580033_6	ko:K02567	Molybdopterin oxidoreductase Fe4S4 domain
+Mx_All_66	k141_4580033_7	ko:K02567	Molybdopterin oxidoreductase Fe4S4 domain
+Mx_All_66	k141_5297106_6	ko:K02014	receptor
+Mx_All_66	k141_6966804_8	ko:K03711	Belongs to the Fur family
+Mx_All_66	k141_6490590_4	ko:K00366,ko:K00381,ko:K00392	Sulfite reductase
+Mx_All_66	k141_49296_1	ko:K02014	TonB dependent receptor
+Mx_All_66	k141_1728801_3	ko:K02013	ABC transporter
+Mx_All_66	k141_1731870_1	ko:K02014	TonB dependent receptor
+Mx_All_66	k141_59740_6	ko:K03832	energy transducer activity
+Mx_All_66	k141_6027997_2	ko:K07755	ubiE/COQ5 methyltransferase family
+Mx_All_66	k141_6272296_1	ko:K01551	TIGRFAM arsenite-activated ATPase (arsA)
+Mx_All_66	k141_6987134_4	ko:K02012	PFAM extracellular solute-binding protein family 1
+Mx_All_66	k141_5319022_2	ko:K02014	TonB-dependent Receptor Plug
+Mx_All_66	k141_2471911_6	ko:K02014	Outer membrane receptor
+Mx_All_66	k141_1760981_1	ko:K02014	TonB dependent receptor
+Mx_All_66	k141_7247356_2	ko:K03892	Methyltransferase type 11
+Mx_All_66	k141_6055777_6	ko:K00368,ko:K22348,ko:K22349	metallocarboxypeptidase activity
+Mx_All_66	k141_6080224_3	ko:K02014	PEGA domain
+Mx_All_66	k141_1560758_5	ko:K01551	Anion-transporting ATPase
+Mx_All_66	k141_1560758_6	ko:K01551	Anion-transporting ATPase
+Mx_All_66	k141_7296768_1	ko:K01011	Sulfurtransferase
+Mx_All_66	k141_6103247_1	ko:K03832	energy transducer activity
+Mx_All_66	k141_7561935_3	ko:K00371,ko:K17051	nitrate reductase beta subunit
+Mx_All_66	k141_7561935_4	ko:K00370,ko:K07306,ko:K17050	Belongs to the prokaryotic molybdopterin-containing oxidoreductase family
+Mx_All_66	k141_417236_4	ko:K03646,ko:K03832	TonB C terminal
+Mx_All_66	k141_5899713_1	ko:K02014	receptor
+Mx_All_66	k141_5899713_2	ko:K01011,ko:K21028	Rhodanese Homology Domain
+Mx_All_66	k141_1375271_2	ko:K00390,ko:K00860	Catalyzes the synthesis of activated sulfate
+Mx_All_66	k141_6623581_5	ko:K03832	TonB C terminal
+Mx_All_66	k141_3074881_2	ko:K03892,ko:K22298	DNA-binding transcription factor activity
+Mx_All_66	k141_4270944_1	ko:K03892	PFAM Rhodanese domain protein
+Mx_All_66	k141_4526291_1	ko:K02568	SPTR Periplasmic nitrate reductase small subunit (Cytochrome C-type protein)
+Mx_All_66	k141_4526291_2	ko:K02567	Molybdopterin oxidoreductase Fe4S4 domain
+Mx_All_6	k141_2150867_25	ko:K00406,ko:K01011,ko:K07112	Catalyzes the ATP-dependent transfer of a sulfur to tRNA to produce 4-thiouridine in position 8 of tRNAs, which functions as a near-UV photosensor. Also catalyzes the transfer of sulfur to the sulfur carrier protein ThiS, forming ThiS-thiocarboxylate. This is a step in the synthesis of thiazole, in the thiamine biosynthesis pathway. The sulfur is donated as persulfide by IscS
+Mx_All_6	k141_2150867_27	ko:K01011	Rhodanese Homology Domain
+Mx_All_6	k141_2150867_30	ko:K02014,ko:K16089	TonB-dependent receptor
+Mx_All_6	k141_2150867_37	ko:K00390,ko:K00957	PFAM Phosphoadenosine phosphosulfate reductase
+Mx_All_6	k141_4062887_36	ko:K03832	energy transducer activity
+Mx_All_6	k141_3348220_2	ko:K03832	Gram-negative bacterial TonB protein C-terminal
+Mx_All_6	k141_7407418_15	ko:K03892	helix_turn_helix, Arsenical Resistance Operon Repressor
+Mx_All_6	k141_2880781_4	ko:K01551	Pfam Anion-transporting ATPase
+Mx_All_6	k141_4793605_1	ko:K02014	TonB dependent receptor
+Mx_All_6	k141_261505_25	ko:K03711	belongs to the Fur family
+Mx_All_6	k141_6468208_4	ko:K02014	TonB-dependent Receptor Plug Domain
+Mx_All_6	k141_744007_25	ko:K03832	TonB C terminal
+Mx_All_6	k141_2416079_38	ko:K02015	Belongs to the binding-protein-dependent transport system permease family. FecCD subfamily
+Mx_All_6	k141_2416079_39	ko:K02013	abc transporter
+Mx_All_6	k141_2416079_40	ko:K02014,ko:K16092	cobalamin-transporting ATPase activity
+Mx_All_6	k141_7427490_12	ko:K02012	PFAM extracellular solute-binding protein family 1
+Mx_All_6	k141_7427490_17	ko:K01011	Catalyzes the transfer of a sulfur ion to cyanide or to other thiol compounds
+Mx_All_6	k141_1942088_5	ko:K01011	Rhodanese Homology Domain
+Mx_All_6	k141_5546586_32	ko:K03832	Gram-negative bacterial TonB protein C-terminal
+Mx_All_6	k141_5550315_4	ko:K07755	COG0500 SAM-dependent methyltransferases
+Mx_All_6	k141_5550315_5	ko:K03741	Belongs to the low molecular weight phosphotyrosine protein phosphatase family
+Mx_All_6	k141_544196_15	ko:K17218	oxidoreductase
+Mx_All_6	k141_544196_18	ko:K07755	Protein-L-isoaspartate(D-aspartate) O-methyltransferase (PCMT)
+Mx_All_6	k141_1976476_12	ko:K02014	Carboxypeptidase regulatory-like domain
+Mx_All_6	k141_3185001_1	ko:K07755	Hypothetical methyltransferase
+Mx_All_6	k141_3185001_2	ko:K03892	helix_turn_helix, Arsenical Resistance Operon Repressor
+Mx_All_6	k141_1049025_14	ko:K00368	Multicopper oxidase
+Mx_All_6	k141_5827913_2	ko:K03325	COG0798 Arsenite efflux pump ACR3 and related
+Mx_All_6	k141_5827913_3	ko:K03892	helix_turn_helix, Arsenical Resistance Operon Repressor
+Mx_All_6	k141_4641628_27	ko:K07243	Iron permease FTR1
+Mx_All_6	k141_856881_15	ko:K02016	Periplasmic binding protein
+Mx_All_6	k141_856881_87	ko:K01551	COG0003 Oxyanion-translocating ATPase
+Mx_All_6	k141_4676285_13	ko:K03832	Gram-negative bacterial TonB protein C-terminal
+Mx_All_6	k141_7337955_5	ko:K02014	COGs COG1629 Outer membrane receptor protein mostly Fe transport
+Mx_All_72	k141_1433250_28	ko:K03832	Interacts with outer membrane receptor proteins that carry out high-affinity binding and energy dependent uptake into the periplasmic space of specific substrates. It could act to transduce energy from the cytoplasmic membrane to specific energy- requiring processes in the outer membrane, resulting in the release into the periplasm of ligands bound by these outer membrane proteins
+Mx_All_72	k141_5014634_3	ko:K02014	COGs COG1629 Outer membrane receptor protein mostly Fe transport
+Mx_All_72	k141_2635407_49	ko:K02014	TonB dependent receptor
+Mx_All_72	k141_2646366_18	ko:K02014	TonB-dependent receptor
+Mx_All_72	k141_5032386_5	ko:K02014	TonB dependent receptor
+Mx_All_72	k141_6941260_223	ko:K02014	TonB-dependent receptor
+Mx_All_72	k141_2171119_21	ko:K02013	abc transporter atp-binding protein
+Mx_All_72	k141_5511405_88	ko:K03832	Interacts with outer membrane receptor proteins that carry out high-affinity binding and energy dependent uptake into the periplasmic space of specific substrates. It could act to transduce energy from the cytoplasmic membrane to specific energy- requiring processes in the outer membrane, resulting in the release into the periplasm of ligands bound by these outer membrane proteins
+Mx_All_72	k141_983141_26	ko:K02014	TonB-dependent receptor
+Mx_All_72	k141_1462421_4	ko:K02014	COGs COG1629 Outer membrane receptor protein mostly Fe transport
+Mx_All_72	k141_1462421_66	ko:K02014	TonB-dependent receptor
+Mx_All_72	k141_1462421_68	ko:K02014	TonB-dependent receptor
+Mx_All_72	k141_3852860_35	ko:K02014	TonB-dependent Receptor Plug
+Mx_All_72	k141_3852860_47	ko:K03711	Belongs to the Fur family
+Mx_All_72	k141_1706503_15	ko:K02014	COGs COG1629 Outer membrane receptor protein mostly Fe transport
+Mx_All_72	k141_1706503_56	ko:K02014	TonB-dependent receptor
+Mx_All_72	k141_1706503_84	ko:K04561	PFAM Cytochrome c oxidase, subunit I
+Mx_All_72	k141_6954304_16	ko:K02013	Abc transporter
+Mx_All_72	k141_6954304_17	ko:K02015	Belongs to the binding-protein-dependent transport system permease family. FecCD subfamily
+Mx_All_72	k141_6954304_18	ko:K02016	ABC-type Fe3 -hydroxamate transport system, periplasmic component
+Mx_All_72	k141_6954304_20	ko:K02016	abc-type fe3 -hydroxamate transport system, periplasmic component
+Mx_All_72	k141_6954304_97	ko:K01011	Sulfurtransferase
+Mx_All_72	k141_6954304_106	ko:K02014	TonB dependent receptor
+Mx_All_72	k141_6954304_109	ko:K02014	TonB dependent receptor
+Mx_All_72	k141_514911_9	ko:K03832	Interacts with outer membrane receptor proteins that carry out high-affinity binding and energy dependent uptake into the periplasmic space of specific substrates. It could act to transduce energy from the cytoplasmic membrane to specific energy- requiring processes in the outer membrane, resulting in the release into the periplasm of ligands bound by these outer membrane proteins
+Mx_All_72	k141_4103983_10	ko:K03832	TIGRFAM TonB
+Mx_All_72	k141_1721067_13	ko:K00366,ko:K00381,ko:K00392	Sulfite reductase
+Mx_All_72	k141_2675894_34	ko:K02014	COGs COG1629 Outer membrane receptor protein mostly Fe transport
+Mx_All_72	k141_786594_18	ko:K02014	COGs COG1629 Outer membrane receptor protein mostly Fe transport
+Mx_All_72	k141_2958833_2	ko:K02014	COG1629 Outer membrane receptor proteins, mostly Fe transport
+Mx_All_72	k141_2958833_27	ko:K02014	COGs COG1629 Outer membrane receptor protein mostly Fe transport
+Mx_All_72	k141_2723094_8	ko:K03832	Gram-negative bacterial TonB protein C-terminal
+Mx_All_72	k141_3944153_49	ko:K02014,ko:K16089	TonB dependent receptor
+Mx_All_72	k141_3703962_2	ko:K03832	Gram-negative bacterial TonB protein C-terminal
+Mx_All_72	k141_1564428_112	ko:K03832	TonB C terminal
+Mx_All_72	k141_1335272_22	ko:K02014	TonB-dependent receptor
+Mx_All_72	k141_5155780_13	ko:K00390	Belongs to the PAPS reductase family. CysH subfamily
+Mx_All_72	k141_2538989_15	ko:K00380	PFAM PepSY-associated TM helix domain protein
+Mx_All_72	k141_2539781_39	ko:K03832	Interacts with outer membrane receptor proteins that carry out high-affinity binding and energy dependent uptake into the periplasmic space of specific substrates. It could act to transduce energy from the cytoplasmic membrane to specific energy- requiring processes in the outer membrane, resulting in the release into the periplasm of ligands bound by these outer membrane proteins
+Mx_All_72	k141_6362713_12	ko:K03892	transcriptional
+Mx_All_72	k141_402728_59	ko:K02014	TonB-dependent receptor
+Mx_All_72	k141_4936105_40	ko:K02014	COGs COG1629 Outer membrane receptor protein mostly Fe transport
+Mx_All_72	k141_5899237_2	ko:K02014	TonB-dependent Receptor Plug Domain
+Mx_All_72	k141_895846_12	ko:K02014,ko:K16092	cobalamin-transporting ATPase activity
+Mx_All_72	k141_6152043_51	ko:K07755	Protein-L-isoaspartate(D-aspartate) O-methyltransferase (PCMT)
+Mx_All_72	k141_7352611_30	ko:K02014	COGs COG1629 Outer membrane receptor protein mostly Fe transport
+Mx_All_72	k141_7352611_31	ko:K02014	COGs COG1629 Outer membrane receptor protein mostly Fe transport
+Mx_All_72	k141_7352611_37	ko:K03832	Interacts with outer membrane receptor proteins that carry out high-affinity binding and energy dependent uptake into the periplasmic space of specific substrates. It could act to transduce energy from the cytoplasmic membrane to specific energy- requiring processes in the outer membrane, resulting in the release into the periplasm of ligands bound by these outer membrane proteins
+Mx_All_72	k141_7352611_44	ko:K02016	Periplasmic binding protein
+Mx_All_72	k141_7352611_45	ko:K02013	Part of the ABC transporter complex HmuTUV involved in hemin import. Responsible for energy coupling to the transport system
+Mx_All_72	k141_7352611_46	ko:K02015	Belongs to the binding-protein-dependent transport system permease family. FecCD subfamily
+Mx_All_72	k141_2374170_7	ko:K17218	Pyridine nucleotide-disulphide oxidoreductase
+Mx_All_72	k141_3568015_28	ko:K02014	TonB dependent receptor
+Mx_All_72	k141_6202881_87	ko:K03741	Belongs to the low molecular weight phosphotyrosine protein phosphatase family
+Mx_All_72	k141_6202881_90	ko:K03892	helix_turn_helix, Arsenical Resistance Operon Repressor
+Mx_All_72	k141_6202881_91	ko:K07755	Hypothetical methyltransferase
+Mx_All_82	k141_3582034_2	ko:K17218	Pyridine nucleotide-disulphide oxidoreductase
+Mx_All_82	k141_3356062_1	ko:K03832	TIGRFAM TonB family
+Mx_All_82	k141_7174837_1	ko:K00370,ko:K17050	Belongs to the prokaryotic molybdopterin-containing oxidoreductase family
+Mx_All_82	k141_7174837_2	ko:K00371	nitrate reductase beta subunit
+Mx_All_82	k141_7174837_4	ko:K00370,ko:K00374,ko:K02575	nitrate reductase activity
+Mx_All_82	k141_3118994_3	ko:K00390,ko:K00860,ko:K00958,ko:K13811	Belongs to the sulfate adenylyltransferase family
+Mx_All_82	k141_4562439_3	ko:K03832	TIGRFAM TonB
+Mx_All_82	k141_6233841_3	ko:K00395,ko:K02572,ko:K03616	4Fe-4S binding domain
+Mx_All_82	k141_6744081_3	ko:K03711	Belongs to the Fur family
+Mx_All_82	k141_4847812_3	ko:K07755	Hypothetical methyltransferase
+Mx_All_82	k141_5582164_1	ko:K03832	TonB C terminal
+Mx_All_82	k141_6778872_1	ko:K00370,ko:K17050	Belongs to the prokaryotic molybdopterin-containing oxidoreductase family
+Mx_All_82	k141_7260360_6	ko:K02014	TonB dependent receptor
+Mx_All_82	k141_6791445_3	ko:K02016	Periplasmic binding protein
+Mx_All_82	k141_7093927_3	ko:K07755	Protein-L-isoaspartate(D-aspartate) O-methyltransferase (PCMT)
+Mx_All_82	k141_7093927_5	ko:K03892	Low molecular weight phosphotyrosine protein phosphatase
+Mx_All_82	k141_2090121_3	ko:K04561	Cytochrome C and Quinol oxidase polypeptide I
+Mx_All_82	k141_3285153_1	ko:K03832	TIGRFAM TonB
+Mx_All_82	k141_3780547_1	ko:K00370	Belongs to the prokaryotic molybdopterin-containing oxidoreductase family
+Mx_All_88	k141_5010590_5	ko:K17226	sulfur oxidation protein SoxY
+Mx_All_88	k141_5489918_2	ko:K00368	nitrite reductase
+Mx_All_88	k141_5257977_5	ko:K00390	Reduction of activated sulfate into sulfite
+Mx_All_88	k141_5257977_7	ko:K00381,ko:K00392	Component of the sulfite reductase complex that catalyzes the 6-electron reduction of sulfite to sulfide. This is one of several activities required for the biosynthesis of L- cysteine from sulfate
+Mx_All_88	k141_6929977_3	ko:K02012	Bacterial extracellular solute-binding protein
+Mx_All_88	k141_4550138_2	ko:K07243	Iron Permease
+Mx_All_88	k141_1703535_2	ko:K07755	Hypothetical methyltransferase
+Mx_All_88	k141_1703535_3	ko:K03325	Sodium Bile acid symporter family
+Mx_All_88	k141_1703535_4	ko:K03741	Low molecular weight phosphatase family
+Mx_All_88	k141_1703535_5	ko:K03892	Regulatory protein ArsR
+Mx_All_88	k141_4087535_2	ko:K02012	Bacterial extracellular solute-binding protein
+Mx_All_88	k141_6952925_5	ko:K02012	Bacterial extracellular solute-binding protein
+Mx_All_88	k141_7433989_7	ko:K02016	ABC transporter substrate-binding protein
+Mx_All_88	k141_1482928_4	ko:K03711	Belongs to the Fur family
+Mx_All_88	k141_3396360_4	ko:K03646,ko:K03832	energy transducer activity
+Mx_All_88	k141_7227056_2	ko:K03832	TIGRFAM TonB family protein
+Mx_All_88	k141_5557617_2	ko:K17222	Thiosulfate-oxidizing multienzyme system protein SoxA
+Mx_All_88	k141_5557617_4	ko:K17226	Sulfur oxidation protein SoxY
+Mx_All_88	k141_5557617_5	ko:K17223	Cytochrome c
+Mx_All_88	k141_5557617_6	ko:K17218,ko:K17229	Flavocytochrome c sulphide dehydrogenase, flavin-binding
+Mx_All_88	k141_2952035_1	ko:K07243	FTR1 family
+Mx_All_88	k141_3670179_1	ko:K03832	TonB family
+Mx_All_88	k141_6782648_1	ko:K00371,ko:K17051	nitrate reductase beta subunit
+Mx_All_88	k141_4169317_6	ko:K00370	Belongs to the prokaryotic molybdopterin-containing oxidoreductase family
+Mx_All_88	k141_4169902_1	ko:K07755	Hypothetical methyltransferase
+Mx_All_88	k141_1550228_6	ko:K01011	Inorganic ion transport and metabolism
+Mx_All_88	k141_3704454_2	ko:K02012	Bacterial extracellular solute-binding protein
+Mx_All_88	k141_7303683_1	ko:K02014	TonB dependent receptor
+Mx_All_88	k141_5900235_5	ko:K04561	Belongs to the heme-copper respiratory oxidase family
+Mx_All_88	k141_1382056_1	ko:K17223	Cytochrome c
+Mx_All_88	k141_1382056_2	ko:K17222	Thiosulfate-oxidizing multienzyme system protein SoxA
+Mx_All_88	k141_1382056_3	ko:K17227	Sulphur oxidation protein SoxZ
+Mx_All_88	k141_1382056_4	ko:K17226	sulfur oxidation protein SoxY
+Mx_All_88	k141_1893728_8	ko:K00376	Cytochrome C oxidase subunit II, periplasmic domain
+Mx_All_88	k141_1893782_3	ko:K03832	energy transducer activity
+Mx_All_88	k141_6903608_29	ko:K04561	nitric oxide reductase
+Mx_All_90	k141_8522_4	ko:K02014,ko:K16092	receptor
+Mx_All_90	k141_4070145_2	ko:K03741	Belongs to the low molecular weight phosphotyrosine protein phosphatase family
+Mx_All_90	k141_4070145_3	ko:K03892	transcriptional regulators
+Mx_All_90	k141_19239_1	ko:K00370	Belongs to the prokaryotic molybdopterin-containing oxidoreductase family
+Mx_All_90	k141_1452814_17	ko:K04561	Nitric oxide reductase
+Mx_All_90	k141_3605439_14	ko:K02014	PFAM TonB-dependent receptor plug
+Mx_All_90	k141_1239284_2	ko:K03711	Belongs to the Fur family
+Mx_All_90	k141_7454367_38	ko:K00376	Cupredoxin-like domain
+Mx_All_90	k141_3164628_8	ko:K03832	Interacts with outer membrane receptor proteins that carry out high-affinity binding and energy dependent uptake into the periplasmic space of specific substrates. It could act to transduce energy from the cytoplasmic membrane to specific energy- requiring processes in the outer membrane, resulting in the release into the periplasm of ligands bound by these outer membrane proteins
+Mx_All_90	k141_3164628_11	ko:K02014	receptor
+Mx_All_90	k141_3164628_15	ko:K02014	receptor
+Mx_All_90	k141_3908636_5	ko:K02591	This molybdenum-iron protein is part of the nitrogenase complex that catalyzes the key enzymatic reactions in nitrogen fixation
+Mx_All_90	k141_3908636_6	ko:K02586	Nitrogenase component 1 type Oxidoreductase
+Mx_All_90	k141_7493422_1	ko:K00370	Respiratory nitrate reductase alpha N-terminal
+Mx_All_90	k141_7493422_2	ko:K00371,ko:K17051	nitrate reductase beta subunit
+Mx_All_90	k141_7493422_4	ko:K00374	TIGRFAM respiratory nitrate reductase, gamma subunit
+Mx_All_90	k141_6105956_3	ko:K17218	Pyridine nucleotide-disulphide oxidoreductase
+Mx_All_90	k141_4206790_3	ko:K01011	Rhodanese Homology Domain
+Mx_All_90	k141_6360827_10	ko:K03832	TonB C terminal
+Mx_All_90	k141_7553449_28	ko:K01011	Rhodanese Homology Domain
+Mx_All_90	k141_6145201_22	ko:K00390	Reduction of activated sulfate into sulfite
+Mx_All_90	k141_6145201_23	ko:K00381,ko:K00392	nitrite sulfite reductase hemoprotein beta-component ferrodoxin domain protein
+Mx_All_94	k141_1432586_12	ko:K04561	PFAM cytochrome c oxidase subunit I
+Mx_All_94	k141_5013485_1	ko:K00390	Reduction of activated sulfate into sulfite
+Mx_All_94	k141_2409956_2	ko:K03325	Sodium Bile acid symporter family
+Mx_All_94	k141_2409956_3	ko:K01551	Anion-transporting ATPase
+Mx_All_94	k141_2409956_5	ko:K03741	SMART Protein-tyrosine phosphatase, low molecular weight
+Mx_All_94	k141_2409956_6	ko:K03892	helix_turn_helix, Arsenical Resistance Operon Repressor
+Mx_All_94	k141_6714606_11	ko:K02014	PFAM TonB-dependent receptor plug
+Mx_All_94	k141_993817_4	ko:K02014	TonB-dependent receptor
+Mx_All_94	k141_777364_17	ko:K08355	Rieske [2Fe-2S] domain
+Mx_All_94	k141_777364_18	ko:K08356	Belongs to the prokaryotic molybdopterin-containing oxidoreductase family
+Mx_All_94	k141_777364_47	ko:K03325	Sodium Bile acid symporter family
+Mx_All_94	k141_777364_48	ko:K01551	Anion-transporting ATPase
+Mx_All_94	k141_777364_50	ko:K03741	SMART Protein-tyrosine phosphatase, low molecular weight
+Mx_All_94	k141_777364_51	ko:K03892	helix_turn_helix, Arsenical Resistance Operon Repressor
+Mx_All_94	k141_6268785_13	ko:K00537	ArsC family
+Mx_All_94	k141_6987082_4	ko:K01011	Rhodanese Homology Domain
+Mx_All_94	k141_6754685_39	ko:K02014	TonB dependent receptor
+Mx_All_94	k141_2003269_28	ko:K07243	FTR1 family iron permease
+Mx_All_94	k141_2003269_34	ko:K03711	Belongs to the Fur family
+Mx_All_94	k141_811479_4	ko:K17218	Pyridine nucleotide-disulphide oxidoreductase
+Mx_All_94	k141_811479_23	ko:K11180	sulfite reductase, dissimilatory-type alpha subunit
+Mx_All_94	k141_4171847_1	ko:K01551	Anion-transporting ATPase
+Mx_All_94	k141_4171847_3	ko:K03893	Involved in arsenical resistance. Thought to form the channel of an arsenite pump
+Mx_All_94	k141_4171847_4	ko:K08355	arsenite oxidase, small subunit
+Mx_All_94	k141_4171847_5	ko:K08356	Belongs to the prokaryotic molybdopterin-containing oxidoreductase family
+Mx_All_94	k141_4186703_9	ko:K02014	TonB dependent receptor
+Mx_All_94	k141_7526790_5	ko:K03832	TonB C terminal
+Mx_All_94	k141_2042065_21	ko:K03325	Sodium Bile acid symporter family
+Mx_All_94	k141_2042065_23	ko:K03741	SMART Protein-tyrosine phosphatase, low molecular weight
+Mx_All_94	k141_2042065_24	ko:K03892	helix_turn_helix, Arsenical Resistance Operon Repressor
+Mx_All_94	k141_1566381_31	ko:K02014	TonB dependent receptor
+Mx_All_94	k141_3488704_1	ko:K11180	Nitrite and sulphite reductase 4Fe-4S domain
+Mx_All_94	k141_3488704_2	ko:K11181	Nitrite and sulphite reductase 4Fe-4S domain
+Mx_All_94	k141_4007635_3	ko:K03741	Low molecular weight phosphatase family
+Mx_All_94	k141_4007635_4	ko:K03741	Low molecular weight phosphatase family
+Mx_All_94	k141_222448_10	ko:K03832	Interacts with outer membrane receptor proteins that carry out high-affinity binding and energy dependent uptake into the periplasmic space of specific substrates. It could act to transduce energy from the cytoplasmic membrane to specific energy- requiring processes in the outer membrane, resulting in the release into the periplasm of ligands bound by these outer membrane proteins
+Mx_All_94	k141_222448_17	ko:K02014	receptor
+Mx_All_98	k141_3105705_1	ko:K03892	regulatory protein, arsR
+Mx_All_98	k141_3105705_7	ko:K03325,ko:K03741	Sodium Bile acid symporter family
+Mx_All_98	k141_3105705_9	ko:K03892	helix_turn_helix, Arsenical Resistance Operon Repressor
+Mx_All_98	k141_3105705_16	ko:K03741	Low molecular weight phosphatase family
+Mx_All_98	k141_7420010_1	ko:K00368	PFAM blue (type 1) copper domain protein
+Mx_All_98	k141_6704345_38	ko:K01011	Sulfurtransferase
+Mx_All_98	k141_4804562_7	ko:K07243	Iron Permease
+Mx_All_98	k141_4804562_9	ko:K03711,ko:K09825	Ferric uptake regulator family
+Mx_All_98	k141_2897846_3	ko:K02016	Periplasmic binding protein
+Mx_All_98	k141_2897846_4	ko:K02015	Belongs to the binding-protein-dependent transport system permease family. FecCD subfamily
+Mx_All_98	k141_1944706_1	ko:K01551	TIGRFAM arsenite-activated ATPase (arsA)
+Mx_All_98	k141_7431374_17	ko:K03892	helix_turn_helix, Arsenical Resistance Operon Repressor
+Mx_All_98	k141_3379888_8	ko:K03892	helix_turn_helix, Arsenical Resistance Operon Repressor
+Mx_All_98	k141_1240495_1	ko:K01551	Anion-transporting ATPase
+Mx_All_98	k141_6964756_7	ko:K00537	arsenate reductase (glutaredoxin) activity
+Mx_All_98	k141_5298575_4	ko:K03892	DNA-binding transcription factor activity
+Mx_All_98	k141_6978504_1	ko:K01551	PFAM Anion-transporting ATPase
+Mx_All_98	k141_3176598_4	ko:K03893	Involved in arsenical resistance. Thought to form the channel of an arsenite pump
+Mx_All_98	k141_6060765_1	ko:K02016	Periplasmic binding protein
+Mx_All_98	k141_2968113_23	ko:K03711	Belongs to the Fur family
+Mx_All_98	k141_2968113_26	ko:K00368	Multicopper oxidase
+Mx_All_98	k141_2968113_35	ko:K01011	Rhodanese Homology Domain
+Mx_All_98	k141_7023190_4	ko:K02013	ATPases associated with a variety of cellular activities
+Mx_All_98	k141_7027157_3	ko:K03892,ko:K21903	DNA-binding transcription factor activity
+Mx_All_98	k141_7027157_4	ko:K03325,ko:K03741	Sodium Bile acid symporter family
+Mx_All_98	k141_5847810_9	ko:K03741	PFAM low molecular weight phosphotyrosine protein phosphatase
+Mx_All_98	k141_5847810_13	ko:K03892	Low molecular weight phosphatase family
+Mx_All_98	k141_5847810_15	ko:K07755	ubiE/COQ5 methyltransferase family
+Mx_All_98	k141_2554876_7	ko:K02016	Periplasmic binding protein
+Mx_All_98	k141_6151699_5	ko:K00368	multicopper oxidase type 3
+Mx_All_98	k141_6151699_11	ko:K17218	Pyridine nucleotide-disulphide oxidoreductase
+Mx_All_98	k141_6869308_4	ko:K03893	Involved in arsenical resistance. Thought to form the channel of an arsenite pump
