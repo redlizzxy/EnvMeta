@@ -223,10 +223,10 @@ git push origin master          # Streamlit Cloud 自动 2-3 min 内重新部署
 Microbiology）。开发时持续积累：
 
 1. **功能验证**：每完成一个分析模块，用 `tests/sample_data/` 跑一遍 → 输出存
-   `paper/benchmarks/validation/`，与原 R/Python 脚本对比
+   `software/papers/paper3_envmeta/paper_archive/benchmarks/validation/`，与原 R/Python 脚本对比
 2. **效率对比**：记录"传统代码行数/时间" vs "EnvMeta 点击/时间" →
-   `paper/benchmarks/time_comparison.md`
-3. **截图留档**：每模块截 `paper/figures/screenshot_模块名.png`
+   `software/papers/paper3_envmeta/paper_archive/benchmarks/time_comparison.md`
+3. **截图留档**：每模块截 `software/papers/paper3_envmeta/paper_archive/figures/screenshot_模块名.png`
 4. **开发日志量化**：每次日志加一行量化数据（代码行数、验证结果、耗时对比），
    写入 [DEBUG_NOTES.md](DEBUG_NOTES.md)
 
@@ -238,16 +238,16 @@ Microbiology）。开发时持续积累：
   P3 iMeta→**GPB + SoftwareX 兜底** (Q1/15→Q3/3) / P4 RESB→**Microbiological Research** (Q2/5)
 - **Paper 3 v0.10 GPB-targeted draft 完整**（commit `35730e8`）：
   - GPB reframing：Title / Highlights / Abstract / Intro v2 重写为 "hierarchical
-    weight-of-evidence MCDA framework with reference implementation EnvMeta"（[`outline_gpb.md`](paper/manuscript/outline_gpb.md) 1375 行）
+    weight-of-evidence MCDA framework with reference implementation EnvMeta"（[`outline_gpb.md`](software/papers/paper3_envmeta/paper_archive/manuscript/outline_gpb.md) 1375 行）
   - Methods §4.0 Algorithmic Framework：4 算法伪代码 + Notation N1 + Equation 1
     weight-of-evidence label assignment + Time complexity Table N2
-  - bioRxiv-ready manuscript：[`manuscript_v0.10_gpb_draft.md`](paper/manuscript/manuscript_v0.10_gpb_draft.md)
-    （1389 行 / 10370 字） + [`manuscript_v0.10_gpb_draft.docx`](paper/manuscript/manuscript_v0.10_gpb_draft.docx)（1.94 MB / TOC + 图嵌入）
-  - 9 figures：4 placeholders 已生成（F1/F5/F6/F10 in [`paper/figures/bioRxiv_v0.10/`](paper/figures/bioRxiv_v0.10/)）+
+  - bioRxiv-ready manuscript：[`manuscript_v0.10_gpb_draft.md`](software/papers/paper3_envmeta/paper_archive/manuscript/manuscript_v0.10_gpb_draft.md)
+    （1389 行 / 10370 字） + [`manuscript_v0.10_gpb_draft.docx`](software/papers/paper3_envmeta/paper_archive/manuscript/manuscript_v0.10_gpb_draft.docx)（1.94 MB / TOC + 图嵌入）
+  - 9 figures：4 placeholders 已生成（F1/F5/F6/F10 in [`software/papers/paper3_envmeta/paper_archive/figures/bioRxiv_v0.10/`](software/papers/paper3_envmeta/paper_archive/figures/bioRxiv_v0.10/)）+
     4 现有 figures 复用 proxy（F2 mockup_03 / F3 mockup_10 / F4 cal_vs_stress / F7 liu cycle）+ F8 scaling_curve + S_pert
   - References 48 Vancouver 条目（4 calibration DOI verified：Wei 2024 / Liu 2023 /
     Grettenberger 2021 / Ayala 2020）
-  - Tools comparison methodology：[`paper/benchmarks/external/tools_comparison/methodology.md`](paper/benchmarks/external/tools_comparison/methodology.md)
+  - Tools comparison methodology：[`software/papers/paper3_envmeta/paper_archive/benchmarks/external/tools_comparison/methodology.md`](software/papers/paper3_envmeta/paper_archive/benchmarks/external/tools_comparison/methodology.md)
     Type A 共享 + Type B 独家矩阵；Task 3b Windows blocker（Krona NTFS / Anvi'o
     无 FASTA）caveat 已 honest 文档化，WSL2 后续补
 - **Paper 1 v5.7.2 outline 完整** + audit/ledger 双文件 + F 核实清单（并行 session
@@ -273,23 +273,23 @@ Microbiology）。开发时持续积累：
   - n=3 stress test discrimination evidence（Grettenberger A 级 + Liu/Ayala B 级）
   - **领域中立性铁证**：cross-topic arsenate_reduction 在 2/2 无砷数据集双双 n=0 active MAGs ⭐
   - 第 6 类 claim `pathway_inactive`（Popperian falsifiability 主力）
-  - 双层假说写作教程（[`docs/hypothesis_writing_guide.md`](docs/hypothesis_writing_guide.md) + [`paper/hypotheses/HYPOTHESIS_DESIGN_PRINCIPLES.md`](paper/hypotheses/HYPOTHESIS_DESIGN_PRINCIPLES.md)）
+  - 双层假说写作教程（[`docs/hypothesis_writing_guide.md`](docs/hypothesis_writing_guide.md) + [`software/papers/paper3_envmeta/paper_archive/hypotheses/HYPOTHESIS_DESIGN_PRINCIPLES.md`](software/papers/paper3_envmeta/paper_archive/hypotheses/HYPOTHESIS_DESIGN_PRINCIPLES.md)）
   - 引用审计 + 6 YAML 引用 metadata 修订（4 处错引透明纠正 + Sánchez-España 2008 verified + Auld 2017 → Dai 2014 + Méndez-García 2015 verified）
 - ✅ **v0.9.1 dominance_score 字段** + Paper 3 写作素材：
   - `min_dominance_fraction` 硬阈值参数（pathway_active claim）+ evidence 字段（两 evaluator 信息透明）
   - **Stress test v2 B → A 级升级**：Liu 0.625 → 0.250；Ayala 0.455 → 0.182；3/3 现全 A 级 clean discrimination ⭐
   - Paper 3 三段完整草稿：Methods §4.6（~1450 字）+ Results §X（~800 字）+ Discussion §Y（~640 字）
-  - Table 1 + Table 2 + Figure X 实物素材（PDF/PNG/SVG）](paper/figures/paper3_hypothesis_scoring/)
+  - Table 1 + Table 2 + Figure X 实物素材（PDF/PNG/SVG）](software/papers/paper3_envmeta/paper_archive/figures/paper3_hypothesis_scoring/)
 - ✅ **v0.9.1 outline 全套整合 + ImageGP 2 reframing + 性能 benchmark**（2026-05-09 paper-side session）：
   - Plan B 整合：3 段 Paper 3 草稿 + Performance 段落 → outline_imeta.md §5.4.8 / §5.2.4 / §5.2.8 / §5.3 / §5.7.1（commit `e1da1d9`）
-  - 3-tier 性能 benchmark：sample real-dense + Liu real-sparse + Liu synthetic-dense（58 cells × 14 figures）；scaling_curve.{pdf,svg,png} + paper/benchmarks/performance.md + docs/performance_zh.md（commit `e1c69a6`）
+  - 3-tier 性能 benchmark：sample real-dense + Liu real-sparse + Liu synthetic-dense（58 cells × 14 figures）；scaling_curve.{pdf,svg,png} + software/papers/paper3_envmeta/paper_archive/benchmarks/performance.md + docs/performance_zh.md（commit `e1c69a6`）
   - **关键 finding**：cycle_diagram cost 由 N_pathway × N_env × 999 perm × spearmanr(N_sample) 主导，**与 N_MAG 几乎无关**；annotation breadth 才是真正主导
   - **ImageGP 2 ecosystem-extension reframing**（commit `3c9662b`）：发现 Chen 2024 *iMeta* 3:e239（Liu YX 是 EIC，COI 已声明）→ EnvMeta 全文从"vs 竞品"改为 "domain-specialist complement to iMeta visualization ecosystem"；致敬 14 个 sister tools；Abstract / Highlights / §5.1 Intro / §5.2.9 / §5.6 Acknowledgments / §5.7 References 全部重写
 - ✅ **mock review v0.9.1 → v0.9.2 修订**（commit `b9c5699`）：
   - 5 大 Major Issues 全部温和解修订（4 Resolved + 1 honestly acknowledged）
   - 5 个 Minor Issues 修复：As₂S₃ 化学引用 / KB v1.1→v2.0 / 999-perm Anderson 2001 justify / Stolz 2006 编号 / user-study 措辞 tempering
   - Recommendation: Major Revision → **Minor Revision**（投稿接收概率 60% → 85%）
-- ✅ **publication strategy archived**：[`paper/manuscript/publication_strategy.md`](paper/manuscript/publication_strategy.md)
+- ✅ **publication strategy archived**：[`software/papers/paper3_envmeta/paper_archive/manuscript/publication_strategy.md`](software/papers/paper3_envmeta/paper_archive/manuscript/publication_strategy.md)
   - 选定 Path A 改良版：EnvMeta 先发（bioRxiv preprint + iMeta 投稿）+ 课题论文并行起草
   - 时间表满足 2026 内 ≥ 1 篇接收 + 2027-05 前所有文章见刊的硬约束
   - bioRxiv 投稿 checklist + 风险评估完整
@@ -298,13 +298,13 @@ Microbiology）。开发时持续积累：
   - **Cross-element headline finding**：Liu 2023 collapse 到 0/20 STRONG（median 0.000）→ 元素级 target 准确性是机制刚需
   - Within-element bound：mean 跌 25-48%，但 40-50% 仍 STRONG（与 §Y.1 KEGG-coverage-dependent 一致）
   - 集成 Methods §4.6.7 / Results §X.3 / Discussion §Y.3 limitation #1
-  - 写作素材：[`paper/manuscript/perturbation_analysis_results.md`](paper/manuscript/perturbation_analysis_results.md)；figure: `paper/benchmarks/external/perturbation/perturbation_curve.{pdf,png,svg}`
+  - 写作素材：[`software/papers/paper3_envmeta/paper_archive/manuscript/perturbation_analysis_results.md`](software/papers/paper3_envmeta/paper_archive/manuscript/perturbation_analysis_results.md)；figure: `software/papers/paper3_envmeta/paper_archive/benchmarks/external/perturbation/perturbation_curve.{pdf,png,svg}`
 - ✅ **Mock review v0.9.3 (post-perturbation)** 跑完（untracked，本地检查文件）：
   - Recommendation: **Minor Revision (acceptance-track)**（v0.9.2 Minor → v0.9.3 仍 Minor，但加了 acceptance-track 标记）
   - **v0.9.2 Major #1 → Resolved with auxiliary evidence**（perturbation 兑换成功）
   - **v0.9.3 新 Major**：Arm A perturbation asymmetry — 作者数据排除于 perturbation 控制，可补 partial Arm A perturbation（≈30 min compute）封口
   - 余 1 Major (3-dataset stress caveat 仍未修) + 8 Minor（5 carried + 3 new）= 2-4 天到 acceptance-ready
-  - 详见 [`paper/manuscript/mock_review_v0.9.3_post_perturbation.md`](paper/manuscript/mock_review_v0.9.3_post_perturbation.md)（不 push）
+  - 详见 [`software/papers/paper3_envmeta/paper_archive/manuscript/mock_review_v0.9.3_post_perturbation.md`](software/papers/paper3_envmeta/paper_archive/manuscript/mock_review_v0.9.3_post_perturbation.md)（不 push）
 - ✅ **Deployment hardening + 在线 demo 轻量化 + FAQ 文档**（2026-05-11 session）：
   - **Streamlit Cloud 崩溃修复**：用户 push v0.9.5 后 Cloud 触发 redeploy，'Oh no. Error running app'；根因 Cloud 默认 Python 升到 3.13 导致 numpy 2.x / pandas 3.x / scikit-bio 0.7 / scipy 1.17 wheel 不可用 → 新增 `runtime.txt` pin Python 3.11；验证 `/healthz` 返回 `{"status":"ok"}` 恢复 (commit `56d296a`)
   - **30 MAG 轻量化测试样例**：新建 [`tests/sample_data_demo/`](tests/sample_data_demo/)（含 [_build_demo_subset.py](tests/sample_data_demo/_build_demo_subset.py) 重建脚本）；抽样规则 = 14 keystone 全留 + 4 元素每个 ≥5 MAG + 按总丰度补足；abundance 168→30 行 / ko_long 5008→937 行 / 内存约 1/5，Streamlit Cloud 并发承载 4-5 倍提升
@@ -314,7 +314,7 @@ Microbiology）。开发时持续积累：
   - **导师版大纲 docx**：[software/planning/Paper3_Outline_for_Supervisor.docx](software/planning/Paper3_Outline_for_Supervisor.docx)（45.8 KB / 中文宋体 + 英文 TNR 混合字体 / 13 章 / 含 5 个待决问题）+ 构建脚本 [build_paper3_outline_docx.py](software/planning/build_paper3_outline_docx.py)；software/ 在 .gitignore，本地存档
   - 测试 **301/301 全绿**；2 commit push: `56d296a` (runtime.txt) + `8851910` (demo subset + FAQ)
 - ✅ **Mock review v0.9.5 (handling editor) 4 cheap Major 修订**（2026-05-10 third session）：
-  - **Major #3 OpenTimestamps 区块链锚点已落地**：4 anchor commits (`42168da`, `44d7f5f`, `76a4f77`, `50c4687`) × 3 公共 calendar (alice / bob / finney) = 12 anchor 响应 archived 在 [`paper/manuscript/timestamps/`](paper/manuscript/timestamps/)；§4.6.2 现引用 OpenTimestamps anchoring 而非"future commit"——pre-registration 担忧从 institutional-trust-based 升级为 cryptographically witnessed
+  - **Major #3 OpenTimestamps 区块链锚点已落地**：4 anchor commits (`42168da`, `44d7f5f`, `76a4f77`, `50c4687`) × 3 公共 calendar (alice / bob / finney) = 12 anchor 响应 archived 在 [`software/papers/paper3_envmeta/paper_archive/manuscript/timestamps/`](software/papers/paper3_envmeta/paper_archive/manuscript/timestamps/)；§4.6.2 现引用 OpenTimestamps anchoring 而非"future commit"——pre-registration 担忧从 institutional-trust-based 升级为 cryptographically witnessed
   - **Major #1 null_p 重 frame**：§4.6.1 明确把 null_p 标为 "shuffle-consistency diagnostic"，**explicitly NOT a frequentist p-value**；解释 4-9 claim YAML + 离散 satisfaction 让 null distribution 必然粗糙；加 weight-of-evidence 软件 relationship 段（MCDA / Bradford-Hill / Suter & Cormier / Linkov / Rhomberg refs）
   - **Major #4 Arm A reframe**："saturation regime" → "**partial-perturbation robustness check on the three pathway_active claims**"；明确说明 6 unperturbed claims 占总权重 ≈72%，arithmetic 锚定 score 在 0.75 以上；不再 over-claim 是 dataset saturation
   - **Minor #4 distance-to-boundary**：Results §X.2 加 stress score 到最近 label boundary 距离的明确数字（Grett −0.150；Liu −0.125 / +0.225；Ayala +0.055 near-boundary 与 §4.6.8 阈值 sensitivity transition 一致）；Table 2 列描述更新
@@ -338,7 +338,7 @@ Microbiology）。开发时持续积累：
 
 ## Backlog（投稿前 + Phase 4）
 
-### 🟥 投稿前必做（按 [`publication_strategy.md`](paper/manuscript/publication_strategy.md) Path A 改良版）
+### 🟥 投稿前必做（按 [`publication_strategy.md`](software/papers/paper3_envmeta/paper_archive/manuscript/publication_strategy.md) Path A 改良版）
 
 | 任务 | 工时 | 备注 |
 |---|---|---|
@@ -346,7 +346,7 @@ Microbiology）。开发时持续积累：
 | **§5.7.1 Vancouver → iMeta 引用格式转换** | 30-45 min | Zotero 改 docx 时统一处理；不急 |
 | **bioRxiv 投稿 dry-run + 实际投稿** | 30 min + 3 天审核 | 见 publication_strategy.md §"bioRxiv 投稿操作 checklist" |
 | **EnvMeta 投 iMeta** | 2-3 h 投稿系统填表 | bioRxiv DOI 上线后即可 |
-| **Verify Korehi 2014 / Mendez-Garcia 2015 真正 AMD diazotrophy 引用** | 10 min | 已 Verified Dai 2014 + Méndez-García 2015 → §5.7.1 #4 + #12（见 [`hypothesis_references_audit.md`](paper/manuscript/hypothesis_references_audit.md)）|
+| **Verify Korehi 2014 / Mendez-Garcia 2015 真正 AMD diazotrophy 引用** | 10 min | 已 Verified Dai 2014 + Méndez-García 2015 → §5.7.1 #4 + #12（见 [`hypothesis_references_audit.md`](software/papers/paper3_envmeta/paper_archive/manuscript/hypothesis_references_audit.md)）|
 | **User study 数据回收分析**（条件性）| 1 周 | 问卷已发 2026-04-19；如投稿前 n ≥ 8 回收成功则加进 §5.6 Acknowledgments；否则 Acknowledgments 已 tempering 处理 |
 
 ### 🟧 推荐做（stop mock review → 6 figures → bioRxiv）
