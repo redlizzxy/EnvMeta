@@ -110,8 +110,7 @@ Beta phase ships frequent bug fixes / features. Full list in **[CHANGELOG.md](CH
 **Paper 3 core evidence fully in place.** A controlled experiment over 4 KEGG-curated metagenomic datasets (in-house + Liu 2023 cold seep + Grettenberger 2021 AMD stream + Ayala 2020 pit lake) with all hypothesis YAMLs pre-registered (git timestamp anchored before EnvMeta runs).
 
 - ✨ **New `pathway_inactive` claim type** — the 6th claim type, Popperian falsifiability primary instrument. Evaluates as `satisfied` when n_active_mags == 0 (matches the "should NOT be active" prediction); backward-compatible with all existing YAMLs.
-- ✨ **Two-layer hypothesis writing tutorial** — [`docs/hypothesis_writing_guide.md`](docs/hypothesis_writing_guide.md) for users (calibration + stress dual-layer template, pre-registration discipline, pre-prediction template, 6 claim-type guide, Bradford-Hill mapping) + [`paper/hypotheses/HYPOTHESIS_DESIGN_PRINCIPLES.md`](paper/hypotheses/HYPOTHESIS_DESIGN_PRINCIPLES.md) for paper Methods (design philosophy, 4 categories of limitations).
-- ✨ **General stress runner CLI**: [`tools/external_benchmarks/run_stress_yaml.py`](tools/external_benchmarks/run_stress_yaml.py) takes any `--dataset` + `--yaml` and runs cycle_diagram + scoring; supports `--all`.
+- ✨ **Two-layer hypothesis writing tutorial** — [`docs/hypothesis_writing_guide.md`](docs/hypothesis_writing_guide.md) for users (calibration + stress dual-layer template, pre-registration discipline, pre-prediction template, 6 claim-type guide, Bradford-Hill mapping). The paper Methods companion (`HYPOTHESIS_DESIGN_PRINCIPLES.md`) and the cross-dataset stress runner ship with the manuscript supplement, not this public repository.
 - 📊 **4 KEGG-curated datasets all STRONG (calibration)** + **3 stress tests with score gaps below calibration** (Grettenberger weak 0.250 / Liu suggestive 0.625 / Ayala suggestive 0.455). Cross-topic `arsenate_reduction_should_dominate` rejected in **2/2 non-arsenic datasets** (n=0 active MAGs in both Grettenberger and Ayala) — ironclad evidence that EnvMeta's scoring engine is domain-neutral.
 - 📚 **Reference DOI audit** — verified DOIs for all 16 hypothesis claims × 13 review citations; corrected 4 citation errors transparently (Yin 2011 wrong journal; Bothe "2007 FEMS Rev" non-existent → Bothe 2000; Cabrera 2006 wrong journal+topic; Auld 2017 wrong topic → replaced by Dai 2014 PLoS One [primary AMD nifHDK metagenomic evidence] + Méndez-García 2015 Front Microbiol review).
 - 🐛 6 hypothesis YAMLs reference metadata corrected (no claim entity changed; pre-registration audit trail preserved in git history).
@@ -121,9 +120,9 @@ Beta phase ships frequent bug fixes / features. Full list in **[CHANGELOG.md](CH
 
 - 🐛 Fixed RDA values disagreeing with R `vegan` (skbio normalization difference caused 16-20× inertia bias and ANOVA F/p reversal)
   - Switched to SS-based formulas (vegan-equivalent); after fix all F / r / explained-variance match R to 4 decimal places
-- 📚 Completed R/Python side-by-side validation for all 11 figures (`paper/benchmarks/validation/`)
+- 📚 Completed R/Python side-by-side validation for all 11 figures (validation artefacts archived with the manuscript supplement).
   - 5 figures with exact numerical agreement + 6 with algorithmic equivalence + 11 READMEs + paper citation template
-- 📚 Paper 3 (EnvMeta methodology paper) pre-submission task tracker (`paper/manuscript/`)
+- 📚 Paper 3 (EnvMeta methodology paper) pre-submission task tracker (archived privately with the manuscript)
 - 🧪 pytest 293/293 green (no regressions)
 
 ### v0.8.1 — 2026-04-21 (first batch of macOS beta feedback fixes)
@@ -237,10 +236,6 @@ envmeta/
 ├── docs/
 │   ├── data_preparation_zh.md     # Upstream tool → EnvMeta mapping
 │   └── install_for_beginners.md   # Beginner install guide (Chinese)
-├── paper/
-│   ├── bundles/                   # Example paper Fork Bundles
-│   ├── benchmarks/                # Validation data + efficiency comparison
-│   └── user_study/                # Beta survey design
 ├── tests/
 │   ├── sample_data/               # Slim paper data (one-click load)
 │   └── test_*.py                  # 301 cases, all green
@@ -257,7 +252,7 @@ envmeta/
 - [x] **English README + LICENSE** (this release)
 - [x] **R-side cross-validation** (v0.8.2 — 11 figures side-by-side validated; RDA values aligned to R `vegan` to 4 decimal places)
 - [x] **External-dataset reproduction** (v0.9.0 — 4 KEGG-curated metagenomic datasets all STRONG calibration; 3-arm stress test discrimination ladder)
-- [x] **Paper Methods + Results + Discussion drafts** (v0.9.1 — see [`paper/manuscript/`](paper/manuscript/))
+- [x] **Paper Methods + Results + Discussion drafts** (v0.9.1 — archived privately with the manuscript)
 - [ ] Zenodo DOI (at iMeta submission time)
 - [ ] Phase 4 — Plugin framework (after paper acceptance)
 

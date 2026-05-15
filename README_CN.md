@@ -30,11 +30,7 @@ EnvMeta 正在收集第二轮内测反馈用于方法学论文（目标：iMeta 
 
 🔗 **问卷链接**：<https://wj.qq.com/s2/26579245/b28b/>
 
-<a href="https://wj.qq.com/s2/26579245/b28b/" target="_blank">
-  <img src="paper/user_study/survey_poster_v2_qrcode.png" width="280" alt="EnvMeta 内测问卷二维码海报"/>
-</a>
-
-（手机扫码或点图直接打开问卷）
+（点击上方链接直接打开问卷；二维码海报随论文 supplement 私下分发）
 
 > 之前填过 v1 长版问卷的同学，**这次仍欢迎再填一次** v2 —— 问卷结构变了，新数据无法和旧版直接拼接。v2 真的快很多 🙇
 
@@ -124,8 +120,7 @@ streamlit run app.py
 **Paper 3 投稿核心证据全部就位**。在 4 个 KEGG-curated 宏基因组数据集（作者数据 + Liu 2023 冷泉 + Grettenberger 2021 AMD 溪流 + Ayala 2020 pit lake）上的对照实验 —— 全部 hypothesis YAML 在跑 EnvMeta 之前 commit（git timestamp 锚定）。
 
 - ✨ **新增 `pathway_inactive` claim type** — 第 6 类 claim，Popperian falsifiability 主力。`n_active_mags == 0 → satisfied`（符合"不应活跃"预期）；不破坏现有 YAML（向后兼容）。
-- ✨ **双层假说写作教程** — [`docs/hypothesis_writing_guide.md`](docs/hypothesis_writing_guide.md) 用户教程（calibration + stress 双层模板、pre-registration 纪律、pre-prediction 防 hindsight bias、6 类 claim 选择指南、Bradford-Hill 对应）+ [`paper/hypotheses/HYPOTHESIS_DESIGN_PRINCIPLES.md`](paper/hypotheses/HYPOTHESIS_DESIGN_PRINCIPLES.md) 论文方法学版（设计哲学、4 类局限）。
-- ✨ **通用 stress runner CLI**：[`tools/external_benchmarks/run_stress_yaml.py`](tools/external_benchmarks/run_stress_yaml.py) 接受 `--dataset` + `--yaml` 跑任一外部数据集；支持 `--all` 批量。
+- ✨ **双层假说写作教程** — [`docs/hypothesis_writing_guide.md`](docs/hypothesis_writing_guide.md) 用户教程（calibration + stress 双层模板、pre-registration 纪律、pre-prediction 防 hindsight bias、6 类 claim 选择指南、Bradford-Hill 对应）。配套的论文方法学版（`HYPOTHESIS_DESIGN_PRINCIPLES.md`）与跨数据集 stress runner 随论文 supplement 私下归档，不进公开仓库。
 - 📊 **4 个 KEGG-curated 数据集 calibration 全 STRONG** + **3 个 stress test 分数显著低于 calibration**（Grettenberger weak 0.250 / Liu suggestive 0.625 / Ayala suggestive 0.455）。Cross-topic `arsenate_reduction_should_dominate` 在 **2/2 无砷数据集**（Grettenberger + Ayala）双双 reject（n=0 active MAGs）—— EnvMeta 评分领域中立性铁证。
 - 📚 **引用 DOI 审计** — verify 16 claim × 13 文献 DOI；透明纠正 4 处错引（Yin 2011 期刊错；Bothe "2007 FEMS Rev" 不存在 → 应为 Bothe 2000；Cabrera 2006 期刊+主题错；Auld 2017 主题错 → 替换为 Dai 2014 PLoS One [primary AMD nifHDK metagenomic 实证] + Méndez-García 2015 Front Microbiol review）。
 - 🐛 6 个 hypothesis YAML 引用 metadata 修订（不动 claim 实体；pre-registration audit trail 在 git history 完整保留）。
@@ -135,9 +130,9 @@ streamlit run app.py
 
 - 🐛 修 RDA 数值与 R vegan 不一致（skbio 归一化差异致 inertia 16-20× 偏差、ANOVA F/p 反转）
   - 改用 SS-based 公式（vegan-equivalent），修复后 F / r / 解释度 4 位精度对齐 R
-- 📚 R/Python 11 图侧侧对照工作完成（`paper/benchmarks/validation/`）
+- 📚 R/Python 11 图侧侧对照工作完成（验证产物随论文 supplement 私下归档）
   - 5 图数值精确一致 + 6 图算法等价 + 11 个 README + 论文引用模板
-- 📚 Paper 3（EnvMeta 方法学论文）投稿前 4 大任务清单（`paper/manuscript/`）
+- 📚 Paper 3（EnvMeta 方法学论文）投稿前 4 大任务清单（随论文私下归档）
 - 🧪 pytest 293/293 全绿（无回归）
 
 ### v0.8.1 — 2026-04-21（Mac 端首批内测反馈修复）
@@ -250,10 +245,6 @@ envmeta/
 ├── docs/
 │   ├── data_preparation_zh.md     # 上游工具 → EnvMeta 映射
 │   └── install_for_beginners.md   # 小白安装指南
-├── paper/
-│   ├── bundles/                   # 论文 Fork Bundle 示例
-│   ├── benchmarks/                # 验证数据 + 效率对比
-│   └── user_study/                # 评测问卷设计
 ├── tests/
 │   ├── sample_data/               # 论文精简数据（一键加载）
 │   └── test_*.py                  # 291 case 全绿
