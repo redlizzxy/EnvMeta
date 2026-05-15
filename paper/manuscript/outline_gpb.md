@@ -1,76 +1,80 @@
-# EnvMeta 论文大纲（iMeta 投稿版 — ⚠️ DEPRECATED 2026-05-14）
+# EnvMeta 论文大纲（GPB 投稿版 / v2 reframe 2026-05-14）
 
-> **⚠️ 本文件已 deprecated**：2026-05-14 重定向 Paper 3 投稿目标
->   iMeta（IF 24 / 不在 CUGB 激励名单 / APC $2,200）→
->   **GPB**（Genomics, Proteomics & Bioinformatics / IF 11.5 / Q1 / CUGB C 区 15 分）
->   主投 + SoftwareX（零 APC）兜底。
->
-> **请使用** [outline_gpb.md](outline_gpb.md) **作为 live 版本**。
->
-> 本文件保留 iMeta v1 framing 作历史参考（"complement to iMeta visualization
-> ecosystem"），便于将来对照 reframing 前后差异。GPB v2 reframe 主旨：
-> 算法 framework 第一，工具第二。
->
-> ─── 以下为 iMeta v1 历史内容 ───
-
-> **目标期刊**：iMeta（Wiley，IF 24，2022 创刊）
-> **文章类型**：Tools and Resources / Methods（方法学论文）
-> **预计字数**：5000-7000 words（不含 Methods 详细附录）
-> **预计 figures**：8-9 张（iMeta 偏好图丰富）
+> **目标期刊**：Genomics, Proteomics & Bioinformatics（GPB / Oxford Academic / IF 11.5 / Q1 / CUGB C 区 15 分）
+> **文章类型**：Methods / Application Note
+> **预计字数**：4500-6500 words
+> **预计 figures**：6-7 张
 > **预计 tables**：2 张
+> **APC**：est. $2,000-2,500 OA（中科院系，可能有作者优惠）
+> **拒稿兜底**：SoftwareX（Elsevier / IF 2.4 / Q3 / 3 分 / **零 APC** / 2 月周期）
 >
-> **创建日期**：2026-05-07
+> **创建日期**：2026-05-07（iMeta v1）→ 2026-05-14（GPB v2 reframe）
+> **历史版本**：[outline_imeta.md](outline_imeta.md)（iMeta v1 框架，已 deprecated）
 > **作者**：redlizzxy（中国地质大学北京）
-> **状态**：大纲（待导师审阅）
+> **v2 reframe 主旨**：从 "domain-specialist complement to iMeta visualization ecosystem"
+>   **重定位为** "hierarchical weight-of-evidence MCDA framework with reference implementation EnvMeta"。
+>   不改代码、不改实验，只改 Abstract / Intro / Methods 框架叙述顺序：**算法 framework 第一，工具第二**。
 
 ---
 
-## 0. iMeta 投稿要点速查
+## 0. GPB 投稿要点速查
 
 | 项 | 要求 |
 |---|---|
-| 出版社 | Wiley |
-| 版式 | OA only，APC ~¥10000-15000 |
-| 文章类型 | Article / Methods / Tools and Resources / Reviews |
-| 字数 | Article: ~5000-7000；Methods 章节可放附录 |
-| 结构 | Abstract + Highlights + Graphical Abstract + IMRAD |
-| Figure 风格 | 彩色多图 + 大量 schema 图 + 案例展示 |
-| 推荐审稿人 | 投稿系统可填 ≥ 3 位（**这里挂刘永鑫**）|
-| 引用格式 | Wiley iMeta 模板（参考 https://onlinelibrary.wiley.com/journal/2770596x） |
-| 参考文献 | 优先 iMeta + 中科院 BIG 系列 + 微生物组顶刊 |
-| 数据可用性 | 强制要求 GitHub + Zenodo DOI + 在线 demo |
+| 出版社 | Oxford Academic |
+| 主办 | 中国科学院基因组研究所（BIG-CAS）+ Genetics Society of China |
+| 版式 | OA only，APC est. $2,000-2,500 |
+| 文章类型 | Methods / Database / Application Note / Genome Resource / Original Research / Review |
+| 字数 | Methods/Application Note: ~4500-6500 words |
+| 结构 | Abstract (≤300 words) + Keywords + Highlights (3-4) + IMRAD |
+| Figure 风格 | 偏算法图（schema + flowchart + 性能曲线 + 案例验证）|
+| 推荐审稿人 | 投稿系统填 ≥ 3 位（中科院系 BIG-CAS 编委 + bioinformatics 资深） |
+| 引用格式 | Vancouver (numerical) — GPB 标准 |
+| 参考文献 | 优先 GPB + BIG-CAS 系列 + omics 方法学顶刊（Bioinformatics, NAR, Genome Biology） |
+| 数据可用性 | 强制 GitHub + Zenodo DOI + **算法可复现** |
+| **GPB 关键差异点** | 必须有 **algorithm pseudocode + 复杂度分析 + vs comparable tools benchmark**（vs iMeta tool paper 标准多了这 3 项）|
 
 ---
 
-## 1. Title 候选（3 个）
+## 1. Title 候选（v2 GPB framing — algorithm 第一，工具第二）
 
 | # | Title | 卖点 |
 |---|---|---|
-| **A** | **EnvMeta: An interactive visualization platform for environmental metagenomics with built-in biogeochemical cycle inference and hypothesis scoring** | 完整 + 工具名 + 元素循环 + 假说评分 |
-| B | EnvMeta: From metagenomic data to publication-ready figures with biogeochemical cycle automation | 强调"出版级"（吸引研究生用户）|
-| C | Bridging environmental microbiology and visualization: A GUI-driven platform with element cycle inference (EnvMeta) | 强调"桥接"（吸引非生信用户）|
+| **A** ⭐ | **A hierarchical weight-of-evidence MCDA framework for descriptive-to-causal microbiome-environment association inference, with reference implementation EnvMeta** | 主推 — 算法 framework 第一，工具第二，完全 GPB 体裁 |
+| B | EnvMeta: A hierarchical weight-of-evidence framework for biogeochemical-cycle hypothesis evaluation in environmental metagenomics | 工具名前置，框架次之，较短 |
+| C | Weight-of-evidence MCDA for microbiome-environment causality assessment: framework, reference implementation (EnvMeta), and four-arm calibration | 加 "calibration" 强调验证 |
 
-→ 推荐 **A**，最完整且关键词命中。副标题可考虑 "for non-bioinformaticians"。
+→ 推荐 **A**。把 "hierarchical weight-of-evidence MCDA framework" 立为主体算法贡献，
+   EnvMeta 作为参考实现位居其次。这是 v2 reframe 的核心 — 让 GPB 审稿人**第一眼就看到算法贡献**，
+   而不是"又一个 visualization 工具"。
+
+**deprecated v1 (iMeta) Title**（见 outline_imeta.md）：
+"EnvMeta: An interactive visualization platform for environmental metagenomics with built-in
+ biogeochemical cycle inference and hypothesis scoring"
 
 ---
 
-## 2. Highlights（iMeta 实际是 3 条 ── 参考 ImageGP 2 / Chen 2024 范式）
+## 2. Highlights（GPB 风格 / 3 条 / 算法 framework 第一）
 
-> 参考 ImageGP 2 highlights 风格：每条 ~12-20 words，1 个 capability 一行，
-> 不是 full sentence。**3 条、不要 4 条**。
+> GPB Highlights 风格：3-4 条，每条 1 个 capability 一行。这里 **首条强调框架**，
+> 次条强调 schema + 验证，末条强调实现 + 可复现性。
 
 ```
-• Automated biogeochemical cycle inference for As/N/S/Fe at KEGG-driven
-  pathway resolution with permutation-based confidence labels and
-  per-pathway sensitivity scanning.
+• A hierarchical weight-of-evidence MCDA framework integrating S1 compositional
+  debiasing, S2 999-permutation null calibration, S3 weighted-sum scoring with
+  Saltelli ±20% one-at-a-time weight robustness, and Bradford-Hill required-veto
+  reasoning, exposing five auditable diagnostic quantities per claim.
 
-• Six-claim YAML hypothesis scorer with Fisher 999-permutation null
-  calibration, Saltelli ±20% weight robustness, and Bradford-Hill
-  required-veto reasoning.
+• A six-claim YAML hypothesis schema operationalizing the framework against
+  MAG-level KEGG-orthology data, calibrated across four published metagenomic
+  datasets (all STRONG under fixed defaults) and discriminated against domain-
+  mismatched stress claims via cross-element pathway-target perturbation.
 
-• Standalone interactive HTML supplementary material (~400 KB, fully
-  offline-capable) that embeds the analysis itself, plus a four-arm
-  calibration + three-arm stress-test validation across published datasets.
+• Open-source reference implementation EnvMeta — a Streamlit platform with
+  fourteen publication-quality visualizations, KEGG-driven biogeochemical-cycle
+  inference (4 elements × 18 pathways × 57 KOs), Fork Bundle reproducibility
+  packaging, and standalone offline interactive HTML supplementary material
+  (~400 KB) embedding the analysis itself.
 ```
 
 ---
@@ -106,155 +110,180 @@ hypothesis）→ 下 1/3 导出。
 
 ---
 
-## 4. Abstract（~250 words 草稿，ecosystem-extension framing）
+## 4. Abstract（~290 words / GPB v2 framing — framework 第一）
 
-> Environmental microbiology has been transformed by metagenomic
-> sequencing, and a rich ecosystem of GUI visualization platforms — from
-> general-purpose tools such as ImageGP 2 (Chen et al., 2024 *iMeta*)
-> through pipeline-oriented frameworks such as EasyMetagenome (Liu et
-> al.) — supports the analysis-to-publication pipeline for biomedical
-> research broadly. The analytical layer specific to environmental
-> metagenome-assembled genome (MAG) studies, however, remains less
-> covered: automated biogeochemical cycle inference at KEGG-orthology
-> resolution, mechanism-hypothesis confrontation against MAG-level data
-> with statistical confidence indicators, and standalone offline-reproducible
-> interactive supplementary materials. We present **EnvMeta**, an
-> open-source Streamlit-based platform designed as a **domain-specialist
-> complement** to the iMeta visualization ecosystem. EnvMeta integrates
-> 14 publication-quality figures across reads-based and MAG-based
-> analyses, and adds three environment-microbiology-specific modules:
-> (i) automated cycle inference for As/N/S/Fe at KEGG-driven pathway
-> resolution (4 elements × 18 pathways × 57 KOs), with 999-permutation
-> confidence labels and per-pathway sensitivity scanning; (ii) a
-> **six-claim YAML-based hypothesis scorer** with Fisher permutation null
-> calibration, Saltelli ±20% one-at-a-time weight robustness, Bradford-Hill
-> required-veto reasoning, and a `pathway_inactive` claim type for
-> Popperian falsification; (iii) standalone interactive HTML export
-> (~400 KB, fully offline-capable). We demonstrate EnvMeta on an
-> arsenic-slag bioremediation case study (168 MAGs × 10 samples) and
-> validate the scoring engine across **four published metagenomic datasets**
+> Translating MAG-level KEGG-orthology data into mechanism-evaluable
+> associations between microbial pathways and environmental factors requires
+> formal weight-of-evidence assessment rather than narrative tabulation.
+> Despite advances in microbiome visualization tools, no widely-adopted
+> algorithmic framework integrates compositional debiasing, permutation-based
+> null calibration, multi-criteria decision analysis (MCDA), and Bradford-Hill
+> weight-of-evidence reasoning in a way that exposes its intermediate
+> quantities for reproducibility audit. We present a **hierarchical
+> weight-of-evidence MCDA framework** operationalizing this need through three
+> algorithmic stages — **S1** compositional debiasing with three-threshold
+> top-1 contributor sensitivity scanning, **S2** Fisher 999-permutation null
+> calibration with five-tier confidence labels, **S3** weighted-sum scoring
+> with Saltelli ±20% one-at-a-time weight robustness and Bradford-Hill
+> required-veto reasoning — exposing five auditable diagnostic quantities per
+> claim (score, weight-robust score, null_p, evidence count, confidence label).
+> The framework operationalizes against a **six-claim YAML hypothesis schema**
+> covering pathway activity, cross-pathway coupling, environmental correlation,
+> keystone-MAG identification, group contrast, and Popperian pathway-inactive
+> falsification. We provide an open-source reference implementation
+> **EnvMeta** — a Streamlit-based platform that wraps the framework with
+> fourteen publication-quality visualizations, automated biogeochemical
+> cycle inference for As/N/S/Fe (4 elements × 18 pathways × 57 KOs), Fork
+> Bundle reproducibility packaging, and standalone offline interactive HTML
+> supplementary material (~400 KB) embedding the analysis as the SI itself.
+> The scoring engine is calibrated across four published metagenomic datasets
 > (Wei 2024 paddy soil; Liu 2023 cold seep; Grettenberger 2021 acid mine
-> drainage; Ayala 2020 Iberian Pyrite Belt pit lake), all returning
-> `STRONG` calibration labels under fixed default thresholds and
-> rejecting cross-topic stress claims with n = 0 active MAGs in 2/2
-> non-arsenic environments. A 58-cell performance benchmark shows the
-> typical PhD-thesis metagenome (200-1000 MAGs × 30-100 samples) runs in
-> 30-120 s on a standard laptop with peak memory below 10 MB. EnvMeta
-> is freely available at https://github.com/redlizzxy/EnvMeta with an
-> online demo at https://envmeta-3xjhcu7lv2gkj4pjtk8gsb.streamlit.app/.
+> drainage; Ayala 2020 Iberian Pyrite Belt pit lake), all returning STRONG
+> labels under fixed default thresholds, and discriminated against
+> domain-mismatched stress claims through cross-element pathway-target
+> perturbation (0/20 STRONG retention in the most narrowly-focused dataset)
+> and 5-threshold sensitivity sweeps. A 58-cell performance benchmark
+> establishes runtime ≤ 120 s and peak memory ≤ 10 MB for typical PhD-scale
+> metagenomes (200-1000 MAGs × 30-100 samples × 4-6 env factors) on a standard
+> laptop. EnvMeta is freely available at
+> https://github.com/redlizzxy/EnvMeta with online demo at
+> https://envmeta-3xjhcu7lv2gkj4pjtk8gsb.streamlit.app/.
+
+**Keywords**: microbiome bioinformatics; metagenome-assembled genome (MAG);
+weight-of-evidence; multi-criteria decision analysis (MCDA); permutation test;
+biogeochemical cycle inference; KEGG orthology; reproducible research
 
 ---
 
 ## 5. 主体章节大纲
 
-### 5.1 Introduction（~750 words / 4 段 / iMeta ecosystem-extension framing）
+### 5.1 Introduction（~830 words / 4 段 / GPB v2 framework-first framing）
 
-> **写作风格基线**：参考 ImageGP 2 (Chen et al., 2024 *iMeta*) — 不批评其他工具，
-> 仅描述其各自优势 + EnvMeta 填补的 specialist niche。引用多个 iMeta sister
-> tools 建立 ecosystem 信任感。最终 docx 阶段全英化。
+> **写作风格基线（v2 GPB）**：开篇定位为 **methodological gap in microbiome
+> causality inference**，而非"visualization tool ecosystem"。第 1 段建立 weight-of-
+> evidence inference 的方法学需求；第 2 段 review 现有方法学组件（CoDA / permutation /
+> MCDA / Bradford-Hill）+ 微生物组工具 landscape；第 3 段提出 framework + reference
+> implementation；第 4 段列 3 项贡献。
 
-#### 段 1 — Big-picture context (~150 words)
+#### 段 1 — Methodological gap in microbiome causality inference (~180 words)
 
-> Environmental microbiology has been transformed by metagenomic sequencing,
-> with metagenome-assembled genomes (MAGs) now routinely catalogued at
-> thousands per study. Element cycling — particularly the coupled cycling
-> of arsenic, nitrogen, sulfur, and iron in contaminated and remediation
-> contexts — has emerged as a unifying analytical lens for environmental
-> remediation, biogeochemistry, and contaminated-site studies. Translating
-> MAG-level KEGG-orthology (KO) annotations into mechanism-resolved insights,
-> however, requires substantial downstream analysis: cross-tool data
-> alignment across multiple file formats, iterative figure-parameter tuning
-> rounds, biogeochemical-pathway curation, and explicit confrontation
-> between mechanistic hypotheses and the underlying data tables. For
-> graduate-level researchers and small environmental-microbiology
-> laboratories, this analysis-to-publication pipeline often becomes a
-> workflow bottleneck even when individual tools and code templates are
-> openly available.
+> Inferring causal associations between microbial pathways and environmental
+> factors from observational metagenomic data is a core methodological
+> challenge in microbiome science. Modern metagenome-assembled genome (MAG)
+> studies routinely catalogue thousands of genomes per sample annotated with
+> KEGG-orthology (KO) functional capacity, yet translating these data tables
+> into mechanism-evaluable associations remains predominantly a narrative
+> reasoning task: researchers tabulate KO presence × abundance × environmental
+> covariates, examine patterns by inspection, and assemble discussion-section
+> arguments. This workflow leaves three sources of evidential uncertainty
+> implicit and unaudited: (i) compositional bias from sequencing-depth
+> normalization choices that distort relative-abundance interpretation; (ii)
+> chance correlations under multiple-comparison conditions, especially in
+> small-N MAG cohorts where pathway-completeness scores can pass by-eye
+> thresholds without controlling for null-distribution mass; and (iii) the
+> analyst's discretionary weighting of when to upgrade a "consistent with"
+> pattern to a "supports the hypothesis" claim. Formal weight-of-evidence
+> frameworks address each of these in environmental risk assessment (Linkov
+> et al., 2009; Suter & Cormier, 2011; Rhomberg et al., 2010), but no
+> widely-adopted operationalization exists for the microbial-pathway ×
+> environmental-factor inference setting central to environmental
+> metagenomics.
 
-#### 段 2 — Existing tools landscape (acknowledgment, not critique) (~280 words)
+#### 段 2 — Existing methodological components and tools landscape (~290 words)
 
-> Numerous excellent tools serve different parts of this pipeline.
-> Command-line frameworks such as the **EasyAmplicon and EasyMetagenome**
-> series (Liu et al.) provide curated reproducible analysis pipelines from
-> raw sequence data through standard downstream visualizations; Anvi'o
-> (Eren et al.) offers MAG-centric exploratory analysis and pangenome
-> workflows; QIIME2 (Bolyen et al., 2019) and the broader R / phyloseq
-> (McMurdie & Holmes, 2013) ecosystem cover community statistics. Online
-> visualization platforms — including **ImageGP 2** (Chen et al., 2024
-> *iMeta*), **EVenn** (Chen et al., 2021), HemI 2.0 (Ning et al., 2022),
-> Sangerbox (Shen et al., 2022), OmicStudio (Lyu et al., 2023),
-> shinyCircos-V2.0 (Wang et al., 2023), TOmicsVis (Miao et al., 2023),
-> **Wekemo Bioincloud** (Gao et al., 2024 *iMeta*), iMetaLab Suite (Li et
-> al., 2022 *iMeta*), iNAP (Feng et al., 2022 *iMeta*), and Majorbio Cloud
-> (Ren et al., 2022 *iMeta*) — provide GUI-based access to a wide
-> repertoire of plot types covering general biomedical research needs.
-> Krona, Cytoscape, Gephi, and iTOL provide specialized visualizations for
-> taxonomic hierarchy, network analysis, and phylogeny respectively. Each
-> of these platforms offers distinct strengths in their respective
-> application domains; vendor cloud platforms also cover standard amplicon
-> and functional-gene downstream analyses well.
+> Several method classes partially address these uncertainties. Compositional
+> data analysis (CoDA: Aitchison-family methods such as CLR/ILR transforms;
+> Gloor et al., 2017) explicitly handles sequencing-depth normalization
+> distortions. Permutation-based null calibration is standard in
+> differential-abundance and ordination statistics (PERMANOVA: Anderson 2001;
+> LEfSe: Segata et al., 2011), and Fisher-style permutation underpins multiple
+> ecology and microbiome test packages. Multi-criteria decision analysis
+> frameworks (MCDA: Belton & Stewart, 2002) and Bradford-Hill weight-of-evidence
+> reasoning (Hill, 1965; Rhomberg et al., 2010) provide formal vocabularies
+> for combining heterogeneous evidence streams, with required-veto and
+> sensitivity-analysis tooling well-established in environmental and clinical
+> risk assessment (Linkov et al., 2009; Suter & Cormier, 2011). On the
+> visualization and pipeline side, Anvi'o (Eren et al., 2021) offers
+> MAG-centric exploratory analysis and pangenome workflows; QIIME2 (Bolyen
+> et al., 2019) and the phyloseq / R ecosystem (McMurdie & Holmes, 2013)
+> cover community statistics; recent integrative web platforms including
+> ImageGP 2 (Chen et al., 2024 *iMeta*), Sangerbox (Shen et al., 2022),
+> TOmicsVis (Miao et al., 2023), Wekemo Bioincloud (Gao et al., 2024 *iMeta*),
+> iMetaLab Suite (Li et al., 2022 *iMeta*), iNAP (Feng et al., 2022 *iMeta*),
+> and Majorbio Cloud (Ren et al., 2022 *iMeta*) emphasize plot reproduction
+> across general biomedical and microbiome workflows; and Krona (Ondov et al.,
+> 2011), iTOL (Letunic & Bork, 2024), and Cytoscape (Shannon et al., 2003)
+> provide specialized hierarchies, phylogenies, and networks respectively.
 >
-> What remains less covered, however, is **the analytical layer specific to
-> environmental-microbiology MAG studies**: automated biogeochemical cycle
-> inference (multi-element × multi-pathway × cross-element coupling at KO
-> resolution), mechanism-hypothesis confrontation against MAG-level data
-> with statistical confidence indicators, and standalone offline-reproducible
-> interactive supplementary materials. These needs are typically addressed
-> by manual figure construction (PowerPoint or Illustrator from analysis
-> output, redrawn at every research iteration) and narrative reasoning over
-> MAG×KO data tables — workflows that, while scientifically rigorous and
-> standard practice, are difficult to iterate quickly and do not export
-> naturally to interactive supplementary information formats.
+> Yet for the specific operational setting of MAG-level KEGG-resolution
+> microbiome-environment association inference, these components remain
+> **isolated rather than integrated**. None of the tools above wraps S1
+> compositional debiasing + S2 permutation null calibration + S3 MCDA
+> scoring + Bradford-Hill required-veto + sensitivity / null-distribution
+> diagnostics into a unified, formally documented, and reproducibility-auditable
+> framework. The gap leaves environmental-microbiology researchers either
+> writing one-off statistical scripts at every iteration or defaulting to
+> narrative reasoning that obscures the three evidential uncertainties named
+> in §1.
 
-#### 段 3 — EnvMeta as ecosystem-specialist extension (~200 words)
+#### 段 3 — Framework + reference implementation (~210 words)
 
-> We present **EnvMeta**, a Python/Streamlit-based open-source platform
-> designed as a **domain-specialist complement** to the iMeta visualization
-> ecosystem. EnvMeta builds upon — rather than replaces — the foundation
-> laid by general-purpose visualization platforms, adding three
-> environment-microbiology-specific modules: (i) automated **biogeochemical
-> cycle inference** from KO annotations, encoding four elements × eighteen
-> pathways × fifty-seven KOs in a curated knowledge base, with
-> permutation-based confidence labels and per-pathway sensitivity scanning;
-> (ii) a **YAML-based hypothesis scorer** that mechanically evaluates
-> user-supplied claims against MAG-level data through a six-claim-type
-> scoring engine with Fisher 999-permutation null calibration, ±20%
-> one-at-a-time weight robustness, and Bradford-Hill required-veto
-> reasoning, **complementing rather than replacing narrative mechanism
-> reasoning**; (iii) **standalone interactive HTML export** (~400 KB,
-> fully offline-capable) that embeds the analysis as the supplementary
-> information itself. Five core design principles — domain-neutral
-> inference engine, user-supplied knowledge, fully offline operation,
-> fork-rather-than-community distribution, and descriptive (not causal)
-> outputs — keep EnvMeta narrowly scoped. The platform integrates 14
-> publication-quality visualizations covering both reads-based and
-> MAG-based analyses, with full GUI parameter tuning and synchronous Python
-> script generation for each figure to support reproducibility.
+> We present a **hierarchical weight-of-evidence MCDA framework** for
+> microbiome-environment association inference, with open-source reference
+> implementation **EnvMeta**. The framework decomposes into three algorithmic
+> stages — **S1** compositional debiasing with three-threshold top-1
+> contributor sensitivity scanning, **S2** 999-permutation Fisher null
+> calibration with five-tier confidence labels, and **S3** weighted-sum
+> scoring with Saltelli ±20% one-at-a-time weight robustness and Bradford-Hill
+> required-veto reasoning — producing **five auditable diagnostic quantities**
+> per claim (score, weight-robust score, null_p, evidence count, confidence
+> label) that downstream readers and reviewers can inspect independently. The
+> framework operationalizes against a **six-claim YAML hypothesis schema**
+> covering pathway activity, cross-pathway coupling, environmental
+> correlation, keystone-MAG identification, group contrast, and Popperian
+> pathway-inactive falsification. EnvMeta wraps the framework behind a
+> Streamlit graphical user interface that adds fourteen publication-quality
+> visualizations spanning reads-based community statistics (α/β-diversity,
+> PCoA, RDA, LEfSe, log2FC, taxonomy stackplots, KEGG heatmaps) and
+> MAG-based exploration (quality control, abundance heatmaps, pathway
+> completeness, gene profiles, network preparation), a KEGG-driven
+> biogeochemical-cycle knowledge base (4 elements × 18 pathways × 57 KOs),
+> Fork Bundle reproducibility packaging, and standalone offline interactive
+> HTML supplementary material (~400 KB) that embeds the analysis as the SI
+> itself. Five design principles — domain-neutral inference, user-supplied
+> knowledge, fully offline operation, fork-rather-than-community distribution,
+> and descriptive (not causal) outputs — narrow the operational scope and
+> position EnvMeta as a microbiome-specific instance of a general
+> framework.
 
 #### 段 4 — Specific contributions (~150 words)
 
 > Three contributions follow:
 >
-> 1. We present EnvMeta, an environmental-microbiology specialist platform
->    that combines automated biogeochemical cycle inference, YAML-based
->    hypothesis scoring with statistical confidence indicators, and
->    standalone offline interactive HTML export — to our knowledge the
->    first GUI tool combining these three capabilities specifically for
->    environmental MAG analysis, complementing the broader iMeta
->    visualization ecosystem.
+> 1. We **formalize a hierarchical weight-of-evidence MCDA framework** for
+>    descriptive-to-causal microbiome-environment association inference,
+>    integrating S1 compositional debiasing, S2 999-permutation null
+>    calibration, and S3 MCDA scoring with Saltelli ±20% weight robustness
+>    and Bradford-Hill required-veto reasoning into a unified procedure
+>    exposing five auditable diagnostic quantities per claim. Default
+>    thresholds are pre-registered with cryptographic anchoring (OpenTimestamps;
+>    Todd, 2016) and grounded in conventional clinical-epidemiology and
+>    risk-assessment literature.
 >
-> 2. We describe a permutation-based, sensitivity-aware analytical
->    framework for inferring element-cycle activity from MAG-level KO
->    annotations, moving beyond descriptive tabulation toward
->    mechanism-evaluable analyses.
+> 2. We **calibrate the framework** against four published metagenomic
+>    datasets (Wei 2024; Liu 2023; Grettenberger 2021; Ayala 2020), all
+>    returning STRONG labels under fixed default thresholds, and stress-test
+>    discrimination power through three claim-class perturbations (reversed
+>    direction, cross-topic, `pathway_inactive`) and within / cross-element
+>    pathway-target perturbation (N = 20 per mode × 4 datasets), with
+>    cross-element perturbation collapsing the most narrowly-focused dataset
+>    to 0/20 STRONG retention.
 >
-> 3. We demonstrate EnvMeta's design through (a) an arsenic-slag
->    bioremediation case study (168 MAGs × 10 samples), (b) a four-arm
->    calibration experiment over four published metagenomic datasets that
->    returns stable scoring labels under fixed default thresholds, (c) a
->    three-arm stress test demonstrating discrimination power against
->    domain-mismatched claims, and (d) a 58-cell performance benchmark
->    establishing the typical PhD-thesis runtime envelope.
+> 3. We provide an **open-source reference implementation, EnvMeta**, that
+>    operationalizes the framework with fourteen publication-quality
+>    visualizations, automated biogeochemical-cycle inference, Fork Bundle
+>    reproducibility packaging, and standalone offline interactive HTML
+>    supplementary material.
 
 ### 5.2 Results（~2500-3000 words / 7-8 figures）
 
@@ -531,14 +560,19 @@ Streamlit Cloud 是否支持）。Source: [`paper/benchmarks/performance.md`](..
 > quality audit is at [`paper/manuscript/hypothesis_references_audit.md`](hypothesis_references_audit.md)
 > (Supplementary Table S_refs).
 
-#### 5.2.9 Tool ecosystem positioning（Figure F10 / Table T1）
+#### 5.2.9 Tool comparison — Feature matrix + performance benchmark（Figure F10 / Table T1 / Table T2）
 
-> **Framing 重要**：不是 "vs 竞品" 而是 **"complementary positioning across the
-> visualization ecosystem"**。把 ImageGP 2 列在 Table T1 第一行作为 horizontal-breadth
-> reference platform；EnvMeta 列最后作为 vertical-specialist position。**所有维度
-> 用客观能力描述**（√ 有 / − 无 / partial），不打分高低。
+> **GPB v2 framing 调整**：v1 的 "complementary positioning across the visualization
+> ecosystem"（针对 iMeta）→ v2 改为客观 **"feature matrix + head-to-head performance
+> benchmark"**（GPB 审稿人偏好实测数据）。Table T1 保持功能矩阵（capability matrix），
+> 新增 Table T2 性能 head-to-head（仅 shared capabilities），新增 Figure F10
+> head-to-head bar chart。
+>
+> 方法学完整文档：[`paper/benchmarks/external/tools_comparison/methodology.md`](../benchmarks/external/tools_comparison/methodology.md)。
 
-**Table T1 — Ecosystem positioning matrix（草稿）**：
+##### 5.2.9.1 Capability matrix（功能矩阵）
+
+**Table T1 — Feature matrix across comparable tools**：
 
 | Tool | Type | Domain coverage | Element cycle inference | Hypothesis scoring + null/sensitivity | Standalone offline HTML SI | MAG-based 5-figure suite | KEGG-driven biogeochemical KB |
 |---|---|---|---|---|---|---|---|
@@ -552,24 +586,55 @@ Streamlit Cloud 是否支持）。Source: [`paper/benchmarks/performance.md`](..
 | Vendor cloud platforms | SaaS web | General amplicon + functional | − | − | − | − | − |
 | **EnvMeta** ⭐ | Local + cloud Streamlit | **Environmental MAG specialist** | ✅ | ✅ | ✅ | ✅ | ✅ |
 
-**EnvMeta 真实定位**：在上面 8 行所有工具都未覆盖的 **environmental-microbiology
-specialist niche** 填补 5 项独家功能。**不与任一上述工具竞争 horizontal breadth**。
+**EnvMeta 在 Type B 独家能力**：在上面 8 行所有工具都未覆盖的 environmental-MAG
+specialist niche 填补 5 项独家功能（元素循环 / 假说评分 / null calibration /
+weight sensitivity / 离线交互 HTML SI）。
 
-**Figure F10 内容（vs Tools 截图比对图）**：6 panel 横排 — 同一概念图（如"群落组成
-图" 或 "通路分析图"）在不同工具中的呈现：
-- A) ImageGP 2（boxplot / heatmap，参考 Chen 2024 Figure 3A）
-- B) Anvi'o（pangenome 浏览器截图，参考 Anvi'o 文档）
-- C) Krona（多层饼图）
-- D) MicrobiomeAnalyst Web 平台（OTU 分析）
-- E) 测序公司云平台（代表性一家国内公司公开 demo）
-- F) **EnvMeta 元素循环图 + 假说评分**（独家）
+##### 5.2.9.2 Head-to-head performance benchmark（Type A 共享能力）
 
-每图加 1 行 caption 说明覆盖范围 + 输出格式。所有截图来自各工具公开 demo / 文档
-（避免版权争议）。EnvMeta panel 加红框标注"+ element cycle inference + hypothesis
-scoring + Bundle + offline HTML"。
+For analyses that EnvMeta and competitor tools both offer (PCoA, KO heatmap,
+hierarchical taxonomy), we ran identical inputs through each tool on the same
+hardware (Intel i7-class 16 GB Win10 laptop) and measured wall time, peak RSS,
+output file size, and user operation count. Methodology in
+[`paper/benchmarks/external/tools_comparison/methodology.md`](../benchmarks/external/tools_comparison/methodology.md).
 
-**Source for Table T1 / Figure F10**：[`paper/tool_comparison.md`](../tool_comparison.md)
-整理 + 各工具公开 demo 截图。
+**Table T2 — Head-to-head performance on the same Liu 2023 cold-seep subset (200 MAG × 30 sample)**
+[**⚠️ placeholder values — Task 3b actual benchmark execution pending**]：
+
+| Task | EnvMeta | Anvi'o | Krona | MicrobiomeAnalyst |
+|---|---|---|---|---|
+| **PCoA on β-diversity** |
+| Wall time (s) | TBD | n/a (not native) | n/a | TBD (web) |
+| Peak RSS (MB) | TBD | n/a | n/a | n/a (web) |
+| User operation count | TBD | n/a | n/a | TBD (uploads + clicks) |
+| Output formats | PNG/PDF/SVG/TIFF | — | — | PNG/PDF |
+| Reproducible script | ✅ .py | partial | — | — |
+| **KO heatmap** |
+| Wall time (s) | TBD | TBD | n/a | TBD (web) |
+| Peak RSS (MB) | TBD | TBD | n/a | n/a (web) |
+| **Hierarchical taxonomy HTML** |
+| Wall time (s) | TBD (stackplot proxy) | n/a | TBD | TBD (sunburst) |
+| Output size (KB) | TBD | n/a | TBD | n/a (web) |
+| Offline-capable | ✅ | partial | ✅ | ❌ |
+| **Setup overhead** |
+| First-time install (min) | < 5 (pip) | 30-60 (conda + DBs) | 5-10 (conda) | 0 (web) |
+| Input prep (min) | 0 (KO/abund 直接) | 60-120 (需 contigs.db) | 5 (TSV) | 5 (CSV upload) |
+
+##### 5.2.9.3 Figure F10 schema — Visual head-to-head comparison
+
+**Figure F10**：6-panel head-to-head — 同一份 Liu 2023 子集 + 同一分析（如 PCoA
+of β-diversity），在不同工具中的最佳输出：
+- A) EnvMeta（PCoA + 95% CI ellipse + PERMANOVA p）
+- B) Anvi'o（如可执行的等价输出）
+- C) Krona（hierarchical taxonomy 等价输出）
+- D) MicrobiomeAnalyst Web 平台（PCoA 输出）
+- E) **EnvMeta 独家**：元素循环图（无可比，标为 unique）
+- F) **EnvMeta 独家**：假说评分卡 + null_p 分布（无可比，标为 unique）
+
+每 panel 加 caption：工具名 + 操作步数 + 输出格式 + wall time。
+
+**Source**：[`paper/benchmarks/external/tools_comparison/`](../benchmarks/external/tools_comparison/)（待 Task 3b 实测后 figures 生成）+
+[`paper/tool_comparison.md`](../tool_comparison.md)（v1 framing 文档）。
 
 ---
 
@@ -697,11 +762,262 @@ scoring + Bundle + offline HTML"。
 
 ---
 
-### 5.4 Methods（~1500-2000 words / 可放附录）
+### 5.4 Methods（~2200-2800 words / GPB v2 新增 §5.4.0 算法框架节）
 
-1. **文件识别模块**（300 words）
-   - 11 FileType 表头规则匹配 + 反向索引
-   - abundance 分 MAG/TAXON 两档（confidence 0.95 / 0.88）
+> **GPB v2 重要变更**：新增 §5.4.0 Algorithmic Framework 节作为 Methods 首段，
+> 用 formal pseudocode + 时间复杂度分析 + Equation 1 weight-of-evidence 公式建立**算法贡献**，
+> 然后 §5.4.1-§5.4.7（旧 §5.4 的 1-7 条）作为**实现细节**叙述。这是 GPB 审稿人最关键的差异化要求
+> （vs iMeta tool paper 标准多了 algorithm formalization 这一项）。
+
+#### 5.4.0 Algorithmic Framework — Hierarchical Weight-of-Evidence MCDA
+
+##### Notation
+
+**Table N1 — Symbols and parameters**
+
+| Symbol | Meaning | Default value |
+|---|---|---|
+| 𝒢 = {g₁, …, g_M} | Set of M MAGs (genomes) | — |
+| 𝒮 = {s₁, …, s_N} | Set of N samples | — |
+| 𝒦 = {k₁, …, k_K} | Set of K KO target IDs | 57 (KB v2.0) |
+| 𝒫 = {p₁, …, p_P} | Set of P element-cycle pathways | 18 |
+| 𝒞 = {c₁, …, c_C} | Set of C user claims (YAML) | varies |
+| ℰ = {e₁, …, e_J} | Set of J environmental factors | varies (1-14) |
+| **A** ∈ ℝ^(M×N) | MAG abundance matrix | input |
+| **K** ∈ {0,1}^(M×K) | KO presence matrix | input |
+| τ₁ < τ₂ < τ₃ | Three pathway-completeness thresholds | (0.4, 0.5, 0.6) |
+| α | Permutation count | 999 |
+| δ | Weight perturbation magnitude | ±0.20 |
+| θ_strong | Strong-label threshold | 0.75 |
+| θ_suggestive | Suggestive-label threshold | 0.40 |
+| ε | Saltelli weight-robustness band | 0.05 |
+| η_min_dominance | Minimum dominance fraction (pathway_active claim) | 0.20 |
+
+##### Framework overview
+
+The framework consumes inputs (**A**, **K**, claim YAML 𝒞, environmental factors ℰ)
+and emits, for each claim c ∈ 𝒞, a five-tuple diagnostic:
+
+> **D(c) = (score, weight_robust_score, null_p, evidence_count, confidence_label)**
+
+The pipeline composes three algorithmic stages — **S1** compositional debiasing
+with three-threshold top-1 contributor sensitivity scanning, **S2** Fisher
+999-permutation null calibration, and **S3** weighted-sum MCDA scoring with
+Bradford-Hill required-veto and Saltelli ±δ one-at-a-time sensitivity. Each
+stage's output is independently inspectable downstream, supporting
+reproducibility audit at every intermediate quantity.
+
+##### Algorithm 1 — Master pipeline
+
+```
+Algorithm 1: EnvMeta hierarchical weight-of-evidence evaluation
+Input:  A (M×N abundance), K (M×K KO matrix), 𝒞 (claims),
+        ℰ (env factors), θ (thresholds), α (= 999), δ (= 0.20)
+Output: { D(c) : c ∈ 𝒞 } where D(c) = (score, weight_robust, null_p,
+        evidence_count, confidence_label)
+
+ 1: function Evaluate(A, K, 𝒞, ℰ, θ, α, δ)
+ 2:     (K′, S1_sens) ← S1_Debias(A, K, τ₁, τ₂, τ₃)           ▷ Algorithm 2
+ 3:     R ← {}                                                  ▷ S2 results table
+ 4:     for each pathway p ∈ 𝒫 do
+ 5:         for each env factor e ∈ ℰ do
+ 6:             (ρ_obs, perm_p) ← S2_PermP(completeness(p,K′), e, α)   ▷ Algorithm 3
+ 7:             tier ← TierLabel(ρ_obs, perm_p)                ▷ 5-tier: strong/suggestive/weak/spurious?/unknown
+ 8:             R[(p, e)] ← (ρ_obs, perm_p, tier)
+ 9:         end for
+10:     end for
+11:     D ← {}
+12:     for each claim c ∈ 𝒞 do
+13:         D[c] ← S3_ScoreClaim(c, K′, R, S1_sens, θ, α, δ)   ▷ Algorithm 4
+14:     end for
+15:     return D
+16: end function
+```
+
+##### Algorithm 2 — S1: Compositional debiasing with three-threshold sensitivity scan
+
+```
+Algorithm 2: S1 — CLR debias + 3-threshold top-1 contributor robustness
+Input:  A (M×N abundance), K (M×K KO), τ₁ < τ₂ < τ₃ completeness thresholds
+Output: K′ debiased KO matrix; S1_sens robustness record
+
+ 1: function S1_Debias(A, K, τ₁, τ₂, τ₃)
+ 2:     A_clr ← CLR(A)                                          ▷ Aitchison centered-log-ratio (Aitchison 1986)
+ 3:     K′ ← K                                                  ▷ binary presence unchanged
+ 4:     S1_sens ← {}
+ 5:     for each pathway p ∈ 𝒫 do
+ 6:         top_contrib ← []
+ 7:         for each threshold τ ∈ {τ₁, τ₂, τ₃} do
+ 8:             contributors_τ ← argmax_{g ∈ 𝒢}
+ 9:                              [ A_clr[g, ·] · 𝟙(completeness(p, K[g, ·]) ≥ τ) ]
+10:             top_contrib.append(contributors_τ)
+11:         end for
+12:         S1_sens[p] ← (|unique(top_contrib)| == 1)            ▷ True = same top-1 across all 3 thresholds (robust)
+13:     end for
+14:     return K′, S1_sens
+15: end function
+```
+
+**Interpretation**: S1 does not modify the KO matrix itself; it produces a
+**per-pathway robustness flag** indicating whether the identity of the top-1
+contributor MAG is stable under three completeness threshold choices. Pathways
+flagged S1_sens = False are reported with reduced confidence downstream (this
+is the "S1 去偏" semantic), exposing one of the three evidential uncertainties
+named in §5.1.
+
+##### Algorithm 3 — S2: Fisher 999-permutation null calibration
+
+```
+Algorithm 3: S2 — Spearman correlation with permutation p-value
+Input:  x, y paired vectors of length n; α permutation count
+Output: ρ_obs ∈ [-1, 1]; perm_p ∈ (0, 1]
+
+ 1: function S2_PermP(x, y, α)
+ 2:     ρ_obs ← Spearman(x, y)                                  ▷ rank-based correlation
+ 3:     count ← 0
+ 4:     for j = 1 to α do
+ 5:         y_shuffled ← UniformShuffle(y)
+ 6:         ρ_j ← Spearman(x, y_shuffled)
+ 7:         if |ρ_j| ≥ |ρ_obs| then count ← count + 1
+ 8:     end for
+ 9:     perm_p ← (count + 1) / (α + 1)                          ▷ Fisher exact permutation (Anderson 2001)
+10:     return ρ_obs, perm_p
+11: end function
+```
+
+**Time per call**: O(α × N log N) for the Spearman ranking inside each
+permutation. With default α = 999 and N = 30-100 samples typical of MAG
+studies, single (p, e) evaluation costs ~10 ms.
+
+##### Algorithm 4 — S3: MCDA scoring with Bradford-Hill required-veto + Saltelli ±δ
+
+```
+Algorithm 4: S3 — Weighted-sum MCDA scoring with required-veto and weight robustness
+Input:  claim c, K′ (debiased KO), R (S2 results), S1_sens, θ, α, δ
+Output: D(c) = (score, weight_robust, null_p, evidence_count, confidence_label)
+
+ 1: function S3_ScoreClaim(c, K′, R, S1_sens, θ, α, δ)
+ 2:     {(s_i, w_i, type_i, required_i)} ← ParseYAML(c)         ▷ extract subclaims
+ 3:     subclaim_scores ← []
+ 4:     for each subclaim i in c.claims do
+ 5:         s_i ← EvaluateSubclaim(type_i, K′, R, S1_sens, θ)   ▷ ∈ [0, 1]; supports 6 claim types
+ 6:         subclaim_scores.append((s_i, w_i, required_i))
+ 7:     end for
+ 8:     evidence_count ← |{i : s_i > 0}|
+ 9:     
+10:     ▷ ── Bradford-Hill required-veto:
+11:     if ∃ i : required_i = true ∧ s_i = 0 then
+12:         return D(c) ← (NaN, NaN, NaN, evidence_count, "INSUFFICIENT")
+13:     end if
+14:     
+15:     ▷ ── Weighted-sum score:
+16:     W ← Σ_i w_i
+17:     score ← (Σ_i s_i × w_i) / W                             ▷ ∈ [0, 1]
+18:     
+19:     ▷ ── Saltelli ±δ one-at-a-time weight sensitivity:
+20:     weight_robust ← score
+21:     for each i ∈ {1, …, |subclaims|} do
+22:         for ±sign ∈ {+, -} do
+23:             w_i′ ← w_i × (1 ± δ)
+24:             W′ ← W − w_i + w_i′
+25:             score′ ← (Σ_{j≠i} s_j × w_j + s_i × w_i′) / W′
+26:             weight_robust ← min(weight_robust, score′)
+27:         end for
+28:     end for
+29:     
+30:     ▷ ── Null calibration (claim-entity shuffle):
+31:     count ← 0
+32:     for j = 1 to α do
+33:         𝒞_shuffled ← ShuffleClaimEntities(c)                ▷ randomly reassign claim targets
+34:         score_j ← (Σ_i s_i(𝒞_shuffled) × w_i) / W
+35:         if score_j ≥ score then count ← count + 1
+36:     end for
+37:     null_p ← (count + 1) / (α + 1)                          ▷ shuffle-consistency diagnostic (not frequentist p)
+38:     
+39:     ▷ ── Confidence label per Equation 1:
+40:     confidence_label ← LabelAssign(score, weight_robust, null_p, evidence_count, θ)
+41:     
+42:     return (score, weight_robust, null_p, evidence_count, confidence_label)
+43: end function
+```
+
+##### Equation 1 — Weight-of-evidence confidence label assignment
+
+The five-tier confidence label is assigned via the decision rule:
+
+```
+              ⎧ STRONG         if score ≥ θ_strong  ∧ weight_robust ≥ θ_strong − ε
+              ⎪                                     ∧ null_p < 0.05
+              ⎪ SUGGESTIVE     if θ_suggestive ≤ score < θ_strong
+              ⎪                                     ∧ weight_robust ≥ θ_suggestive
+label(c)  =  ⎨ WEAK           if 0 < score < θ_suggestive
+              ⎪ INSUFFICIENT   if any required claim vetoed   ▷ Bradford-Hill veto branch
+              ⎩ UNKNOWN        if evidence_count = 0           ▷ no usable sub-claim
+```                                                                                 (1)
+
+with default θ_strong = 0.75 (clinical-epidemiology "strong evidence"
+convention), θ_suggestive = 0.40 (Bradford-Hill consistency threshold),
+ε = 0.05 (Saltelli weight-robustness band), and α = 999 (Fisher permutation
+count following Anderson 2001 PERMANOVA convention). All thresholds are
+pre-registered with cryptographic anchoring (OpenTimestamps: Todd 2016,
+[paper/manuscript/timestamps/](timestamps/) directory) and grounded in
+conventional clinical-epidemiology and environmental risk-assessment literature
+(Hill 1965; Linkov et al. 2009; Rhomberg et al. 2010; Suter & Cormier 2011).
+We treat `null_p` explicitly as a **shuffle-consistency diagnostic**, not as a
+frequentist p-value, given the discrete and granular nature of the
+4-9-subclaim YAML score distribution (Methods §5.4.8.1).
+
+##### Time complexity analysis
+
+Let M = #MAGs, N = #samples, P = #active pathways, J = #env factors,
+C = #claims with |c| ≈ 4-9 subclaims each, α = #permutations (default 999).
+
+**Table N2 — Per-stage time complexity**
+
+| Stage | Operation | Asymptotic cost |
+|---|---|---|
+| S1 CLR | M × N abundance transform | O(M × N) |
+| S1 sensitivity scan | 3 thresholds × P pathways × M MAGs | O(3 × M × P) |
+| S2 permutation null (per cell) | α × Spearman(N) | O(α × N log N) |
+| S2 full table | P × J × O(α × N log N) | **O(P × J × α × N log N)** |
+| S3 per-claim weighted-sum | \|c\| subclaims | O(\|c\|) |
+| S3 Saltelli ±δ | 2 × \|c\| reweights | O(\|c\|²) |
+| S3 null calibration | α shuffles × \|c\| reeval | O(α × \|c\|²) |
+| S3 full | C × O(α × \|c\|²) | **O(C × α × \|c\|²)** |
+
+**Total**: **O(P × J × α × N log N + C × α × \|c\|²) + O(M × N)**.
+
+The cost is dominated by **S2 permutation** (P × J × α × N log N) under
+default α = 999, scaling with **environmental factor breadth and pathway
+count, not MAG count**. This matches the 58-cell performance benchmark
+(§5.2.8): 200 → 1000 MAGs added only +24% runtime at fixed P, J, α, since
+cycle_diagram cost is largely N_MAG-independent. The pipeline runs comfortably
+on standard laptops (~30-120 s for typical PhD-scale metagenomes).
+
+##### Reproducibility audit invariants
+
+Each diagnostic **D(c)** exposes **five independently auditable quantities**
+(`score`, `weight_robust_score`, `null_p`, `evidence_count`, `confidence_label`).
+A downstream reader inspecting D(c) can independently verify:
+
+1. **score's robustness to weight perturbation** via `weight_robust_score`
+   (Saltelli ±20% one-at-a-time minimum);
+2. **null-distribution mass** via `null_p` (claim-entity shuffle-consistency);
+3. **sub-claim evidential coverage** via `evidence_count`;
+
+— all **without re-running the analysis**. The framework persists these
+five quantities in machine-readable form (JSON in EnvMeta's HTML export,
+TSV via `envmeta evaluate-yaml`), enabling third-party reviewer audit. This
+five-quantity audit invariant is the core reproducibility contribution of
+the framework, distinguishing it from narrative-reasoning workflows that
+expose only a final qualitative judgment.
+
+---
+
+#### 5.4.1 文件识别模块（300 words）
+
+- 11 FileType 表头规则匹配 + 反向索引
+- abundance 分 MAG/TAXON 两档（confidence 0.95 / 0.88）
 
 2. **14 图分析引擎**（300 words）
    - reads-based / MAG-based / cycle 三类引擎
