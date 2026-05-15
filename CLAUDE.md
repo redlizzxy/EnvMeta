@@ -213,12 +213,29 @@ Microbiology）。开发时持续积累：
 4. **开发日志量化**：每次日志加一行量化数据（代码行数、验证结果、耗时对比），
    写入 [DEBUG_NOTES.md](DEBUG_NOTES.md)
 
-## 当前进度（2026-05-11，v0.9.1 + deployment hardening）
+## 当前进度（2026-05-15，v0.10 GPB-targeted draft + bioRxiv ready）
 
-**v0.9.1 — Paper 3 投稿核心证据 + 写作素材全部就位**：
-- Phase 0-3 全部完成 + Paper 3 Methods/Results/Discussion 三段全套草稿 ready
-- 测试 **301/301 全绿**（+4 pathway_inactive + 4 dominance_score 测试）
-- **12 种分析图表 + 独立交互 HTML + 6 类 claim 假说评分器（含 dominance_score）**
+**v0.10 — Paper 3 GPB-targeted bioRxiv 初稿就绪**（2026-05-14 ~ 2026-05-15 session）：
+- **4 篇论文 v2 投稿计划锁定**（详见 [`software/master/4_papers_master_plan_2026-05.md`](software/master/4_papers_master_plan_2026-05.md)）：
+  P1 BITEB→**Waste Management** (Q2/5) / P2 ES&T→**ISME J** (Q1/15) /
+  P3 iMeta→**GPB + SoftwareX 兜底** (Q1/15→Q3/3) / P4 RESB→**Microbiological Research** (Q2/5)
+- **Paper 3 v0.10 GPB-targeted draft 完整**（commit `35730e8`）：
+  - GPB reframing：Title / Highlights / Abstract / Intro v2 重写为 "hierarchical
+    weight-of-evidence MCDA framework with reference implementation EnvMeta"（[`outline_gpb.md`](paper/manuscript/outline_gpb.md) 1375 行）
+  - Methods §4.0 Algorithmic Framework：4 算法伪代码 + Notation N1 + Equation 1
+    weight-of-evidence label assignment + Time complexity Table N2
+  - bioRxiv-ready manuscript：[`manuscript_v0.10_gpb_draft.md`](paper/manuscript/manuscript_v0.10_gpb_draft.md)
+    （1389 行 / 10370 字） + [`manuscript_v0.10_gpb_draft.docx`](paper/manuscript/manuscript_v0.10_gpb_draft.docx)（1.94 MB / TOC + 图嵌入）
+  - 9 figures：4 placeholders 已生成（F1/F5/F6/F10 in [`paper/figures/bioRxiv_v0.10/`](paper/figures/bioRxiv_v0.10/)）+
+    4 现有 figures 复用 proxy（F2 mockup_03 / F3 mockup_10 / F4 cal_vs_stress / F7 liu cycle）+ F8 scaling_curve + S_pert
+  - References 48 Vancouver 条目（4 calibration DOI verified：Wei 2024 / Liu 2023 /
+    Grettenberger 2021 / Ayala 2020）
+  - Tools comparison methodology：[`paper/benchmarks/external/tools_comparison/methodology.md`](paper/benchmarks/external/tools_comparison/methodology.md)
+    Type A 共享 + Type B 独家矩阵；Task 3b Windows blocker（Krona NTFS / Anvi'o
+    无 FASTA）caveat 已 honest 文档化，WSL2 后续补
+- **Paper 1 v5.7.2 outline 完整** + audit/ledger 双文件 + F 核实清单（并行 session
+  完成；详见 `software/papers/paper1_reads_arsenic/paper1_progress.md`）
+- 测试 **301/301 全绿**
 - 更新日志见 [CHANGELOG.md](CHANGELOG.md)
 
 ### 已完成（按架构层分组）
