@@ -4,7 +4,8 @@
 > 1. 我的数据规模适合用本地 EnvMeta 吗？需要什么硬件？
 > 2. 我的实验设计（分组数 / 样本数）能正常跑通哪些图？
 >
-> 数据来源：[`paper/benchmarks/performance.md`](../paper/benchmarks/performance.md) 的实测 benchmark
+> 数据来源：58-cell 实测 benchmark — Paper 3 投稿后发布 Zenodo DOI，本地
+> archive 见 `software/papers/paper3_envmeta/paper_archive/benchmarks/performance.md`
 > （Windows 10 / 16 GB RAM / Intel i7 笔记本 / Python 3.11）。
 > 最近更新：2026-05-09 (v0.9.1)
 
@@ -160,4 +161,6 @@ Streamlit 的 session 是短期的（关掉重开就清）。要保存：
 
 ## 8. 如何复现这些数据
 
-完整流程见 [`paper/benchmarks/performance.md` §8](../paper/benchmarks/performance.md#8-reproducing-this-benchmark)。
+完整流程随 Paper 3 Fork Bundle 发布；本地完整版见
+`software/papers/paper3_envmeta/paper_archive/benchmarks/performance.md` §8
+"Reproducing this benchmark"。

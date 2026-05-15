@@ -204,7 +204,7 @@ NAVIGATOR: list[dict] = [
                      "priority": 1},
                 ],
                 "required_files": ["ko_annotation_long"],
-                "tip": "需准备 YAML 假说文件（参考 paper/hypotheses/ 示例）；配 Fork Bundle 一键复现",
+                "tip": "需准备 YAML 假说文件（schema 见 docs/hypothesis_writing_guide.md）；配 Fork Bundle 一键复现",
             },
             {
                 "q": "跨组元素循环有什么差异？",

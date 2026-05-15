@@ -53,22 +53,39 @@ envmeta/
 │   ├── data_preparation_zh.md     # 上游工具 → EnvMeta 输入映射
 │   ├── install_for_beginners.md   # 小白安装指南
 │   └── legacy/                    # 早期 EnvMeta 文档（INSTALL / 项目细化方案 v1）
-├── paper/                         # EnvMeta 方法学论文素材（开源）
-│   ├── manuscript/                # 论文稿件
-│   ├── benchmarks/                # 验证数据 + 效率对比
-│   ├── bundles/                   # 论文 Fork Bundle 示例
-│   ├── hypotheses/                # 假说 YAML 示例
-│   ├── figures/                   # EnvMeta app 截图 + mockup
-│   ├── tool_comparison.md
-│   └── user_study/                # 评测问卷设计 + 海报 + 部署指南
 ├── tests/
 │   ├── sample_data/               # 论文精简数据（首页一键加载）
-│   └── test_*.py                  # 293 case 全绿
+│   └── test_*.py                  # 301 case 全绿（部分 archive-dependent 测试在公开 clone 上 skip）
 ├── scripts/                       # EnvMeta KB CLI 工具
 │   ├── build_kegg_snapshot.py     # KB 重建 CLI（envmeta kb-build）
 │   └── seed_ko_list.json          # KB 种子 KO 列表
 └── requirements.txt
 ```
+
+**Paper 3 manuscript + 验证素材**已归档到本地 `software/`（gitignored），不再
+同步到 GitHub（2026-05-15 整理）：
+
+```
+software/papers/paper3_envmeta/paper_archive/    # ← 原 paper/ 全部内容
+├── manuscript/                    # 24+ 文件（outline_gpb / manuscript v0.10 docx / mock_reviews v0.9.1-5 / methods/results/discussion drafts / cover letter）
+├── benchmarks/
+│   ├── external/                  # Wei/Liu/Grettenberger/Ayala 4-arm 验证 + perturbation + threshold_sensitivity + tools_comparison
+│   ├── performance/               # 58-cell scaling benchmark + scaling_curve
+│   ├── validation/                # R-side 对照（11 图）
+│   ├── r_comparison/              # R / vegan 数值对齐
+│   ├── time_comparison.md
+│   └── performance.md
+├── figures/                       # mockups + screenshots + paper3_hypothesis_scoring + bioRxiv_v0.10 placeholders
+├── hypotheses/                    # arsenic_steel_slag.yaml + schema docs（tests/docs 通过 skip-if-missing 优雅降级）
+├── bundles/                       # 论文 Fork Bundle 示例
+├── user_study/                    # 评测问卷设计 + 海报 + 部署指南
+└── tool_comparison.md
+```
+
+**关于历史 commits**：v0.10 GPB draft（`35730e8`）+ deployment 期间的 paper/*
+内容仍在 GitHub 历史 commits 中可见（`paper/manuscript/manuscript_v0.10_gpb_draft.md`
+等）。要彻底擦除需 `git filter-repo` + force-push（破坏 fork / 不可逆），暂未执行；
+当前操作只防止**新 commit** 同步 Paper 3 内容。
 
 **学位论文（课题）资产**位于本地 `d:\workdata\envmeta_thesis\`（非 git repo），
 与本仓库严格分离：

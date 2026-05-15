@@ -12,7 +12,15 @@ from envmeta.tools.bundle import (
 )
 
 SAMPLE_KB = Path("envmeta/geocycle/knowledge_base/elements.json")
-SAMPLE_HYP = Path("paper/hypotheses/arsenic_steel_slag.yaml")
+SAMPLE_HYP = Path("software/papers/paper3_envmeta/paper_archive/hypotheses/arsenic_steel_slag.yaml")
+
+pytestmark = pytest.mark.skipif(
+    not SAMPLE_HYP.exists(),
+    reason=(
+        "Sample YAML archived under software/ (gitignored). Not bundled in "
+        "public GitHub clones — see CLAUDE.md for the paper3 archive layout."
+    ),
+)
 
 
 # ── 基础 round-trip ─────────────────────────────────────────

@@ -37,10 +37,11 @@ data/
 # 行政材料 / 软著 / 项目申报 / 期刊评价等机构内部文档（本地保留，不入公开仓库）
 software/
 
-# 用户问卷原始数据（含邮箱 / 姓名 / IP，不入公开仓库）
-# README.md 在该目录是说明文件，单独豁免
-paper/user_study/raw/*
-!paper/user_study/raw/README.md
+# Paper 3 manuscript + benchmarks + figures 已统一归档到本地私有
+# software/papers/paper3_envmeta/paper_archive/（2026-05-15 整理）。
+# paper/ 不再同步到 GitHub。下方所有 paper/* 条目作为防御性规则保留：
+# 万一未来误在仓库根新建 paper/，仍然不被追踪。
+paper/
 
 # 图形输出
 figures/
@@ -49,21 +50,6 @@ figures/
 *.tiff
 *.svg
 !FINAL_reference_card.png
-# paper/ 下的图是论文资产，必须入库（先豁免目录再豁免文件）
-!paper/figures/
-!paper/**/*.png
-!paper/**/*.pdf
-!paper/**/*.svg
-!paper/**/*.tiff
-
-# 例外：paper/benchmarks/validation/ 下的 TIFF 是原研究 Python 脚本输出的
-# 出版级图（240MB / 700MB 超 GitHub 100MB 限制），PDF/PNG 已足够论文 SI 用
-paper/benchmarks/validation/**/*.tiff
-
-# 第三方公开数据集 reshape 后的 EnvMeta 输入（受原 license 限制不入仓库）
-# CC BY-NC-ND 4.0 等 NoDerivatives license 禁止 redistribute derivative work
-# 复现路径：用户本地下载原 supplementary → 运行 tools/external_benchmarks/*_reshape.py
-paper/benchmarks/external/*/input_data_local/
 
 # R
 .Rhistory

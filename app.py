@@ -2462,7 +2462,7 @@ elif page == "生物地球化学循环图":
                             "- `config/cycle_params.yaml`: 分析参数\n\n"
                             "## 更多信息\n\n"
                             "见 [EnvMeta 主仓库](https://github.com/redlizzxy/EnvMeta)"
-                            " 的 `paper/bundles/README.md`。\n"
+                            " 的 `docs/` 目录与发布版 Bundle 内置 README。\n"
                         )
                     kegg_path = (
                         _kegg_default_path
@@ -2545,10 +2545,13 @@ elif page == "生物地球化学循环图":
             st.caption(
                 "上传一份机制假说 YAML，对照本次循环图推断结果评分。"
                 "评分是**描述性证据加权**，不是因果证实。"
-                "Schema 说明见 `paper/hypotheses/README.md`。"
+                "Schema 速查表见 [`docs/hypothesis_writing_guide.md`](https://github.com/redlizzxy/EnvMeta/blob/master/docs/hypothesis_writing_guide.md)。"
             )
             _render_interpretation_expander("hypothesis_score", key="interp_hypothesis_score")
-            _tmpl = (Path("paper") / "hypotheses" / "arsenic_steel_slag.yaml")
+            _tmpl = (
+                Path("software") / "papers" / "paper3_envmeta" / "paper_archive"
+                / "hypotheses" / "arsenic_steel_slag.yaml"
+            )
             if _tmpl.exists():
                 st.download_button(
                     "⬇️ 下载示例 YAML (arsenic_steel_slag)",
@@ -3094,12 +3097,12 @@ elif page == "导出中心":
             ("docs/data_preparation_zh.md",
              "📥 数据准备指南（中文）",
              "11 种上游工具 → EnvMeta 映射 + 格式样板 + FAQ"),
-            ("paper/tool_comparison.md",
+            ("software/papers/paper3_envmeta/paper_archive/tool_comparison.md",
              "🏆 工具对比表",
-             "EnvMeta vs Shiny-phyloseq / Anvi'o / plotmicrobiome / MicrobiomeAnalyst（18 维度）"),
-            ("paper/benchmarks/time_comparison.md",
+             "EnvMeta vs Shiny-phyloseq / Anvi'o / plotmicrobiome / MicrobiomeAnalyst（18 维度；archived locally）"),
+            ("software/papers/paper3_envmeta/paper_archive/benchmarks/time_comparison.md",
              "⏱️ 操作效率对比",
-             "14 图 × 传统脚本行数/步骤/耗时 vs EnvMeta"),
+             "14 图 × 传统脚本行数/步骤/耗时 vs EnvMeta（archived locally）"),
             ("README.md",
              "📖 README",
              "项目说明 + 快速开始"),

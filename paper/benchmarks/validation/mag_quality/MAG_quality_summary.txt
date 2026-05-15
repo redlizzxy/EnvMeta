@@ -1,4 +1,0 @@
-Quality	Count	Completeness_mean	Completeness_range	Contamination_mean	Contamination_range	Genome_Size_mean_Mb
-High	35	95.4	90.1-100.0	2.33	0.20-4.92	3.7
-Medium	111	76.2	51.3-100.0	4.60	0.21-9.89	3.3
-Low	22	62.0	38.6-97.1	8.62	0.68-19.40	3.7

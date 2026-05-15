@@ -17,6 +17,17 @@ from envmeta.geocycle.inference import infer
 SAMPLE = Path(__file__).parent / "sample_data"
 FAST_PARAMS = {"perm_n": 99}
 
+ARCHIVED_HYP = Path(
+    "software/papers/paper3_envmeta/paper_archive/hypotheses/arsenic_steel_slag.yaml"
+)
+_archived_hyp_missing = pytest.mark.skipif(
+    not ARCHIVED_HYP.exists(),
+    reason=(
+        "Sample YAML archived under software/ (gitignored). Not bundled in "
+        "public GitHub clones — see CLAUDE.md for the paper3 archive layout."
+    ),
+)
+
 
 @pytest.fixture
 def cycle_inputs():
@@ -564,10 +575,11 @@ def test_group_contrast_in_claim_types_whitelist():
 
 # ── S3.5: validate CLI ─────────────────────────────────────────
 
+@_archived_hyp_missing
 def test_validator_accepts_good_yaml():
     """示例 YAML 应 0 errors 0 warnings (KB 里所有引用都存在)."""
     from envmeta.tools.hypothesis_validator import validate_file
-    result = validate_file("paper/hypotheses/arsenic_steel_slag.yaml")
+    result = validate_file(str(ARCHIVED_HYP))
     assert result["errors"] == []
     assert result["warnings"] == []
 
@@ -614,11 +626,12 @@ def test_score_by_groups_returns_per_group_rows(cycle_inputs):
                                        "insufficient"})
 
 
+@_archived_hyp_missing
 def test_score_by_groups_interpretation_distinguishes_specificity(cycle_inputs):
     """真实数据下 B 组 interpretation 应明显区别于 CK/A（论文 Results 素材）。"""
     from envmeta.analysis.hypothesis_compare import score_by_groups
     ko, tax, ks, ab, env, md = cycle_inputs
-    hyp = load_hypothesis("paper/hypotheses/arsenic_steel_slag.yaml")
+    hyp = load_hypothesis(str(ARCHIVED_HYP))
     df = score_by_groups(
         hyp, ko, tax, ks, ab, env, md,
         params={**FAST_PARAMS, "env_rho_min": 0.3, "env_p_max": 0.1},

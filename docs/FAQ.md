@@ -87,8 +87,9 @@
 - 或下载论文 **Fork Bundle**（投稿时发布的 Zenodo DOI），含完整 KB / YAML /
   config / 数据，一键加载。
 
-外部数据集（Liu 2023 / Grettenberger 2021 / Ayala 2020 等）见
-`paper/benchmarks/external/{dataset}/input_data_local/`。
+外部数据集（Liu 2023 / Grettenberger 2021 / Ayala 2020 等）数据 + 假说 YAML
+随 Paper 3 Fork Bundle 发布（投稿后 Zenodo DOI）；本地完整 archive 见
+`software/papers/paper3_envmeta/paper_archive/benchmarks/external/`（仅作者本机）。
 
 ---
 
